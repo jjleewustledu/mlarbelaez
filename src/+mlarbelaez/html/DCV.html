@@ -1,0 +1,303 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>DCV</title><meta name="generator" content="MATLAB 8.4"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2014-11-08"><meta name="DC.source" content="DCV.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#5">PRIVATE</a></li></ul></div><pre class="codeinput"><span class="keyword">classdef</span> DCV &lt; mlarbelaez.AbstractCatheterCurve
+</pre><pre class="codeinput"><span class="comment">	%% DCV objectifies Snyder-Videen *.dcv files, replacing the first two count measurements with the third,</span>
+    <span class="comment">%  adding hand-measured counts at the end for assessment of detector drift</span>
+
+	<span class="comment">%  $Revision$</span>
+ 	<span class="comment">%  was created $Date$</span>
+ 	<span class="comment">%  by $Author$,</span>
+ 	<span class="comment">%  last modified $LastChangedDate$</span>
+ 	<span class="comment">%  and checked into repository $URL$,</span>
+ 	<span class="comment">%  developed on Matlab 8.3.0.532 (R2014a)</span>
+ 	<span class="comment">%  $Id$</span>
+
+    properties (Constant)
+        EXTENSION = <span class="string">'.dcv'</span>
+    <span class="keyword">end</span>
+
+	properties (Dependent)
+        header
+        headerString
+        extraSamples
+    <span class="keyword">end</span>
+
+    methods <span class="comment">%% GET</span>
+        <span class="keyword">function</span> h = get.header(this)
+            assert(~isempty(this.header_) &amp;&amp; isstruct(this.header_));
+            h = this.header_;
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> s = get.headerString(this)
+            assert(~isempty(this.header_) &amp;&amp; isstruct(this.header_));
+            s = this.header.string;
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> s = get.extraSamples(this)
+            s = [];
+            <span class="keyword">if</span> (length(this.times)*this.dt &gt; this.scanDuration)
+                endScan = ceil(this.scanDuration/this.dt);
+                t = this.times(endScan+1:end);
+                c = this.counts(endScan+1:end);
+                s = {t c};
+            <span class="keyword">end</span>
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+
+	methods
+        <span class="keyword">function</span> this = save(this)
+            fid = fopen(this.filename, <span class="string">'w'</span>);
+            fprintf(fid, <span class="string">'%s\n'</span>, this.headerString);
+            <span class="keyword">for</span> f = 1:length(this.times)
+                fprintf(fid, <span class="string">'%9.1f\t%14.1f\n'</span>, this.times(f), this.counts(f));
+            <span class="keyword">end</span>
+            fclose(fid);
+
+            <span class="comment">%dlmwrite(this.filename, round([this.times' this.counts']), '-append', 'delimiter', '\t');</span>
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> this = updateEarlyCounts(this, c)
+            tmp = this.counts;
+            tmp(1:length(c)) = c;
+            this.counts = tmp;
+        <span class="keyword">end</span>
+  		<span class="keyword">function</span> this = DCV(varargin)
+</pre><pre class="codeinput"><span class="comment"> 			%% DCV</span>
+ 			<span class="comment">%  Usage:  this = DCV(studyId_string[, path_string])</span>
+
+            p = inputParser;
+            addRequired(p, <span class="string">'studyId'</span>,       @ischar);
+            addOptional(p, <span class="string">'pathname'</span>, pwd, @ischar);
+            parse(p, varargin{:});
+
+            this.studyId  = p.Results.studyId;
+            this.pathname = p.Results.pathname;
+            <span class="keyword">if</span> (lexist(this.filename))
+                this = this.readdcv;
+            <span class="keyword">end</span>
+</pre><pre class="codeoutput error">Error using mlarbelaez.DCV (line 66)
+Not enough input arguments.
+</pre><pre class="codeinput">        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+</pre><h2>PRIVATE<a name="5"></a></h2><pre class="codeinput">    properties (Access = <span class="string">'private'</span>)
+        header_ <span class="comment">% struct</span>
+        HEADER_EXPRESSION_ = <span class="keyword">...</span>
+            [<span class="string">'(?&lt;clock&gt;\d+:\d+)\s+(?&lt;samples&gt;\d+)\s+(?&lt;n1&gt;\d+.\d+)\s+(?&lt;n2&gt;\d+.\d+)\s+'</span> <span class="keyword">...</span>
+             <span class="string">'WELLF=\s*(?&lt;wellf&gt;\d+.\d+)\s+T0=\s*(?&lt;t0&gt;\d+.\d+)\s+K1=\s*(?&lt;k1&gt;\d+.\d+)\s+E=\s*(?&lt;e&gt;\d*.\d+)\s+NSMO=\s*(?&lt;nsmo&gt;\d+)\s+'</span> <span class="keyword">...</span>
+             <span class="string">'(?&lt;filename&gt;\w+.\w+)'</span>]
+        <span class="comment">% matches contents similar to:</span>
+        <span class="comment">% '2:19       121  0.0000  28.4  WELLF= 22.7400 T0= 3.66 K1= 0.331 E=.087 NSMO= 2  p8425ho2.crv        '</span>
+    <span class="keyword">end</span>
+
+    methods (Access = <span class="string">'private'</span>)
+        <span class="keyword">function</span> this = readdcv(this)
+            fid = fopen(this.filename);
+            this.header_ = this.readHeader(fid);
+            ts = textscan(fid, <span class="string">'%f %f'</span>, <span class="string">'Delimiter'</span>, <span class="string">' '</span>, <span class="string">'MultipleDelimsAsOne'</span>, true);
+            this.times = ts{1}';
+            this.counts = ts{2}';
+            fclose(fid);
+        <span class="keyword">end</span>
+        <span class="keyword">function</span> h    = readHeader(this, fid)
+            str = textscan(fid, <span class="string">'%s'</span>, 1, <span class="string">'Delimiter'</span>, <span class="string">'\n'</span>);
+            str = str{1}; str = str{1};
+            h   = regexp(str, this.HEADER_EXPRESSION_, <span class="string">'names'</span>);
+
+            h.string  = str;
+            h.samples = uint8(str2double(h.samples));
+            h.n1      = str2double(h.n1);
+            h.n2      = str2double(h.n2);
+            h.wellf   = str2double(h.wellf);
+            h.t0      = str2double(h.t0);
+            h.k1      = str2double(h.k1);
+            h.e       = str2double(h.e);
+            h.nsmo    = uint8(str2double(h.nsmo));
+        <span class="keyword">end</span>
+    <span class="keyword">end</span>
+
+	<span class="comment">%  Created with Newcl by John J. Lee after newfcn by Frank Gonzalez-Morphy</span>
+</pre><pre class="codeinput"><span class="keyword">end</span>
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2014b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+classdef DCV < mlarbelaez.AbstractCatheterCurve	
+	%% DCV objectifies Snyder-Videen *.dcv files, replacing the first two count measurements with the third,
+    %  adding hand-measured counts at the end for assessment of detector drift
+
+	%  $Revision$ 
+ 	%  was created $Date$ 
+ 	%  by $Author$,  
+ 	%  last modified $LastChangedDate$ 
+ 	%  and checked into repository $URL$,  
+ 	%  developed on Matlab 8.3.0.532 (R2014a) 
+ 	%  $Id$ 
+
+    properties (Constant)
+        EXTENSION = '.dcv'
+    end 
+    
+	properties (Dependent)
+        header
+        headerString
+        extraSamples
+    end 
+    
+    methods %% GET 
+        function h = get.header(this)
+            assert(~isempty(this.header_) && isstruct(this.header_));
+            h = this.header_;
+        end
+        function s = get.headerString(this)
+            assert(~isempty(this.header_) && isstruct(this.header_));
+            s = this.header.string;
+        end
+        function s = get.extraSamples(this)
+            s = [];
+            if (length(this.times)*this.dt > this.scanDuration)
+                endScan = ceil(this.scanDuration/this.dt);
+                t = this.times(endScan+1:end);
+                c = this.counts(endScan+1:end);
+                s = {t c};
+            end
+        end
+    end
+
+	methods 
+        function this = save(this)
+            fid = fopen(this.filename, 'w');
+            fprintf(fid, '%s\n', this.headerString);
+            for f = 1:length(this.times)
+                fprintf(fid, '%9.1f\t%14.1f\n', this.times(f), this.counts(f));
+            end
+            fclose(fid);
+            
+            %dlmwrite(this.filename, round([this.times' this.counts']), '-append', 'delimiter', '\t');
+        end
+        function this = updateEarlyCounts(this, c)
+            tmp = this.counts;
+            tmp(1:length(c)) = c;
+            this.counts = tmp;
+        end
+  		function this = DCV(varargin) 
+ 			%% DCV 
+ 			%  Usage:  this = DCV(studyId_string[, path_string]) 
+
+            p = inputParser;
+            addRequired(p, 'studyId',       @ischar);
+            addOptional(p, 'pathname', pwd, @ischar);
+            parse(p, varargin{:});
+            
+            this.studyId  = p.Results.studyId;
+            this.pathname = p.Results.pathname;
+            if (lexist(this.filename))
+                this = this.readdcv;
+            end
+        end         
+    end 
+    
+    %% PRIVATE
+    
+    properties (Access = 'private')
+        header_ % struct
+        HEADER_EXPRESSION_ = ...
+            ['(?<clock>\d+:\d+)\s+(?<samples>\d+)\s+(?<n1>\d+.\d+)\s+(?<n2>\d+.\d+)\s+' ...
+             'WELLF=\s*(?<wellf>\d+.\d+)\s+T0=\s*(?<t0>\d+.\d+)\s+K1=\s*(?<k1>\d+.\d+)\s+E=\s*(?<e>\d*.\d+)\s+NSMO=\s*(?<nsmo>\d+)\s+' ...
+             '(?<filename>\w+.\w+)']
+        % matches contents similar to:
+        % '2:19       121  0.0000  28.4  WELLF= 22.7400 T0= 3.66 K1= 0.331 E=.087 NSMO= 2  p8425ho2.crv        '
+    end
+    
+    methods (Access = 'private')
+        function this = readdcv(this)
+            fid = fopen(this.filename);
+            this.header_ = this.readHeader(fid);
+            ts = textscan(fid, '%f %f', 'Delimiter', ' ', 'MultipleDelimsAsOne', true);
+            this.times = ts{1}';
+            this.counts = ts{2}';
+            fclose(fid);
+        end
+        function h    = readHeader(this, fid)
+            str = textscan(fid, '%s', 1, 'Delimiter', '\n');
+            str = str{1}; str = str{1};
+            h   = regexp(str, this.HEADER_EXPRESSION_, 'names');
+            
+            h.string  = str;
+            h.samples = uint8(str2double(h.samples));
+            h.n1      = str2double(h.n1);
+            h.n2      = str2double(h.n2);
+            h.wellf   = str2double(h.wellf);
+            h.t0      = str2double(h.t0);
+            h.k1      = str2double(h.k1);
+            h.e       = str2double(h.e);
+            h.nsmo    = uint8(str2double(h.nsmo));
+        end
+    end
+
+	%  Created with Newcl by John J. Lee after newfcn by Frank Gonzalez-Morphy 
+end
+
+
+##### SOURCE END #####
+--></body></html>
