@@ -26,6 +26,7 @@ classdef AbstractCatheterCurve
         timesNoManual
         counts
         countsNoManual
+        length
     end 
     
     methods %% GET, SET
@@ -70,6 +71,9 @@ classdef AbstractCatheterCurve
             assert(isnumeric(c));
             this.counts_ = c;
         end
+        function l    = get.length(this)
+            l = min(length(this.times), length(this.counts));
+        end
     end
     
 	methods 
@@ -93,7 +97,7 @@ classdef AbstractCatheterCurve
                 sid = f;
             end
             if (~strcmp('p', sid(1))); tf = false; return; end
-            if (~lstrfind(sid, {'ho' 'oo' 'oc'})); tf = false; return; end
+            if (~lstrfind(sid, {'ho' 'oo' 'oc' 'g'})); tf = false; return; end
             if ( isnan(str2double(sid(2:5)))); tf = false; return; end
         end
     end

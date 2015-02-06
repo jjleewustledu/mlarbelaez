@@ -91,7 +91,9 @@ classdef DCV < mlarbelaez.AbstractCatheterCurve
             ts = textscan(fid, '%f %f', 'Delimiter', ' ', 'MultipleDelimsAsOne', true);
             this.times = ts{1}';
             this.counts = ts{2}';
-            fclose(fid);
+            fclose(fid);            
+            
+            this.scanDuration = this.times(end);
         end
         function h    = readHeader(this, fid)
             str = textscan(fid, '%s', 1, 'Delimiter', '\n');

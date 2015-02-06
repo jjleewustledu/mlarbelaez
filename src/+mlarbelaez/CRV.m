@@ -57,7 +57,9 @@ classdef CRV < mlarbelaez.AbstractCatheterCurve
             this.times  = tab.Var1';
             this.counts = tab.Var2';
             this.counts(1) = this.counts(3);            
-            this.counts(2) = this.counts(3);
+            this.counts(2) = this.counts(3);            
+            
+            this.scanDuration = this.times(end);
         end
     end
 
