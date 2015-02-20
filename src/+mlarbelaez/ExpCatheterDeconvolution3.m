@@ -12,7 +12,7 @@ classdef ExpCatheterDeconvolution3 < mlaif.AbstractAifProblem & mlarbelaez.Abstr
     properties 
         xLabel    = 'time/s'
         yLabel    = 'counts'
-        studyId
+        fileprefix
         response
     end
     
@@ -22,7 +22,7 @@ classdef ExpCatheterDeconvolution3 < mlaif.AbstractAifProblem & mlarbelaez.Abstr
     
     methods %% GET
         function bt = get.baseTitle(this)
-            bt = sprintf('%s DCCRV', this.studyId);
+            bt = sprintf('%s DCCRV', this.fileprefix);
         end
     end
 	
@@ -82,7 +82,7 @@ classdef ExpCatheterDeconvolution3 < mlaif.AbstractAifProblem & mlarbelaez.Abstr
             title(sprintf('%s, large catheter response', this.baseTitle))
             xlabel('time/s')
             ylabel(sprintf('counts rescaled by %f, %f', max(this.dependentData), max(this.response)))
-            legend([this.studyId ' DCCRV'], 'catheter response')
+            legend([this.fileprefix ' DCCRV'], 'catheter response')
         end
         function         plotEstimate(this)
             if (~this.PLOT_ESTIMATE)
@@ -94,7 +94,7 @@ classdef ExpCatheterDeconvolution3 < mlaif.AbstractAifProblem & mlarbelaez.Abstr
             title(sprintf('%s, Bayesian DCCRV, Bayesian DCV', this.baseTitle))
             xlabel('time/s')
             ylabel('counts')
-            legend([this.studyId ' DCCRV'], 'Bayesian DCCRV', 'Bayesian DCV')
+            legend([this.fileprefix ' DCCRV'], 'Bayesian DCCRV', 'Bayesian DCV')
         end
         
   		function this  = ExpCatheterDeconvolution3(varargin)
@@ -102,12 +102,12 @@ classdef ExpCatheterDeconvolution3 < mlaif.AbstractAifProblem & mlarbelaez.Abstr
  			%  Usage:  this = CatheterDeconvolution([dccrv,response]) 
  			
             p = inputParser;
-            addRequired(p, 'dccrv',    @(x) isa(x, 'mlarbelaez.DecayCorrectedCRV'));
+            addRequired(p, 'dccrv',    @(x) isa(x, 'mlpet.DecayCorrectedCRV'));
             addRequired(p, 'response', @isnumeric);
             parse(p, varargin{:});
             
             this.dependentData   = p.Results.dccrv.counts;
-            this.studyId         = p.Results.dccrv.studyId;
+            this.fileprefix         = p.Results.dccrv.fileprefix;
             this.independentData = 0:length(this.dependentData)-1;
             this.response        = this.ensureNormalizedResponse(p.Results.response);             
  		end 

@@ -57,18 +57,18 @@ classdef CatheterAnalysis < mlarbelaez.AbstractCatheterAnalysis
         
         function data  = recoverHeavisides
             assertFolder('data 2014jul17');
-            studyIds = {'AMAtest4' 'AMAtest5' 'AMAtest6' 'AMAtest7'};
+            fileprefixes = {'AMAtest4' 'AMAtest5' 'AMAtest6' 'AMAtest7'};
             hctsScan = [34 38 44 44];
             %doseScan = [41 84 85 85];           
-            data = cell(1,length(studyIds));
+            data = cell(1,length(fileprefixes));
             
             import mlarbelaez.*;
-            parfor d = 1:length(studyIds)
+            parfor d = 1:length(fileprefixes)
                 try
-                    fprintf('CatheterAnalysis.recoverHeavisides:  running %s.....\n', studyIds{d});
+                    fprintf('CatheterAnalysis.recoverHeavisides:  running %s.....\n', fileprefixes{d});
                     data{d} = CatheterAnalysis.modelDeconvByBayes( ...
                         hctsScan(d), ...
-                        studyIds{d});
+                        fileprefixes{d});
                 catch ME
                     handwarning(ME);
                 end
@@ -85,19 +85,19 @@ classdef CatheterAnalysis < mlarbelaez.AbstractCatheterAnalysis
              
             p = inputParser;
             addRequired(p, 'Hct',           @isnumeric);
-            addRequired(p, 'studyId',       @ischar);
+            addRequired(p, 'fileprefix',       @ischar);
             addOptional(p, 'pathname', pwd, @(x) lexist(x, 'dir'));
             parse(p, varargin{:});
             
-            import mlarbelaez.*;
+            import mlarbelaez.* mlpet.*;
             pwd0 = pwd;
             cd(p.Results.pathname);
-            assert(lexist([p.Results.studyId '.crv']));
+            assert(lexist([p.Results.fileprefix '.crv']));
             dccrv = DecayCorrectedCRV( ...
-                    CRV(p.Results.studyId));
-            assert(lexist([p.Results.studyId '.dcv']));
-            dcv = DCV(p.Results.studyId);
-            system(sprintf('mv -f %s.dcv %s.dcv.bak', p.Results.studyId, p.Results.studyId));                 
+                    CRV(p.Results.fileprefix));
+            assert(lexist([p.Results.fileprefix '.dcv']));
+            dcv = DCV(p.Results.fileprefix);
+            system(sprintf('mv -f %s.dcv %s.dcv.bak', p.Results.fileprefix, p.Results.fileprefix));                 
             response = StretchedExpResponse.empiricalResponse(p.Results.Hct, CatheterAnalysis.timeInterpolants);
                  
             cathd = CatheterDeconvolution(dccrv, response); 
@@ -135,24 +135,24 @@ classdef CatheterAnalysis < mlarbelaez.AbstractCatheterAnalysis
         function [dccrv, dcv, modeledDeconv] = modelBetadcvDeconvByBayes(this, varargin)
             
             p = inputParser;
-            addRequired(p, 'studyId',       @ischar);
+            addRequired(p, 'fileprefix',       @ischar);
             addOptional(p, 'pathname', pwd, @(x) lexist(x, 'dir'));
             parse(p, varargin{:});
             
-            import mlarbelaez.*;
+            import mlarbelaez.* mlpet.*;
             dccrv0 = DecayCorrectedCRV( ...
-                     CRV(p.Results.studyId, p.Results.pathname));
+                     CRV(p.Results.fileprefix, p.Results.pathname));
             assert(lexist(fullfile(this.pwdAmaTests, 'ecr7.mat')));
             load(         fullfile(this.pwdAmaTests, 'ecr7.mat'));            
             cathd         = BetadcvCatheterDeconvolution(dccrv0, ecr7.estimateExpBetadcv); 
             modeledDeconv = cathd.estimateParameters;
             
             dccrv         = dccrv0;
-            dccrv.studyId = sprintf('%s_bayes', dccrv0.studyId);
+            dccrv.fileprefix = sprintf('%s_bayes', dccrv0.fileprefix);
             dccrv.counts  = modeledDeconv.estimateDccrv;
             
-            dcv           = DCV(p.Results.studyId);
-            dcv.studyId   = sprintf('%s_bayes', dcv.studyId);
+            dcv           = DCV(p.Results.fileprefix);
+            dcv.fileprefix   = sprintf('%s_bayes', dcv.fileprefix);
             counts        = dcv.counts;
             counts2       = modeledDeconv.estimateDcv;
             counts(1:modeledDeconv.length-4) = counts2(1:modeledDeconv.length-4);

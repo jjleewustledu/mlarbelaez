@@ -30,7 +30,7 @@ classdef LegacyCatheterAnalysis < mlarbelaez.AbstractCatheterAnalysis
             %% MODELRESPONSEBYBAYES
             %  Usage:  [response, CatheterResponse_object] = this.modelResponseByBayes;
             
-            import mlarbelaez.*;
+            import mlarbelaez.* mlpet.*;
             cd(this.pwdLegacyPET);
             cr = mlarbelaez.LegacyCatheterResponse( ...
                 DCV('p7413ho1'), ...
@@ -64,24 +64,24 @@ classdef LegacyCatheterAnalysis < mlarbelaez.AbstractCatheterAnalysis
         function [dccrv, dcv, modeledDeconv] = modelDeconvByBayes(this, varargin)
             
             p = inputParser;
-            addRequired(p, 'studyId',       @ischar);
+            addRequired(p, 'fileprefix',       @ischar);
             addOptional(p, 'pathname', pwd, @(x) lexist(x, 'dir'));
             parse(p, varargin{:});
             
-            import mlarbelaez.*;
+            import mlarbelaez.* mlpet.*;
             dccrv0 = DecayCorrectedCRV( ...
-                     CRV(p.Results.studyId, p.Results.pathname));
+                     CRV(p.Results.fileprefix, p.Results.pathname));
             assert(lexist(fullfile(this.pwdSrc, this.modeledResponseMat)));
             load(         fullfile(this.pwdSrc, this.modeledResponseMat));            
             cathd         = CatheterDeconvolution(dccrv0, modeledResponse.estimateData); 
             modeledDeconv = cathd.estimateParameters;
             
             dccrv         = dccrv0;
-            dccrv.studyId = sprintf('%s_bayes', dccrv0.studyId);
+            dccrv.fileprefix = sprintf('%s_bayes', dccrv0.fileprefix);
             dccrv.counts  = modeledDeconv.estimateDccrv;
             
-            dcv           = DCV(p.Results.studyId);
-            dcv.studyId   = sprintf('%s_bayes', dcv.studyId);
+            dcv           = DCV(p.Results.fileprefix);
+            dcv.fileprefix   = sprintf('%s_bayes', dcv.fileprefix);
             counts        = dcv.counts;
             counts2       = modeledDeconv.estimateDcv;
             counts(1:modeledDeconv.length-4) = counts2(1:modeledDeconv.length-4);
@@ -91,24 +91,24 @@ classdef LegacyCatheterAnalysis < mlarbelaez.AbstractCatheterAnalysis
         function [dccrv, dcv, modeledDeconv] = modelBetadcvDeconvByBayes(this, varargin)
             
             p = inputParser;
-            addRequired(p, 'studyId',       @ischar);
+            addRequired(p, 'fileprefix',       @ischar);
             addOptional(p, 'pathname', pwd, @(x) lexist(x, 'dir'));
             parse(p, varargin{:});
             
-            import mlarbelaez.*;
+            import mlarbelaez.* mlpet.*;
             dccrv0 = DecayCorrectedCRV( ...
-                     CRV(p.Results.studyId, p.Results.pathname));
+                     CRV(p.Results.fileprefix, p.Results.pathname));
             assert(lexist(fullfile(this.pwdAmaTests, 'ecr7.mat')));
             load(         fullfile(this.pwdAmaTests, 'ecr7.mat'));            
             cathd         = BetadcvCatheterDeconvolution(dccrv0, ecr7.estimateExpBetadcv); 
             modeledDeconv = cathd.estimateParameters;
             
             dccrv         = dccrv0;
-            dccrv.studyId = sprintf('%s_bayes', dccrv0.studyId);
+            dccrv.fileprefix = sprintf('%s_bayes', dccrv0.fileprefix);
             dccrv.counts  = modeledDeconv.estimateDccrv;
             
-            dcv           = DCV(p.Results.studyId);
-            dcv.studyId   = sprintf('%s_bayes', dcv.studyId);
+            dcv           = DCV(p.Results.fileprefix);
+            dcv.fileprefix   = sprintf('%s_bayes', dcv.fileprefix);
             counts        = dcv.counts;
             counts2       = modeledDeconv.estimateDcv;
             counts(1:modeledDeconv.length-4) = counts2(1:modeledDeconv.length-4);
@@ -117,7 +117,7 @@ classdef LegacyCatheterAnalysis < mlarbelaez.AbstractCatheterAnalysis
         end   
         function response                    = estimateResponseByFFT(this)
             
-            import mlarbelaez.*;            
+            import mlarbelaez.* mlpet.*;            
             cd(this.pwdLegacyPET);
             
             dcv   = DCV('p7413ho1');

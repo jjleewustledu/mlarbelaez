@@ -60,9 +60,9 @@ classdef BetadcvCatheterResponse < mlaif.AbstractAifProblem & mlarbelaez.Abstrac
  			%% CATHETERRESPONSE 
  			%  Usage:  this = CatheterResponse(amatests_decoy_corrected_CRV) 
  			
-            assert(isa(amatest_crv, 'mlarbelaez.CRV'));
-            import mlarbelaez.*;
-            this.betadcv         = Betadcv2(amatest_crv.studyId);
+            assert(isa(amatest_crv, 'mlpet.CRV'));
+            import mlarbelaez.* mlpet.*;
+            this.betadcv         = Betadcv2(amatest_crv.fileprefix);
             dccrv                = DecayCorrectedCRV(amatest_crv);
             this.dependentData   = this.smoothPeristalsis(dccrv.counts);  
             this.independentData = 0:length(this.dependentData)-1;

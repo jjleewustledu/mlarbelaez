@@ -64,8 +64,8 @@ classdef LegacyCatheterResponse < mlaif.AbstractVectorAifProblem & mlarbelaez.Ab
  			%% LEGACYCATHETERRESPONSE 
  			%  Usage:  this = LegacyCatheterResponse(DCV_object, DecoyCorrectedCRV_object) 
  			
-            assert(isa(dcv,   'mlarbelaez.DCV'));
-            assert(isa(dccrv, 'mlarbelaez.DecayCorrectedCRV'));
+            assert(isa(dcv,   'mlpet.DCV'));
+            assert(isa(dccrv, 'mlpet.DecayCorrectedCRV'));
             assert(this.DCV_END - this.DCV_START == this.DCCRV_END - this.DCCRV_START);
             
             this.dcv = dcv;

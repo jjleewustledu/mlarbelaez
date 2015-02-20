@@ -38,7 +38,7 @@ classdef Betadcv3
         isotope = 1
         Hct = 44
         
-        studyId_
+        fileprefix_
         crv_
         dcv_
         response_
@@ -48,7 +48,7 @@ classdef Betadcv3
         crvName
         dcvName
         dataLength
-        studyId
+        fileprefix
         crv
         dcv
         response
@@ -56,17 +56,17 @@ classdef Betadcv3
     
     methods %% GET
         function n = get.crvName(this)
-            n = [this.studyId_ '.crv'];
+            n = [this.fileprefix_ '.crv'];
         end
         function n = get.dcvName(this)
-            n = [this.studyId_ '.dcv'];
+            n = [this.fileprefix_ '.dcv'];
         end
         function n = get.dataLength(this)
             n = min(length(this.crv_), length(this.dcv_));
         end
-        function x = get.studyId(this)
-            assert(~isempty(this.studyId_));
-            x = this.studyId_;
+        function x = get.fileprefix(this)
+            assert(~isempty(this.fileprefix_));
+            x = this.fileprefix_;
         end
         function x = get.crv(this)
             assert(~isempty(this.crv_));
@@ -270,10 +270,10 @@ classdef Betadcv3
  			%  Usage:  this = Betadcv3('p1234ho1')  			 
             
             p = inputParser;
-            addOptional(p, 'studyId', 'AMAtest6', @ischar);
+            addOptional(p, 'fileprefix', 'AMAtest6', @ischar);
             parse(p, varargin{:});
             
-            this.studyId_ = p.Results.studyId;
+            this.fileprefix_ = p.Results.fileprefix;
             this = this.readcrv;
             this = this.readdcv;
             %load('/Users/jjlee/Local/src/mlcvl/mlarbelaez/src/+mlarbelaez/respMean240.mat');
@@ -282,15 +282,15 @@ classdef Betadcv3
     end 
     
     methods (Static)
-        function this                = plotDeNovoDeconv(studyId)
-            this = mlarbelaez.Betadcv2(studyId);          
+        function this                = plotDeNovoDeconv(fileprefix)
+            this = mlarbelaez.Betadcv2(fileprefix);          
             
             crv  = this.normalizeCurve(this.crv_);
-            dcv  = this.deNovoDeconv(studyId);
+            dcv  = this.deNovoDeconv(fileprefix);
             this.makePlot([ crv dcv this.respMean240_ ], '(de novo)');  
         end
-        function [deconv,this]       = deNovoDeconv(studyId)  
-            this = mlarbelaez.Betadcv2(studyId);
+        function [deconv,this]       = deNovoDeconv(fileprefix)  
+            this = mlarbelaez.Betadcv2(fileprefix);
             assert(lexist(this.crvName, 'file'));
             
             crv  = this.normalizeCurve(this.crv_);
@@ -300,8 +300,8 @@ classdef Betadcv3
             this.dcv_ = this.dcv_(1:length(this.crv_));
             deconv = this.dcv_;
         end
-        function this                = plotExistingDeconv(studyId)
-            this = mlarbelaez.Betadcv2(studyId);
+        function this                = plotExistingDeconv(fileprefix)
+            this = mlarbelaez.Betadcv2(fileprefix);
             assert(lexist(this.dcvName, 'file'));
             
             crv  = this.normalizeCurve(this.crv_);
@@ -310,21 +310,21 @@ classdef Betadcv3
                              ifft(fft(crv) ./ fft(dcv)));
             this.makePlot([ crv dcv this.response_ ], '(FFT)');              
         end
-        function this                = plotAMAtest(studyId)
-            if (~exist('studyId', 'var'))
-                studyId = 'AMAtest6'; % Hct = 38% 
+        function this                = plotAMAtest(fileprefix)
+            if (~exist('fileprefix', 'var'))
+                fileprefix = 'AMAtest6'; % Hct = 38% 
             end
             
-            [resp,crv,dcv,this] = responseAMAtest(studyId);
+            [resp,crv,dcv,this] = responseAMAtest(fileprefix);
             this.makePlot([ crv dcv resp ], '(diff)'); 
         end
-        function [resp,crv,dcv,this] = responseAMAtest(studyId)
-            if (~exist('studyId', 'var'))
-                studyId = 'AMAtest6'; % Hct = 38% 
+        function [resp,crv,dcv,this] = responseAMAtest(fileprefix)
+            if (~exist('fileprefix', 'var'))
+                fileprefix = 'AMAtest6'; % Hct = 38% 
             end
             pwd0 = pwd;
             cd('/Users/jjlee/Local/src/mlcvl/mlarbelaez/src/+mlarbelaez');            
-            this = mlarbelaez.Betadcv2(studyId);                
+            this = mlarbelaez.Betadcv2(fileprefix);                
             
             crv  = this.normalizeCurve(this.crv_);
             dcv  = this.normalizeCurve(this.dcv_);            
@@ -385,7 +385,7 @@ classdef Betadcv3
             legend({ sprintf('crv/%g',            max(abs(this.crv_))); ...
                      sprintf('dcv/%g',            max(abs(this.dcv_))); ...
                      sprintf('response/%g %s', max(abs(this.response_)), respAnnot) });
-            title(this.studyId_, 'FontSize', 16); 
+            title(this.fileprefix_, 'FontSize', 16); 
         end
     end
     

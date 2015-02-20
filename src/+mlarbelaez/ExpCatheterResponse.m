@@ -48,7 +48,7 @@ classdef ExpCatheterResponse < mlaif.AbstractAifProblem & mlarbelaez.AbstractCat
  			%% CATHETERRESPONSE 
  			%  Usage:  this = CatheterResponse(amatests_decoy_corrected_CRV) 
  			
-            assert(isa(amatest_dccrv, 'mlarbelaez.DecayCorrectedCRV'));
+            assert(isa(amatest_dccrv, 'mlpet.DecayCorrectedCRV'));
             this.dependentData   = this.smoothPeristalsis(amatest_dccrv.counts);  
             this.independentData = 0:length(this.dependentData)-1;
  		end 

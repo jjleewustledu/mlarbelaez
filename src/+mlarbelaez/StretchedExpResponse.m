@@ -64,11 +64,10 @@ classdef StretchedExpResponse < mlaif.AbstractAifProblem
  			%% STRETCHEDEXPRESPONSE 
  			%  Usage:  this = StretchedExpResponse(convoluted, unconvoluted) % DecayCorrectedCRVs
  			
-            assert(isa(dccrv2, 'mlarbelaez.DecayCorrectedCRV'));
-            assert(isa(dccrv1, 'mlarbelaez.DecayCorrectedCRV') || isa(dccrv1, 'mlarbelaez.DCV'));
-            assert(length(dccrv2.countsNoManual) == length(dccrv1.countsNoManual));
+            assert(isa(dccrv2, 'mlpet.DecayCorrectedCRV'));
+            assert(isa(dccrv1, 'mlpet.DecayCorrectedCRV') || isa(dccrv1, 'mlpet.DCV'));
+            assert(length(dccrv2.counts) == length(dccrv1.counts));
             
-            import mlarbelaez.*;
             this.dccrv2 = dccrv2;
             this.dccrv1 = dccrv1;
             this.dependentData = dccrv2.counts;  
@@ -160,7 +159,7 @@ classdef StretchedExpResponse < mlaif.AbstractAifProblem
                 this.finalParams('c2'),   this.finalParams('t0'), this.finalParams('tau'));
         end
         function c  = estimateConvolutionFast(this, beta, c0, c1, c2, t0, tau)
-            c = conv(this.stretchedExp(beta, c0, c1, c2, t0, tau), this.dccrv1.countsNoManual);
+            c = conv(this.stretchedExp(beta, c0, c1, c2, t0, tau), this.dccrv1.countInterpolants);
             c = c(1:this.length);
         end
         function se = estimateStretchedExp(this)
