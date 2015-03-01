@@ -1,5 +1,5 @@
-classdef FourCompartments < mlbayesian.AbstractMcmcProblem 
-	%% FOURCOMPARTMENTS   
+classdef Bayesian4Compartments < mlbayesian.AbstractMcmcProblem 
+	%% BAYESIAN4COMPARTMENTS   
 
 	%  $Revision$ 
  	%  was created $Date$ 
@@ -17,14 +17,15 @@ classdef FourCompartments < mlbayesian.AbstractMcmcProblem
         response
         showPlots = false
         
-        VB % fractional blood volume
-        Ca % arterial tracer density
+        parmax
+        avpar
  	end 
     
     properties (Dependent)
         baseTitle
         dt
-        timeInterpolants
+        VB % fractional blood volume
+        Ca % arterial tracer density
     end
     
     methods %% GET, SET
@@ -34,50 +35,35 @@ classdef FourCompartments < mlbayesian.AbstractMcmcProblem
         function d = get.dt(this)
             d = this.simulator_.dt;
         end
-        function t = get.timeInterpolants(this)
-            t = this.simulator_.timeInterpolants;
+        function d = get.VB(this)
+            d = this.simulator_.VB;
+        end
+        function d = get.Ca(this)
+            d = this.simulator_.Ca;
         end
     end	
 
     methods (Static)
-        function this = prepareSimulator
+        function this = runChecksAgainstSimulator
             %% PREPARESIMULATOR
-            %  Usage:  this = prepareSimulator
-            %          this.estimateParameters
-            %          this.estimateData
+            %  Usage:  this = runChecksAgainstSimulator
             
-            import mlarbelaez.*;            
-            sim     = FourCompartmentsSimulator;            
-            this    = FourCompartments(sim.timeInterpolants, sim.Q);
-            this.VB = sim.VB;
-            this.Ca = sim.Ca;
-        end
-        function this = prepareGlucnoflow(varargin)
-            %% PREPAREGLUCNOFLOW
-            %  Usage:  this = FourCompartments.prepareGlucnoflow(dta_object, tsc_object, VB)
-            %          this.estimateParameters
-            %          this.estimateData
-            
-            p = inputParser;
-            addRequired(p, 'dta', @(x) isa(x, 'mlpet.DTA'));
-            addRequired(p, 'tsc', @(x) isa(x, 'mlpet.TSC'));
-            addRequired(p, 'VB',  @(x) isnumeric(x) && x < 1);
-            parse(p, varargin{:});
-            
-            import mlarbelaez.FourCompartments;
-            timeInterpolants = interpolateTimes(p.Results.dta.times, p.Results.tsc.times);
-            this             = FourCompartments(timeInterpolants, p.Results.tsc.counts);
-            this.VB          = p.Results.VB;
-            this.Ca          = interpolateCounts(p.Results.dta.times, p.Results.dta.counts, timeInterpolants);
+            import mlarbelaez.*;
+            sim  = Bayesian4CompartmentsSimulator.simulateDefault;
+            Q    = sim.Q;
+            Q    = Q .* (Q > 0);
+            this = Bayesian4Compartments(sim, sim.timeInterpolants, Q);
+            this = this.estimateParameters;
         end
     end
     
 	methods 		  
- 		function this = FourCompartments(varargin) 
- 			%% FOURCOMPARTMENTS 
- 			%  Usage:  this = FourCompartments(times, counts) 
+ 		function this = Bayesian4Compartments(simulator, varargin) 
+ 			%% BAYESIAN4COMPARTMENTS 
+ 			%  Usage:  this = Bayesian4Compartments(Bayesian4CompartmentsSimulator_object, interpolated_times, interpolated_counts) 
                       
  			this = this@mlbayesian.AbstractMcmcProblem(varargin{:});
+            this.simulator_ = simulator;
         end 
         
         function this  = estimateParameters(this)
@@ -91,8 +77,16 @@ classdef FourCompartments < mlbayesian.AbstractMcmcProblem
             map('k21') = struct('fixed', 0, 'min', eps, 'mean', 1, 'max', 10);
             map('k32') = struct('fixed', 0, 'min', eps, 'mean', 1, 'max', 10);
             map('k43') = struct('fixed', 0, 'min', eps, 'mean', 1, 'max', 10);
-            map('t0' ) = struct('fixed', 1, 'min',   0, 'mean', 0, 'max',  0);
-            this = this.runMcmc(map);
+            map('t0' ) = struct('fixed', 1, 'min', eps, 'mean', eps, 'max', eps);
+            %this = this.runMcmc(map);
+            
+            this.paramsManager = BayesianParameters(map);            
+            this.mcmc          = MCMC(this, this.dependentData, this.paramsManager);
+            [this.parmax,this.avpar,this.mcmc] = this.mcmc.runMcmc; 
+        end
+        function sse  = sumSquaredErrors(this, p)
+            p   = num2cell(p);
+            sse = norm(this.dependentData - this.estimateQFast(p{:}));
         end
         function ed    = estimateData(this)
             ed = this.estimateQ;
@@ -130,23 +124,6 @@ classdef FourCompartments < mlbayesian.AbstractMcmcProblem
     
     properties (Access = 'protected')
         simulator_
-    end
-    
-    methods (Static, Access = 'protected')        
-        function [t,dt] = interpolateTimes(dtaTimes, tscTimes)
-            %% INTERPOLATETIMES to linear raster, as required for convolution
-            
-            t_last  = min(dtaTimes(end), tscTimes(end));
-            %dtaTaus = dtaTimes(2:end) - dtaTimes(1:end-1);
-            %tscTaus = tscTimes(2:end) - tscTimes(1:end-1);
-            %dt      = min([dtaTaus tscTaus])/2;            
-            dt      = 1;
-            t       = 0:dt:t_last; 
-        end
-        function c = interpolateCounts(times, counts, timeInterpolants)
-            c = spline(times, counts, timeInterpolants);
-            c = c(1:length(timeInterpolants));
-        end
     end
     
     methods (Access = 'protected')   

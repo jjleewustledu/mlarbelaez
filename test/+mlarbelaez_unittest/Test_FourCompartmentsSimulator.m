@@ -25,13 +25,20 @@ classdef Test_FourCompartmentsSimulator < matlab.unittest.TestCase
         function test_varyParameters(this)
             this.testObj.varyParameters('k21');
         end
+        function test_loadSession(this)            
+            import mlpet.* mlarbelaez.*;
+            dta_  = DTA.load('p5661g.dta');
+            tsc_  = TSC.import('p5661wb.tsc');
+ 			obj   = FourCompartmentsSimulator(dta_, tsc_);
+            this.assertEqual(this.testObj, obj);
+        end
  	end 
 
  	methods (TestClassSetup) 
  		function setupFourCompartmentsSimulator(this) 
             cd(this.unittest_home);
             import mlpet.* mlarbelaez.*;
-            dta_ = DTA.load('p5661cg1.dta');
+            dta_ = DTA.load('p5661g.dta');
             tsc_ = TSC.import('p5661wb.tsc');
  			this.testObj = FourCompartmentsSimulator(dta_, tsc_);
  		end 

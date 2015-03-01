@@ -17,7 +17,7 @@ classdef Glucnoflow
         pnumPath
         petIndex          % integer  
         isotope = '11C'
-        Bequerels = false % boolean for dividing by sampling durations of each time-frame to obtain 1/sec    
+        useBecquerels = false % boolean for dividing by sampling durations of each time-frame to obtain 1/sec    
         
         pie = 4.88;
         kinit = [0.6 0.6 0.02 3]; % initial guesses for [k21 k12 k32 k43]
@@ -99,7 +99,7 @@ classdef Glucnoflow
                 for idx = 1:2
                     fprintf('process %i is working with %s and pet index %i\n', d, dns{d}, idx);
                     try
-                        hand(dns{d}, idx); %#ok<PFBNS>
+                        hand(dns{d}, idx);
                     catch ME
                         handwarning(ME);
                     end
@@ -241,7 +241,7 @@ classdef Glucnoflow
                     taus( 1:30) = 2;
                     taus(31:NN) = 6;
 
-                    if (this.Bequerels)
+                    if (this.useBecquerels)
                         scaling = [2 6]; %#ok<*UNRCH> % duration of sampling
                     else
                         scaling = [1 1];
@@ -273,7 +273,7 @@ classdef Glucnoflow
                     taus(41:48) = 180;
                     taus(49:NN) = 240;        
 
-                    if (this.Bequerels)
+                    if (this.useBecquerels)
                         scaling = [30 60 120 180 240]; % duration of sampling
                     else
                         scaling = [1 1 1 1 1];
@@ -298,7 +298,7 @@ classdef Glucnoflow
             times   = times(1:sz(4));
             taus    = taus( 1:sz(4));
             nii.fileprefix = [nii.fileprefix '_decayCorrect'];
-            if (this.Bequerels)
+            if (this.useBecquerels)
                 nii.fileprefix = [nii.fileprefix '_Bq']; end
         end
         function counts = plotPet(this, nii, msk)
@@ -320,7 +320,7 @@ classdef Glucnoflow
             plot(counts);
             title([nii.fileprefix ' && ' msk.fileprefix], 'Interpreter', 'none');
             xlabel('time-frame/arbitrary');
-            if (~this.Bequerels); ylabel('counts/time-frame');
+            if (~this.useBecquerels); ylabel('counts/time-frame');
             else                  ylabel('activity/Bq'); end
         end
         function counts = printTsc(this, fqfn, label, counts, mask)
