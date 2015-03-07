@@ -11,7 +11,7 @@ classdef GluTxlsx
  	 
 
 	properties  		 
-        glut_xlsx = '~/Documents/WUSTL/Arbelaez/GluT/GluT de novo, JJL, 2014nov19.xlsx'
+        glut_xlsx = '/Volumes/PassportStudio2/Arbelaez/GluT/GluT de novo, JJL, 2014nov19.xlsx'
         glut_sheet = 'GluT Data'
         pid_map
     end 
