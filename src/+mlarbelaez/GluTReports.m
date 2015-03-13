@@ -115,8 +115,8 @@ classdef GluTReports
 
             fid = fopen(fqfn, 'w');
             this.printCsvHeader(fid);
-            for p = 1:this.size(1)
-                for s = 1:this.size(2)
+            for s = 1:this.size(2)
+                for p = 1:this.size(1)
                     try
                         this.printCsvLine(fid, p, s);
                     catch ME

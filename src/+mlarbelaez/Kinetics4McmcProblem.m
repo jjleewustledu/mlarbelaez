@@ -107,7 +107,7 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
             map('k12') = struct('fixed', 0, 'min', 2e-3, 'mean', 0.00047967, 'max', 0.02);
             map('k21') = struct('fixed', 0, 'min', 0.04, 'mean', 0.034772,   'max', 0.09);
             map('k32') = struct('fixed', 0, 'min', 1e-3, 'mean', 0.0025173,  'max', 8);
-            map('k43') = struct('fixed', 1, 'min', 2e-4, 'mean', 0.00042528, 'max', 0.004);  
+            map('k43') = struct('fixed', 1, 'min', 2e-4, 'mean', 0.0002667, 'max', 3.8333e-4);  
             map('t0' ) = struct('fixed', 0, 'min',    0, 'mean', 30,         'max', 30);  
 
             this.paramsManager = BayesianParameters(map);
