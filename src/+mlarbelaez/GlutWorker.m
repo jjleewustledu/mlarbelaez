@@ -143,6 +143,24 @@ classdef GlutWorker
             end
             cd(pwd0);
         end
+        function [ks,kmps] = singleKinetics4(dirname)          
+            pwd0 = pwd;
+            [~,folder] = fileparts(pwd0);
+            assert(strcmp('GluT', folder));
+            ks   = cell(1,2);
+            kmps = cell(1,2);
+
+            pth = fullfile(pwd0, dirname, '');
+            fprintf('GlutWorker.loopKinetics4:  working in %s\n', pth);
+            for s = 1:2
+                try
+                    [ks{1,s},kmps{1,s}] = mlarbelaez.Kinetics4McmcProblem.run(pth, s);
+                catch ME
+                    handwarning(ME)
+                end
+            end
+            cd(pwd0);
+        end
  	end 
 
 	%  Created with Newcl by John J. Lee after newfcn by Frank Gonzalez-Morphy 
