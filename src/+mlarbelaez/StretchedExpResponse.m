@@ -10,8 +10,7 @@ classdef StretchedExpResponse < mlaif.AbstractAifProblem
  	%  developed on Matlab 8.3.0.532 (R2014a) 
  	%  $Id$ 
 
-    properties 
-        showPlots = true
+    properties
         baseTitle = 'PET AIF dispersed, delayed by catheter'
         xLabel    = 'time/s'
         yLabel    = 'counts'

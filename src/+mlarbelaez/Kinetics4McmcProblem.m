@@ -11,7 +11,6 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
  	%  $Id$ 
     
     properties
-        showPlots = true
         pnumber
         snumber
         baseTitle = 'Kinetics4McmcProblem'

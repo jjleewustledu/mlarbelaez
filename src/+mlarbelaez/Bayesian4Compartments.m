@@ -15,7 +15,6 @@ classdef Bayesian4Compartments < mlbayesian.AbstractMcmcProblem
         yLabel = 'counts'
         fileprefix = 'four_compartments'
         response
-        showPlots = false
         
         parmax
         avpar

@@ -14,7 +14,6 @@ classdef CatheterDeconvolution < mlaif.AbstractAifProblem & mlarbelaez.AbstractC
         yLabel    = 'counts'
         fileprefix
         response
-        showPlots = false
     end
     
     properties (Dependent)
