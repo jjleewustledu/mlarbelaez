@@ -30,13 +30,13 @@ classdef Betadcv3
             'O-15 Oxygen Steady-State Study (OO)'};
         halfLife = [122.1 597.8 1223 4100 6583.2 1e9]        
         sampleTime = 1 % Sample time (sec/bin)
-        wellFactor = 22.741
+        wellFactor = nan
         nSmoothing = 2
         catheterId = 1
         nExpand = 7
         scanType = 2
         isotope = 1
-        Hct = 44
+        Hct = 42
         
         fileprefix_
         crv_
@@ -276,6 +276,9 @@ classdef Betadcv3
             this.fileprefix_ = p.Results.fileprefix;
             this = this.readcrv;
             this = this.readdcv;
+            
+            crvObj = mlpet.CRV.load(this.crvName);
+            this.wellFactor = crvObj.wellFactor;
             %load('/Users/jjlee/Local/src/mlcvl/mlarbelaez/src/+mlarbelaez/respMean240.mat');
             %this.respMean240_ = respMean240;
  		end 
