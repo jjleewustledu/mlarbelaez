@@ -96,7 +96,7 @@ classdef GluTReports
 
                             this.MTT{p,s}      = 60 * this.V1{p,s} / this.F1{p,s};
                             this.Chi{p,s}      = this.K21{p,s} * this.K32{p,s} / (this.K12{p,s} + this.K32{p,s});
-                            this.UF{p,s}       = this.Chi{p,s} * this.MTT{p,s} / (1 + 0.835 * this.Chi{p,s} * this.MTT{p,s}) / 9.1;
+                            this.UF{p,s}       = this.Chi{p,s} * (this.MTT{p,s}/60) / (1 + 0.835 * this.Chi{p,s} * this.MTT{p,s}/60);
                             this.CMRglu{p,s}   = this.Chi{p,s} * this.Bloodglu{p,s} * this.V1{p,s};
                             this.KD{p,s}       = this.K21{p,s} * this.V1{p,s};
                             this.CTX{p,s}      = this.KD{p,s}  * this.Bloodglu{p,s};

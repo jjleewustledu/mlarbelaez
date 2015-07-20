@@ -47,21 +47,117 @@ classdef GlutWorker
             nii.img = nii.img > 0;
             nii.saveas('aparc_a2009s+aseg_mask.nii.gz');
         end
-        function flirtBrainFinalsurfs(snum)
+        function mcflirtGluc(snum)            
+            assert(isnumeric(snum));
+            pnum = str2pnum(pwd);
+            
+            import mlfourd.*;
+            dyn = DynamicNIfTId.load(sprintf('%sgluc%i.nii.gz', pnum, snum));
+            dyn = dyn.mcflirtedAfterBlur([16 16 16]);
+            dyn = dyn.revertFrames(NIfTId.load(sprintf('%sgluc%i.nii.gz', pnum, snum)), 1:5);
+            dyn.freeview;
+            dyn.save;
+            
+            dyn_summed = dyn;
+            dyn_summed = dyn_summed.timeSummed;
+            dyn_summed.save;
+        end
+        function timeSumGluc(snum)
+            assert(isnumeric(snum));
+            pnum = str2pnum(pwd);
+            
+            import mlfourd.*;
+            dyn_summed = DynamicNIfTId.load(sprintf('%sgluc%i_mcf_revf1to5.nii.gz', pnum, snum));
+            dyn_summed = dyn_summed.timeSummed;
+            dyn_summed.freeview;
+            dyn_summed.save;            
+        end
+        function flirtFreesurferImage(snum)
             %% FLIRTAPARC flirts aparc_a2009s+aseg_mask, then reviews registrations with fslview
             %  Usage:  glutWorker3() 
 
             assert(isnumeric(snum));
-            pnum     = str2pnum(pwd);
-            sumGluc  = sprintf('(sum)%sgluc%i_mcf', pnum, snum);
-            brain    = sprintf('brain_finalsurfs_on_%str%i', pnum, snum);
-            brainReg = sprintf('brain_finalsurfs_on_%sgluc%i_mcf', pnum, snum);
+            pnum      = str2pnum(pwd);
+            fsImage   = 'brain_finalsurfs';
+            revFrames = [1 5];
+            
+            sumGluc   = sprintf(      '%sgluc%i_mcf_revf%ito%i_sumt', pnum, snum, revFrames(1), revFrames(2));            
+            fsReg  = sprintf('%s_on_%sgluc%i', fsImage, pnum, snum);
 
             assert(lexist(sprintf('%s.nii.gz', sumGluc), 'file'));
-            assert(lexist(sprintf('%s.nii.gz', brain),   'file'));
+            assert(lexist(sprintf('%s.nii.gz', fsImage), 'file'));
 
-            system(sprintf('flirt -in %s -ref "%s" -out %s -omat %s.mat -bins 256 -cost normmi -dof 6 -interp trilinear', brain, sumGluc, brainReg, brainReg));
-            %system(sprintf('fslview %s_on_%s "%s"', brain, gluc, sumGluc));
+            system(sprintf('flirt -in %s -ref %s.nii.gz -out %s.nii.gz -omat %s.mat -bins 256 -cost normmi -dof 6 -interp trilinear', ...
+                            fsImage, sumGluc, fsReg, fsReg));
+            system(sprintf('freeview %s.nii.gz %s.nii.gz', fsReg, sumGluc));
+        end
+        function flirtFreesurferImage2(snum)
+            %% FLIRTAPARC flirts aparc_a2009s+aseg_mask, then reviews registrations with fslview
+            %  Usage:  glutWorker3() 
+
+            assert(isnumeric(snum));
+            pnum      = str2pnum(pwd);
+            revFrames = [1 5];
+            fsImage   = 'orig'; 
+            t1        = '001';
+            gluc      = sprintf('%sgluc%i', pnum, snum);            
+            fsReg_    = sprintf('%s_on_%s', fsImage, t1);
+            glucSumt  = sprintf(      '%s_mcf_revf%ito%i_sumt', gluc, revFrames(1), revFrames(2));  
+            t1Reg_    = sprintf('%s_on_%s', t1, glucSumt);          
+            fsReg     = sprintf('%s_on_%s', fsImage, gluc);
+            aparcMsk  = 'aparc_a2009s+aseg_mask';
+            aparcReg  = sprintf('%s_on_%s_mcf', aparcMsk, gluc);
+
+            assert(lexist(sprintf('%s.nii.gz', fsImage), 'file'));
+            assert(lexist(sprintf('%s.nii.gz', t1),      'file'));
+            assert(lexist(sprintf('%s.nii.gz', glucSumt), 'file'));
+            
+            system(sprintf('flirt -in %s -ref %s.nii.gz -out %s.nii.gz -omat %s.mat -bins 256 -cost normmi -dof 6 -interp trilinear', ...
+                            fsImage, t1, fsReg_, fsReg_));
+            system(sprintf('flirt -in %s -ref %s.nii.gz -out %s.nii.gz -omat %s.mat -bins 256 -cost normmi -dof 6 -interp trilinear', ...
+                            t1, glucSumt, t1Reg_, t1Reg_));
+            system(sprintf('convert_xfm -omat %s.mat -concat %s.mat %s.mat', fsReg, t1Reg_, fsReg_));            
+            system(sprintf('flirt -in %s -applyxfm -init %s.mat -out %s -paddingsize 0.0 -interp nearestneighbour -ref %s',  ...
+                            aparcMsk, fsReg, aparcReg, glucSumt));
+                        
+            system(sprintf('freeview %s.nii.gz %s.nii.gz', aparcReg, glucSumt));
+        end
+        function flirtFreesurferImage3(snum)
+            %% FLIRTAPARC flirts aparc_a2009s+aseg_mask, then reviews registrations with fslview
+            %  Usage:  glutWorker3() 
+
+            assert(isnumeric(snum));
+            pnum      = str2pnum(pwd);
+            revFrames = [1 5];
+            blur      = [10 10 10];
+            fsImage   = 'orig'; 
+            t1        = '001';
+            gluc      = sprintf('%sgluc%i', pnum, snum);            
+            fsReg_    = sprintf('%s_on_%s', fsImage, t1);
+            glucSumt  = sprintf('%s_mcf_revf%ito%i_sumt', gluc, revFrames(1), revFrames(2));  
+            t1Reg_    = sprintf('%s_on_%s', t1, glucSumt);          
+            fsReg     = sprintf('%s_on_%s', fsImage, gluc);
+            aparcMsk  = 'aparc_a2009s+aseg_mask';
+            aparcReg  = sprintf('%s_on_%s_mcf', aparcMsk, gluc);
+
+            assert(lexist(sprintf('%s.nii.gz', fsImage), 'file'));
+            assert(lexist(sprintf('%s.nii.gz', t1),      'file'));
+            assert(lexist(sprintf('%s.nii.gz', glucSumt), 'file'));
+            
+            dnii = mlfourd.DynamicNIfTId.load([glucSumt '.nii.gz']);
+            dnii = dnii.blurred(blur);
+            dnii.save;
+            glucSumtB = dnii.fileprefix;
+            
+            %system(sprintf('flirt -in %s -ref %s.nii.gz -out %s.nii.gz -omat %s.mat -bins 256 -cost normmi -dof 6 -interp trilinear', ...
+            %                fsImage, t1, fsReg_, fsReg_));
+            system(sprintf('flirt -in %s -ref %s.nii.gz -out %s.nii.gz -omat %s.mat -bins 256 -cost normmi -dof 6 -interp trilinear', ...
+                            t1, glucSumtB, t1Reg_, t1Reg_));
+            system(sprintf('convert_xfm -omat %s.mat -concat %s.mat %s.mat', fsReg, t1Reg_, fsReg_));            
+            system(sprintf('flirt -in %s -applyxfm -init %s.mat -out %s -paddingsize 0.0 -interp nearestneighbour -ref %s',  ...
+                            aparcMsk, fsReg, aparcReg, glucSumtB));
+                        
+            system(sprintf('freeview %s.nii.gz %s.nii.gz', aparcReg, glucSumtB));
         end
         function renameFiles(snum)
             
@@ -93,55 +189,163 @@ classdef GlutWorker
         function flirtAparc(snum)
             %% FLIRTAPARC flirts aparc_a2009s+aseg_mask, then reviews registrations with fslview
             %  Usage:  glutWorker3() 
+            
+            fsImage        = 'brain_finalsurfs';
+            revertedFrames = [1 5];
 
             assert(isnumeric(snum));
             pnum     = str2pnum(pwd);
-            sumGluc  = sprintf('(sum)%sgluc%i_mcf', pnum, snum);
-            reg      = sprintf('nu_noneck_on_%sgluc%i_mcf', pnum, snum);
-            tr       = sprintf('%str%i', pnum, snum);
             aparcMsk = 'aparc_a2009s+aseg_mask';
+            reg      = sprintf('%s_on_%sgluc%i', fsImage, pnum, snum);
             aparcReg = sprintf('%s_on_%sgluc%i_mcf', aparcMsk, pnum, snum);
+            sumGluc  = sprintf('%sgluc%i_mcf_revf%ito%i_sumt', pnum, snum, revertedFrames(1), revertedFrames(2));
 
-            assert(lexist(sprintf('%s.nii.gz', sumGluc),  'file'));
             assert(lexist(sprintf('%s.nii.gz', aparcMsk), 'file'));
+            assert(lexist(sprintf('%s.nii.gz', sumGluc),  'file'));
 
-            system(sprintf('flirt -in %s -applyxfm -init %s.mat -out %s -paddingsize 0.0 -interp nearestneighbour -ref %s', aparcMsk, reg, aparcReg, tr));
+            system(sprintf('flirt -in %s -applyxfm -init %s.mat -out %s -paddingsize 0.0 -interp nearestneighbour -ref %s',  ...
+                            aparcMsk, reg, aparcReg, sumGluc));
             system(sprintf('fslview "%s" %s', sumGluc, aparcReg));
         end
-        function copyFiles(snum)
+        function copyImgRec(snum)
             pnum = str2pnum(pwd);
-            rec0 = fullfile(pwd, 'PET', sprintf('scan%i', snum), sprintf('%sgluc%i.img.rec', pnum, snum));
-            rec  = fullfile(pwd, 'PET', sprintf('scan%i', snum), sprintf('%sgluc%i_mcf.img.rec', pnum, snum));
+            rec0 = sprintf('%sgluc%i.img.rec', pnum, snum);
+            rec  = sprintf('%sgluc%i_mcf_revf1to5.img.rec', pnum, snum);
             system(sprintf('cp %s %s', rec0, rec));
         end
         function writeTsc(snum)
+            [~,folder] = fileparts(pwd);
+            if (strncmp(folder, 'scan', 4))
+                cd('..'); end
+            [~,folder] = fileparts(pwd);
+            if (strcmp(folder, 'PET'))
+                cd('..'); end
+                
             tsc = mlpet.TSC.loadGluT(pwd, snum);
             tsc.save;
             figure;
             plot(tsc.times, tsc.counts ./ tsc.taus);
             title(tsc.fqfilename);
         end
-        function [dt,ks,kmps] = loopKinetics4            
-            pwd0 = pwd;
-            [~,folder] = fileparts(pwd0);
-            assert(strcmp('GluT', folder));
+        function [dt,ks,kmps] = loopKinetics4(varargin)
+            
+            p = inputParser;
+            addOptional(p, 'figFolder', pwd, @(x) lexist(x, 'dir'));
+            parse(p, varargin{:}); 
+            
+            import mlarbelaez.*;
+            pwd0 = pwd;            
+            subjectsPth = '/Volumes/InnominateHD2/Arbelaez/GluT';
+            
+            cd(subjectsPth);
             dt = mlsystem.DirTool('p*_JJL');
             assert(~isempty(dt.dns));
             ks   = cell(length(dt.dns),2);
             kmps = cell(length(dt.dns),2);
             
+            cd(subjectsPth);
+            logFn = fullfile(subjectsPth, sprintf('Kinetics4McmcProblems.loopKinetics4_%s.log', datestr(now, 30)));
+            diary(logFn);
             for d = 1:length(dt.dns)
-                pth = fullfile(pwd0, dt.dns{d}, '');
-                fprintf('GlutWorker.loopKinetics4:  working in %s\n', pth);
                 for s = 1:2
                     try
-                        [ks{d,s},kmps{d,s}] = mlarbelaez.Kinetics4McmcProblem.run(pth, s);
+                        pth = fullfile(subjectsPth, dt.dns{d}, '');
+                        cd(pth);
+                        fprintf('-------------------------------------------------------------------------------------------------------------------------------\n');
+                        fprintf('GlutWorker.loopKinetics4:  working in %s\n', pth);
+                        [ks{d,s},kmps{d,s}] = Kinetics4McmcProblem.run(pth, s);
                     catch ME
                         handwarning(ME)
                     end
                 end                
             end
+            cd(subjectsPth);
+            save(sprintf('Kinetics4McmcProblems.loopKinetics4_%s.mat', datestr(now,30)));
+            cd(p.Results.figFolder);
+            save(sprintf('Kinetics4McmcProblems.loopKinetics4_%s.mat', datestr(now,30)));
+            mlpet.AutoradiographyTester.saveFigs;
             cd(pwd0);
+            diary off
+        end
+        function [dt,ks,kmps] = loopKinetics4_scan1(varargin)
+            
+            p = inputParser;
+            addOptional(p, 'figFolder', pwd, @(x) lexist(x, 'dir'));
+            parse(p, varargin{:}); 
+            
+            import mlarbelaez.*;
+            pwd0 = pwd;            
+            subjectsPth = '/Volumes/InnominateHD2/Arbelaez/GluT';
+            
+            cd(subjectsPth);
+            dt = mlsystem.DirTool('p*_JJL');
+            assert(~isempty(dt.dns));
+            ks   = cell(length(dt.dns),2);
+            kmps = cell(length(dt.dns),2);
+            
+            cd(subjectsPth);
+            logFn = fullfile(subjectsPth, sprintf('Kinetics4McmcProblems.loopKinetics4_%s.log', datestr(now, 30)));
+            diary(logFn);
+            for d = 1:length(dt.dns)
+                for s = 1:1
+                    try
+                        pth = fullfile(subjectsPth, dt.dns{d}, '');
+                        cd(pth);
+                        fprintf('-------------------------------------------------------------------------------------------------------------------------------\n');
+                        fprintf('GlutWorker.loopKinetics4:  working in %s\n', pth);
+                        [ks{d,s},kmps{d,s}] = Kinetics4McmcProblem.run(pth, s);
+                    catch ME
+                        handwarning(ME)
+                    end
+                end                
+            end
+            cd(subjectsPth);
+            save(sprintf('Kinetics4McmcProblems.loopKinetics4_%s.mat', datestr(now,30)));
+            cd(p.Results.figFolder);
+            save(sprintf('Kinetics4McmcProblems.loopKinetics4_%s.mat', datestr(now,30)));
+            mlpet.AutoradiographyTester.saveFigs;
+            cd(pwd0);
+            diary off
+        end
+        function [dt,ks,kmps] = loopKinetics4_scan2(varargin)
+            
+            p = inputParser;
+            addOptional(p, 'figFolder', pwd, @(x) lexist(x, 'dir'));
+            parse(p, varargin{:}); 
+            
+            import mlarbelaez.*;
+            pwd0 = pwd;            
+            subjectsPth = '/Volumes/InnominateHD2/Arbelaez/GluT';
+            
+            cd(subjectsPth);
+            dt = mlsystem.DirTool('p*_JJL');
+            assert(~isempty(dt.dns));
+            ks   = cell(length(dt.dns),2);
+            kmps = cell(length(dt.dns),2);
+            
+            cd(subjectsPth);
+            logFn = fullfile(subjectsPth, sprintf('Kinetics4McmcProblems.loopKinetics4_%s.log', datestr(now, 30)));
+            diary(logFn);
+            for d = 1:length(dt.dns)
+                for s = 2:2
+                    try
+                        pth = fullfile(subjectsPth, dt.dns{d}, '');
+                        cd(pth);
+                        fprintf('-------------------------------------------------------------------------------------------------------------------------------\n');
+                        fprintf('GlutWorker.loopKinetics4:  working in %s\n', pth);
+                        [ks{d,s},kmps{d,s}] = Kinetics4McmcProblem.run(pth, s);
+                    catch ME
+                        handwarning(ME)
+                    end
+                end                
+            end
+            cd(subjectsPth);
+            save(sprintf('Kinetics4McmcProblems.loopKinetics4_%s.mat', datestr(now,30)));
+            cd(p.Results.figFolder);
+            save(sprintf('Kinetics4McmcProblems.loopKinetics4_%s.mat', datestr(now,30)));
+            mlpet.AutoradiographyTester.saveFigs;
+            cd(pwd0);
+            diary off
         end
         function [ks,kmps] = singleKinetics4(dirname)          
             pwd0 = pwd;
@@ -151,9 +355,10 @@ classdef GlutWorker
             kmps = cell(1,2);
 
             pth = fullfile(pwd0, dirname, '');
-            fprintf('GlutWorker.loopKinetics4:  working in %s\n', pth);
-            for s = 1:2
+            fprintf('GlutWorker.singleKinetics4:  working in %s\n', pth);
+            for s = 1:1
                 try
+                    cd(pth);
                     [ks{1,s},kmps{1,s}] = mlarbelaez.Kinetics4McmcProblem.run(pth, s);
                 catch ME
                     handwarning(ME)
