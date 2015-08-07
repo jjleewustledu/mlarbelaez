@@ -150,6 +150,7 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
             
             import mlbayesian.*;
             this.paramsManager = BayesianParameters(varargin{:});
+            this.paramsManager.nBeta = 100;
             this.ensureKeyOrdering({'k04' 'k12' 'k21' 'k32' 'k43' 't0'});
             this.mcmc          = MCMC(this, this.dependentData, this.paramsManager);
             [~,~,this.mcmc]    = this.mcmc.runMcmc;

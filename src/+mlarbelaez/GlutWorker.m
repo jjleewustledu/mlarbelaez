@@ -366,6 +366,23 @@ classdef GlutWorker
             end
             cd(pwd0);
         end
+        function singleAutoradiography(dirname)
+            pwd0 = pwd;
+            [~,folder] = fileparts(pwd0);
+            assert(strcmp('GluT', folder));
+            
+            pth = fullfile(pwd0, dirname, '');
+            fprintf('GlutWorker.singleAutoradiography:  working in %s\n', pth);
+            for s = 1:1
+                try
+                    cd(pth);
+                    mlpet.AutoradiographyTester;
+                catch ME
+                    handwarning(ME)
+                end
+            end
+            cd(pwd0);
+        end
  	end 
 
 	%  Created with Newcl by John J. Lee after newfcn by Frank Gonzalez-Morphy 
