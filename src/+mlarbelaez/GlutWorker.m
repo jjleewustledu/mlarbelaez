@@ -376,7 +376,6 @@ classdef GlutWorker
             for s = 1:1
                 try
                     cd(pth);
-                    mlpet.AutoradiographyTester;
                 catch ME
                     handwarning(ME)
                 end
