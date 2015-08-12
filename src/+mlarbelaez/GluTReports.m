@@ -9,8 +9,9 @@ classdef GluTReports
  	%  developed on Matlab 8.4.0.150421 (R2014b) 
  	%  $Id$ 
  	 
-
-	properties 
+	properties         
+        mode = 'AlexsRois'
+        
         dt
         ks
         kmps
@@ -151,8 +152,19 @@ classdef GluTReports
                                          this.getGluTxlsxInfo(p,s).hct);
         end
         function g = getGluTxlsxInfo(this, p, s)
-            pnum = str2pnum(this.dt.dns{p});
-            g = this.gluTxlsx.pid_map(pnum).(sprintf('scan%i', s));
+            if (isnumeric(p))
+                pnum = str2pnum(this.dt.dns{p});
+            else
+                pnum = p;
+            end
+            switch (this.mode)
+                case 'WholeBrain'
+                    g = this.gluTxlsx.pid_map(pnum).(sprintf('scan%i', s));
+                case 'AlexsRois'
+                    g = this.gluTxlsx.rois_map(pnum).(sprintf('scan%i', s));
+                otherwise
+                    error('mlarbelaez:switchFailure', 'GluTReports.getGluTxlsxInfo');
+            end
         end
         function f = V1toF1(~, v)
             % mL/100g to mL/min/100g
@@ -187,7 +199,7 @@ classdef GluTReports
         end
         function printCsvLinePrevious(this, fqfn)
             fid = fopen(fqfn, 'a');            
-            gx = this.gluTxlsx.pid_map(this.pnumber).(['scan' num2str(this.petIndex)]);          
+            gx = this.getGluTxlsxInfo(this.pnumber, this.petIndex);         
             [~,rDLog] = this.readDLog;
             [~,rOut]  = this.readOut;
             [~,rALog] = this.readALog;

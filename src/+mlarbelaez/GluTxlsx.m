@@ -11,9 +11,12 @@ classdef GluTxlsx
  	 
 
 	properties  		 
-        glut_xlsx = '/Volumes/InnominateHD2/Arbelaez/GluT/GluT de novo, JJL, 2015jul2.xlsx'
-        glut_sheet = 'GluT Data'
+        xlsx_filename = '/Volumes/InnominateHD2/Arbelaez/GluT/GluT de novo 2015aug11.xlsx'
+        sheet_wholeBrain = 'wholeBrain'
+        sheet_test = 'p7991'
+        mode = 'AlexsRois'
         pid_map
+        rois_map
     end 
 
     properties (Dependent)
@@ -22,7 +25,7 @@ classdef GluTxlsx
     
     methods %% GET
         function t = get.title(this)
-            t = [this.raw_{1,1} '; ' this.raw_{2,1} '; ' this.raw_{3,1}];
+            [~,t] = fileparts(this.xlsx_filename);
         end
     end
     
@@ -40,8 +43,39 @@ classdef GluTxlsx
     
 	methods 
 		
- 		function this = GluTxlsx() 
-            [~,~,this.raw_] = xlsread(this.glut_xlsx, this.glut_sheet);
+ 		function this = GluTxlsx
+            switch (this.mode)
+                case 'WholeBrain'
+                    this = this.loadWholeBrain;
+                case 'AlexsRois'
+                    this = this.loadAlexsRois;
+                otherwise
+                    error('mlarbelaez:switchFailure', 'GluTxlsx.ctor');
+            end
+ 		end 
+    end 
+    
+    %% PROTECTED
+    
+    properties (Access = 'protected')
+        raw_
+        col_npid_ = 1
+        col_pid_  = 2
+        col_scan_ = 3
+        col_glu_  = 4 % mg/dL
+        col_cbf_  = 5
+        col_cbv_  = 6
+        col_hct_  = 7
+        col_region_ = 11
+        scan1_rows_ =  [2 19]
+        scan2_rows_ = [20 37]
+        scan1_rows__ = [2  6]
+        scan2_rows__ = [7 11]
+    end
+    
+    methods (Access = 'protected')
+        function this = loadWholeBrain(this)            
+            [~,~,this.raw_] = xlsread(this.xlsx_filename, this.sheet_wholeBrain);
             this.pid_map = containers.Map;
             D = this.scan2_rows_(1) - this.scan1_rows_(1);
             for p = this.scan1_rows_(1):this.scan1_rows_(2)
@@ -57,20 +91,25 @@ classdef GluTxlsx
                                    'cbv', this.raw_{p+D,this.col_cbv_}, ...
                                    'hct', this.raw_{p+D,this.col_hct_}));
             end
- 		end 
-    end 
-    
-    %% PRIVATE
-    
-    properties (Access = 'private')
-        raw_
-        col_pid_ = 1
-        col_glu_ = 2 % mg/dL
-        col_cbf_ = 3
-        col_cbv_ = 4
-        col_hct_ = 5
-        scan1_rows_ = [7 24]
-        scan2_rows_ = [27 44]
+        end
+        function this = loadAlexsRois(this)            
+            [~,~,this.raw_] = xlsread(this.xlsx_filename, this.sheet_test);
+            this.rois_map = containers.Map;
+            D = this.scan2_rows__(1) - this.scan1_rows__(1);
+            for p = this.scan1_rows__(1):this.scan1_rows__(2)
+                this.rois_map(this.raw_{p,this.col_region_}) = ...
+                    struct('scan1', ...
+                            struct('glu', this.raw_{p,this.col_glu_}, ...
+                                   'cbf', this.raw_{p,this.col_cbf_}, ...
+                                   'cbv', this.raw_{p,this.col_cbv_}, ...
+                                   'hct', this.raw_{p,this.col_hct_}), ...
+                           'scan2', ...
+                            struct('glu', this.raw_{p+D,this.col_glu_}, ...
+                                   'cbf', this.raw_{p+D,this.col_cbf_}, ...
+                                   'cbv', this.raw_{p+D,this.col_cbv_}, ...
+                                   'hct', this.raw_{p+D,this.col_hct_}));
+            end
+        end
     end
 
 	%  Created with Newcl by John J. Lee after newfcn by Frank Gonzalez-Morphy 

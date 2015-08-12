@@ -24,6 +24,7 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
         yLabel = 'concentration/(wellcounts/mL)'
         
         Ca
+        mode = 'AlexsRois'
     end
     
     properties (Dependent)
@@ -46,7 +47,14 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
                          this.k04, this.k21, this.k12, this.k32, this.k43, this.t0, this.VB, this.FB);
         end
         function inf = get.gluTxlsxInfo(this)
-            inf = this.gluTxlsx_.pid_map(this.pnumber).(sprintf('scan%i', this.snumber));
+            switch (this.mode)
+                case 'WholeBrain'
+                    inf = this.gluTxlsx_.pid_map(this.pnumber).(sprintf('scan%i', this.snumber));
+                case 'AlexsRois'
+                    inf = this.gluTxlsx_.rois_map(this.pnumber).(sprintf('scan%i', this.snumber));                    
+                otherwise
+                    error('mlarbelaez:failedSwitch', 'Kinetics4McmcProblem.get.gluTxlsxInfo');
+            end
         end        
         function m   = get.map(this)
             m = containers.Map;
@@ -96,6 +104,36 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
             
             fprintf('Kinetics4McmcProblem.run.pth -> %s\n', pth);
             fprintf('Kinetics4McmcProblem.run.snum -> %s\n', snum);
+            disp(dta)
+            disp(tsc)
+            disp(kmp)
+            
+            kmp = kmp.estimateParameters(kmp.map);
+            kmp.plotProduct;
+            k   = [kmp.finalParams('k04'), kmp.finalParams('k12'), kmp.finalParams('k21'), ...
+                   kmp.finalParams('k32'), kmp.finalParams('k43'), kmp.finalParams('t0')]; 
+        end 
+        function [k,kmp] = runRegions(pth, snum, region)
+
+            pnum = str2pnum(pth);
+            dtaFqfn = fullfile(pth, 'jjl_proc', sprintf('%sg%i.dta',  pnum, snum));
+            tscFqfp = fullfile(pth, 'jjl_proc', sprintf('%swb%i_%s', pnum, snum, region));
+            tscFqfn = [tscFqfp '.tsc'];
+            
+            import mlpet.*;
+                        
+            dta = DTA.load(dtaFqfn);
+            tsc = TSC.import(tscFqfn);
+            len = min(length(dta.timeInterpolants), length(tsc.timeInterpolants));
+            timeInterp = tsc.timeInterpolants(1:len);
+            Ca_ = dta.wellCountInterpolants(1:len);
+            Q_  = tsc.becquerelInterpolants(1:len);            
+            %figure; plot(timeInterp, Ca_, timeInterp, Q_)            
+            kmp = mlarbelaez.Kinetics4McmcProblem(timeInterp, Q_, Ca_, pnum, snum);
+            
+            fprintf('Kinetics4McmcProblem.runRegions.pth -> %s\n', pth);
+            fprintf('Kinetics4McmcProblem.runRegions.snum -> %s\n', snum);
+            fprintf('Kinetics4McmcProblem.runRegions.snum -> %s\n', region);
             disp(dta)
             disp(tsc)
             disp(kmp)

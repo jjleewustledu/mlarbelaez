@@ -47,7 +47,7 @@ classdef GlutWorker
             nii.img = nii.img > 0;
             nii.saveas('aparc_a2009s+aseg_mask.nii.gz');
         end
-        function mcflirtGluc(snum)            
+        function mcflirtGluc(snum)
             assert(isnumeric(snum));
             pnum = str2pnum(pwd);
             
@@ -347,40 +347,49 @@ classdef GlutWorker
             cd(pwd0);
             diary off
         end
-        function [ks,kmps] = singleKinetics4(dirname)          
-            pwd0 = pwd;
-            [~,folder] = fileparts(pwd0);
-            assert(strcmp('GluT', folder));
-            ks   = cell(1,2);
-            kmps = cell(1,2);
-
-            pth = fullfile(pwd0, dirname, '');
-            fprintf('GlutWorker.singleKinetics4:  working in %s\n', pth);
-            for s = 1:1
-                try
-                    cd(pth);
-                    [ks{1,s},kmps{1,s}] = mlarbelaez.Kinetics4McmcProblem.run(pth, s);
-                catch ME
-                    handwarning(ME)
-                end
-            end
-            cd(pwd0);
-        end
-        function singleAutoradiography(dirname)
-            pwd0 = pwd;
-            [~,folder] = fileparts(pwd0);
-            assert(strcmp('GluT', folder));
+        function [dt, ks,kmps] = regionalKinetics4(varargin)          
             
-            pth = fullfile(pwd0, dirname, '');
-            fprintf('GlutWorker.singleAutoradiography:  working in %s\n', pth);
-            for s = 1:1
-                try
-                    cd(pth);
-                catch ME
-                    handwarning(ME)
-                end
+            regions = {'amygdala' 'hippocampus' 'hypothalamus' 'large-hypothalamus' 'thalamus'};
+            
+            p = inputParser;
+            addOptional(p, 'figFolder', pwd, @(x) lexist(x, 'dir'));
+            parse(p, varargin{:}); 
+            
+            import mlarbelaez.*;
+            pwd0 = pwd;            
+            subjectsPth = '/Volumes/InnominateHD2/Arbelaez/GluT';
+            
+            cd(subjectsPth);
+            dt = mlsystem.DirTool('p*_JJL');
+            assert(~isempty(dt.dns));
+            ks   = cell(length(dt.dns),2,length(regions));
+            kmps = cell(length(dt.dns),2,length(regions));
+            
+            cd(subjectsPth);
+            logFn = fullfile(subjectsPth, sprintf('Kinetics4McmcProblems.regionalKinetics4_%s.log', datestr(now, 30)));
+            diary(logFn);
+            for d = 11:11 % 1:length(dt.dns)
+                for s = 1:2
+                    for r = 1:length(regions)
+                        try
+                            pth = fullfile(subjectsPth, dt.dns{d}, '');
+                            cd(pth);
+                            fprintf('-------------------------------------------------------------------------------------------------------------------------------\n');
+                            fprintf('GlutWorker.regionalKinetics4:  working in %s, region %s\n', pth, regions{r});
+                            [ks{d,s,r},kmps{d,s,r}] = Kinetics4McmcProblem.runRegions(pth, s, regions{r});
+                        catch ME
+                            handwarning(ME)
+                        end
+                    end
+                end                
             end
+            cd(subjectsPth);
+            save(sprintf('Kinetics4McmcProblems.regionalKinetics4_%s.mat', datestr(now,30)));
+            cd(p.Results.figFolder);
+            save(sprintf('Kinetics4McmcProblems.regionalKinetics4_%s.mat', datestr(now,30)));
+            mlpet.AutoradiographyTester.saveFigs;
             cd(pwd0);
+            diary off
         end
  	end 
 
