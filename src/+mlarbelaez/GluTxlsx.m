@@ -13,10 +13,10 @@ classdef GluTxlsx
 	properties  		 
         xlsx_filename = '/Volumes/InnominateHD2/Arbelaez/GluT/GluT de novo 2015aug11.xlsx'
         sheet_wholeBrain = 'wholeBrain'
-        sheet_test = 'p7991'
+        sheet_regional = 'regional'
         mode = 'AlexsRois'
         pid_map
-        rois_map
+        regions = {'amygdala' 'hippocampus' 'hypothalamus' 'large-hypothalamus' 'thalamus'}
     end 
 
     properties (Dependent)
@@ -92,21 +92,31 @@ classdef GluTxlsx
                                    'hct', this.raw_{p+D,this.col_hct_}));
             end
         end
-        function this = loadAlexsRois(this)            
-            [~,~,this.raw_] = xlsread(this.xlsx_filename, this.sheet_test);
-            this.rois_map = containers.Map;
-            D = this.scan2_rows__(1) - this.scan1_rows__(1);
-            for p = this.scan1_rows__(1):this.scan1_rows__(2)
-                this.rois_map(this.raw_{p,this.col_region_}) = ...
+        function this = loadAlexsRois(this)  
+            [~,~,this.raw_] = xlsread(this.xlsx_filename, this.sheet_regional);
+            this.pid_map = containers.Map;
+            D = length(this.regions);
+            for p = 2:2
+                cbfs1 = zeros(D,1);
+                cbvs1 = zeros(D,1);
+                cbfs2 = zeros(D,1);
+                cbvs2 = zeros(D,1);
+                for r = 1:D
+                    cbfs1(r) = this.raw_{p+r-1,this.col_cbf_};
+                    cbvs1(r) = this.raw_{p+r-1,this.col_cbv_};
+                    cbfs2(r) = this.raw_{p+r-1+D,this.col_cbf_};
+                    cbvs2(r) = this.raw_{p+r-1+D,this.col_cbv_};
+                end
+                this.pid_map(this.raw_{p,this.col_pid_}) = ...
                     struct('scan1', ...
                             struct('glu', this.raw_{p,this.col_glu_}, ...
-                                   'cbf', this.raw_{p,this.col_cbf_}, ...
-                                   'cbv', this.raw_{p,this.col_cbv_}, ...
+                                   'cbf', cbfs1, ...
+                                   'cbv', cbvs1, ...
                                    'hct', this.raw_{p,this.col_hct_}), ...
                            'scan2', ...
                             struct('glu', this.raw_{p+D,this.col_glu_}, ...
-                                   'cbf', this.raw_{p+D,this.col_cbf_}, ...
-                                   'cbv', this.raw_{p+D,this.col_cbv_}, ...
+                                   'cbf', cbfs2, ...
+                                   'cbv', cbvs2, ...
                                    'hct', this.raw_{p+D,this.col_hct_}));
             end
         end

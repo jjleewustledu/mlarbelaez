@@ -221,11 +221,26 @@ classdef GlutWorker
             if (strcmp(folder, 'PET'))
                 cd('..'); end
                 
-            tsc = mlpet.TSC.loadGluT(pwd, snum);
+            tsc = mlarbelaez.GlutWorker.loadTsc(pwd, snum);
             tsc.save;
             figure;
             plot(tsc.times, tsc.counts ./ tsc.taus);
             title(tsc.fqfilename);
+        end
+        function this = loadTsc(pnumPth, scanIdx)
+            %% LOADTSC
+ 			%  Usage:  this = TSC.loadTsc(pnumber_path, scan_index) 
+            %          this = TSC.loadTsc('/path/to/p1234data', 1)
+            
+            assert(lexist(pnumPth, 'dir'));
+            pnum = str2pnum(pnumPth);
+            if (isnumeric(scanIdx)); scanIdx = num2str(scanIdx); end
+            
+            ecatLoc = fullfile(pnumPth, 'PET', ['scan' scanIdx], [pnum 'gluc' scanIdx '_mcf_revf1to5.nii.gz']);
+            tscLoc  = fullfile(pnumPth, 'jjl_proc', [pnum 'wb' scanIdx '.tsc']);
+            dtaLoc  = fullfile(pnumPth, 'jjl_proc', [pnum 'g'  scanIdx '.dta']);
+            maskLoc = sprintf('aparc_a2009s+aseg_mask_on_%sgluc%i_mcf.nii.gz', pnum, scanIdx);
+            this = mlpet.TSC.load(tscLoc, ecatLoc, dtaLoc, maskLoc);            
         end
         function [dt,ks,kmps] = loopKinetics4(varargin)
             
@@ -376,7 +391,8 @@ classdef GlutWorker
                             cd(pth);
                             fprintf('-------------------------------------------------------------------------------------------------------------------------------\n');
                             fprintf('GlutWorker.regionalKinetics4:  working in %s, region %s\n', pth, regions{r});
-                            [ks{d,s,r},kmps{d,s,r}] = Kinetics4McmcProblem.runRegions(pth, s, regions{r});
+                            [ks{d,s,r},kmps{d,s,r}] = Kinetics4McmcProblem.runRegion( ...
+                                                      pth, s, sprintf('%s_on_gluc%i', regions{r}, s));
                         catch ME
                             handwarning(ME)
                         end

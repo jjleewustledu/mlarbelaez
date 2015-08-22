@@ -1,4 +1,4 @@
-classdef GluTReports  
+classdef GluTRegionReports  
 	%% GLUTREPORTS   
 
 	%  $Revision$ 
@@ -10,8 +10,6 @@ classdef GluTReports
  	%  $Id$ 
  	 
 	properties         
-        mode = 'AlexsRois'
-        
         dt
         ks
         kmps
@@ -54,9 +52,9 @@ classdef GluTReports
     end
     
 	methods 		  
- 		function this = GluTReports(dt, ks, kmps) 
+ 		function this = GluTRegionReports(dt, ks, kmps) 
  			%% GLUTREPORTS 
- 			%  Usage:  this = GluTReports(DirTool_obj, ks_cell, kmps_cell) 
+ 			%  Usage:  this = GluTRegionReports(DirTool_obj, ks_cell, kmps_cell) 
 
             this.dt = dt;
             this.ks = ks;
@@ -81,30 +79,32 @@ classdef GluTReports
             this.MTT      = cell(this.size);
             this.FluxMet  = cell(this.size);
             
-            for p = 1:this.size(1)
+            for p = 11:11 % 1:this.size(1)
                 for s = 1:this.size(2)
-                    if (~isempty(this.ks{p,s}))
-                        try
-                            this.V1{p,s}       = this.getV1(p,s);
-                            this.F1{p,s}       = this.getF1(p,s);
-                            this.Bloodglu{p,s} = this.getBloodglu(p,s);
-                            this.K04{p,s}      = this.ks{p,s}(this.ik04)*60;
-                            this.K21{p,s}      = this.ks{p,s}(this.ik21)*60;
-                            this.K12{p,s}      = this.ks{p,s}(this.ik12)*60;
-                            this.K32{p,s}      = this.ks{p,s}(this.ik32)*60;
-                            this.K43{p,s}      = this.ks{p,s}(this.ik43)*60;
-                            this.T0{p,s}       = this.ks{p,s}(this.it0);
+                    for r = 1:this.size(3)
+                        if (~isempty(this.ks{p,s,r}))
+                            try
+                                this.V1{p,s,r}       = this.getV1(p,s,r);
+                                this.F1{p,s,r}       = this.getF1(p,s,r);
+                                this.Bloodglu{p,s,r} = this.getBloodglu(p,s);
+                                this.K04{p,s,r}      = this.ks{p,s,r}(this.ik04)*60;
+                                this.K21{p,s,r}      = this.ks{p,s,r}(this.ik21)*60;
+                                this.K12{p,s,r}      = this.ks{p,s,r}(this.ik12)*60;
+                                this.K32{p,s,r}      = this.ks{p,s,r}(this.ik32)*60;
+                                this.K43{p,s,r}      = this.ks{p,s,r}(this.ik43)*60;
+                                this.T0{p,s,r}       = this.ks{p,s,r}(this.it0);
 
-                            this.MTT{p,s}      = 60 * this.V1{p,s} / this.F1{p,s};
-                            this.Chi{p,s}      = this.K21{p,s} * this.K32{p,s} / (this.K12{p,s} + this.K32{p,s});
-                            this.UF{p,s}       = this.Chi{p,s} * (this.MTT{p,s}/60) / (1 + 0.835 * this.Chi{p,s} * this.MTT{p,s}/60);
-                            this.CMRglu{p,s}   = this.Chi{p,s} * this.Bloodglu{p,s} * this.V1{p,s};
-                            this.KD{p,s}       = this.K21{p,s} * this.V1{p,s};
-                            this.CTX{p,s}      = this.KD{p,s}  * this.Bloodglu{p,s};
-                            this.Freeglu{p,s}  = this.CMRglu{p,s} / this.K32{p,s} / 100;
-                            this.FluxMet{p,s}  = this.CTX{p,s} / this.CMRglu{p,s};
-                        catch ME
-                            handwarning(ME);
+                                this.MTT{p,s,r}      = 60 * this.V1{p,s,r} / this.F1{p,s,r};
+                                this.Chi{p,s,r}      = this.K21{p,s,r} * this.K32{p,s,r} / (this.K12{p,s,r} + this.K32{p,s,r});
+                                this.UF{p,s,r}       = this.Chi{p,s,r} * (this.MTT{p,s,r}/60) / (1 + 0.835 * this.Chi{p,s,r} * this.MTT{p,s,r}/60);
+                                this.CMRglu{p,s,r}   = this.Chi{p,s,r} * this.Bloodglu{p,s,r} * this.V1{p,s,r};
+                                this.KD{p,s,r}       = this.K21{p,s,r} * this.V1{p,s,r};
+                                this.CTX{p,s,r}      = this.KD{p,s,r}  * this.Bloodglu{p,s,r};
+                                this.Freeglu{p,s,r}  = this.CMRglu{p,s,r} / this.K32{p,s,r} / 100;
+                                this.FluxMet{p,s,r}  = this.CTX{p,s,r} / this.CMRglu{p,s,r};
+                            catch ME
+                                handwarning(ME);
+                            end
                         end
                     end
                 end
@@ -118,10 +118,12 @@ classdef GluTReports
             this.printCsvHeader(fid);
             for s = 1:this.size(2)
                 for p = 1:this.size(1)
-                    try
-                        this.printCsvLine(fid, p, s);
-                    catch ME
-                        handexcept(ME);
+                    for r = 1:this.size(3)
+                        try
+                            this.printCsvLine(fid, p, s, r);
+                        catch ME
+                            handexcept(ME);
+                        end
                     end
                 end
             end
@@ -133,36 +135,26 @@ classdef GluTReports
     %% PRIVATE
     
     methods (Access = 'private')    
-        function v = getV1(this, p, s)
+        function v = getV1(this, p, s, r)
             % mL/100g
             
-            v = this.getGluTxlsxInfo(p, s).cbv;
+            v = this.getGluTxlsxInfo(p, s).cbv(r);
         end
-        function f = getF1(this, p, s)
+        function f = getF1(this, p, s, r)
             % mL/min/100g            
             
-            f = this.getGluTxlsxInfo(p, s).cbf;
-            if (any(isnan(f)) || strcmp('nan',f))
-                v = this.getGluTxlsxInfo(p, s).cbv;
-                f = this.V1toF1(v); 
-            end
+            f = this.getGluTxlsxInfo(p, s).cbf(r);
+            if (strcmp('nan',f)); f = nan; end
         end
         function g = getBloodglu(this, p, s)
             g = this.PlasmaGluToBloodGlu(this.getGluTxlsxInfo(p,s).glu, ...
                                          this.getGluTxlsxInfo(p,s).hct);
         end
-        function g = getGluTxlsxInfo(this, k, s)
-            if (isnumeric(k))
-                k = str2pnum(this.dt.dns{k});
-            end
-            switch (this.mode)
-                case 'WholeBrain'
-                    g = this.gluTxlsx.pid_map(k).(sprintf('scan%i', s));
-                case 'AlexsRois'
-                    g = this.gluTxlsx.rois_map(k).(sprintf('scan%i', s));
-                otherwise
-                    error('mlarbelaez:switchFailure', 'GluTReports.getGluTxlsxInfo');
-            end
+        function g = getGluTxlsxInfo(this, p, s)
+            if (isnumeric(p))
+                p = str2pnum(this.dt.dns{p});
+            end         
+            g = this.gluTxlsx.pid_map(p).(sprintf('scan%i', s));
         end
         function f = V1toF1(~, v)
             % mL/100g to mL/min/100g
@@ -184,15 +176,15 @@ classdef GluTReports
                 'p#,scan#,CBF,CBV,blood glu,k04,k21,k12,k32,k43,t0,Util Frac,CMR glu,chi,Kd,CTX,free glu,MTT,flux/met\n';
             fprintf(fid, results);
         end
-        function printCsvLine(this, fid, p, s)    
+        function printCsvLine(this, fid, p, s, r)    
             pnum = str2pnum(this.dt.dns{p});
             results = ...
                 sprintf('%s,%i,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n', ...
                     pnum, s, ...
-                    this.F1{p,s}, this.V1{p,s}, this.Bloodglu{p,s}, ...
-                    this.K04{p,s}, this.K21{p,s}, this.K12{p,s}, this.K32{p,s}, this.K43{p,s}, this.T0{p,s}, ...
-                    this.UF{p,s}, this.CMRglu{p,s}, this.Chi{p,s}, this.KD{p,s}, this.CTX{p,s}, this.Freeglu{p,s}, ...
-                    this.MTT{p,s}, this.FluxMet{p,s});
+                    this.F1{p,s,r}, this.V1{p,s,r}, this.Bloodglu{p,s,r}, ...
+                    this.K04{p,s,r}, this.K21{p,s,r}, this.K12{p,s,r}, this.K32{p,s,r}, this.K43{p,s,r}, this.T0{p,s,r}, ...
+                    this.UF{p,s,r}, this.CMRglu{p,s,r}, this.Chi{p,s,r}, this.KD{p,s,r}, this.CTX{p,s,r}, this.Freeglu{p,s,r}, ...
+                    this.MTT{p,s,r}, this.FluxMet{p,s,r});
             fprintf(fid, results);
         end
         function printCsvLinePrevious(this, fqfn)

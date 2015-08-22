@@ -25,6 +25,7 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
         
         Ca
         mode = 'AlexsRois'
+        region
     end
     
     properties (Dependent)
@@ -51,7 +52,7 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
                 case 'WholeBrain'
                     inf = this.gluTxlsx_.pid_map(this.pnumber).(sprintf('scan%i', this.snumber));
                 case 'AlexsRois'
-                    inf = this.gluTxlsx_.rois_map(this.pnumber).(sprintf('scan%i', this.snumber));                    
+                    inf = this.gluTxlsx_.rois_map(strtok(this.region, '_')).(sprintf('scan%i', this.snumber));                    
                 otherwise
                     error('mlarbelaez:failedSwitch', 'Kinetics4McmcProblem.get.gluTxlsxInfo');
             end
@@ -113,27 +114,24 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
             k   = [kmp.finalParams('k04'), kmp.finalParams('k12'), kmp.finalParams('k21'), ...
                    kmp.finalParams('k32'), kmp.finalParams('k43'), kmp.finalParams('t0')]; 
         end 
-        function [k,kmp] = runRegions(pth, snum, region)
+        function [k,kmp] = runRegion(pth, snum, region)
 
-            pnum = str2pnum(pth);
-            dtaFqfn = fullfile(pth, 'jjl_proc', sprintf('%sg%i.dta',  pnum, snum));
-            tscFqfp = fullfile(pth, 'jjl_proc', sprintf('%swb%i_%s', pnum, snum, region));
-            tscFqfn = [tscFqfp '.tsc'];
-            
             import mlpet.*;
-                        
-            dta = DTA.load(dtaFqfn);
-            tsc = TSC.import(tscFqfn);
-            len = min(length(dta.timeInterpolants), length(tsc.timeInterpolants));
-            timeInterp = tsc.timeInterpolants(1:len);
-            Ca_ = dta.wellCountInterpolants(1:len);
-            Q_  = tsc.becquerelInterpolants(1:len);            
-            %figure; plot(timeInterp, Ca_, timeInterp, Q_)            
-            kmp = mlarbelaez.Kinetics4McmcProblem(timeInterp, Q_, Ca_, pnum, snum);
             
-            fprintf('Kinetics4McmcProblem.runRegions.pth -> %s\n', pth);
-            fprintf('Kinetics4McmcProblem.runRegions.snum -> %s\n', snum);
-            fprintf('Kinetics4McmcProblem.runRegions.snum -> %s\n', region);
+            tscf = TSCFiles('pnumPath', pth, 'scanIndex', snum, 'region', region);                        
+            dta  = DTA.load(tscf.dtaFqfilename);
+            tsc  = TSC.loadTscFiles(tscf);
+            len  = min(length(dta.timeInterpolants), length(tsc.timeInterpolants));           
+            %figure; plot(timeInterp, Ca_, timeInterp, Q_)
+            kmp  = mlarbelaez.Kinetics4McmcProblem( ...
+                tsc.timeInterpolants(1:len), ...
+                tsc.becquerelInterpolants(1:len), ...
+                dta.wellCountInterpolants(1:len), ...
+                str2pnum(pth), snum, region);
+            
+            fprintf('Kinetics4McmcProblem.runRegions.pth  -> %s\n', pth);
+            fprintf('Kinetics4McmcProblem.runRegions.snum -> %i\n', snum);
+            fprintf('Kinetics4McmcProblem.runRegions.region -> %s\n', region);
             disp(dta)
             disp(tsc)
             disp(kmp)
@@ -168,13 +166,24 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
     end
     
     methods
-        function this = Kinetics4McmcProblem(t, y, ca, pnum, snum)
+        function this = Kinetics4McmcProblem(t, y, ca, pnum, snum, varargin)
             this = this@mlbayesian.AbstractMcmcProblem(t, y);
-            this.Ca = ca;
-            this.pnumber = pnum;
-            this.snumber = snum;
+            
+            ip = inputParser;
+            addRequired(ip, 't', @isnumeric);
+            addRequired(ip, 'y', @isnumeric);
+            addRequired(ip, 'ca', @isnumeric);
+            addRequired(ip, 'pnum', @(x) lstrfind(x, 'p'));
+            addRequired(ip, 'snum', @isnumeric);
+            addOptional(ip, 'region', '', @ischar);
+            parse(ip, t, y, ca, pnum, snum, varargin{:});
+            
+            this.Ca        = ip.Results.ca;
+            this.pnumber   = ip.Results.pnum;
+            this.snumber   = ip.Results.snum;
+            this.region    = ip.Results.region;
             this.gluTxlsx_ = mlarbelaez.GluTxlsx;               
-            this.k04 = this.K04;
+            this.k04       = this.K04;
             this.expectedBestFitParams_ = ...
                 [this.k04 this.k12 this.k21 this.k32 this.k43 this.t0];
         end
