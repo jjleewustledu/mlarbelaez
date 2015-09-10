@@ -17,13 +17,14 @@ classdef GluTFigures
         mapMetab
         mapSx
 
-        boxFormat = '%4.0f'
+        boxFormat = '%4.1f'
         boxFontSize = 12
         axesFontSize = 14
         markerEdgeColor95 = [0.8 0.309 0.1]
         markerEdgeColor75 = [0.1 0.309 0.8]
         markerLineWidth = 1.5
         stairsColor = [0.618 0.618 0.618]
+        barWidth = 0.41
         
         p
         scan
@@ -52,10 +53,10 @@ classdef GluTFigures
 
             this = this.xlsRead;
         end 
-        function figure0 = createGluFigure(this, yLabel)
-            %% CREATEGLUFIGURE
+        function figure0 = createScatterStairs(this, yLabel)
+            %% CREATESCATTERSTAIRS
             %  e.g., glutf = GluTFigures;
-            %        f = glutf.createGluFigure(glutf.CMRglu./glutf.plasma_glu, 'CMR_{glu}/arterial plasma glucose')
+            %        f = glutf.createScatterStairs('CMR_{glu}/CBV')
 
             %y = 1e3*y/55.507; % converts frac{\mumol}{100 g min} \frac{dL}{mg} to mL/100g/min
             %y = 100*y; % converts \frac{\mumol}{g} \frac{100 g}{mL} to \frac{\mumol}{mL}
@@ -204,10 +205,10 @@ classdef GluTFigures
                 'FontSize',this.boxFontSize,...
                 'FitBoxToText','off');    
         end
-        function figure0 = createGluFigure2(this, yLabel)
-            %% CREATEGLUFIGURE
+        function figure0 = createScatterStairs2(this, yLabel)
+            %% CREATESCATTERSTAIRS2
             %  e.g., glutf = GluTFigures;
-            %        f = glutf.createGluFigure(glutf.CMRglu./glutf.plasma_glu, 'CMR_{glu}/arterial plasma glucose')
+            %        f = glutf.createScatterStairs2('CMR_{glu}/arterial plasma glucose')
 
             %y = 1e3*y/55.507; % converts frac{\mumol}{100 g min} \frac{dL}{mg} to mL/100g/min
             %y = 100*y; % converts \frac{\mumol}{g} \frac{100 g}{mL} to \frac{\mumol}{mL}
@@ -334,91 +335,26 @@ classdef GluTFigures
             scatter(glu75,y75,sz3,mark3,'MarkerEdgeColor',this.markerEdgeColor75,'LineWidth',this.markerLineWidth);
             scatter(glu95,y95,sz4,mark4,'MarkerEdgeColor',this.markerEdgeColor95,'LineWidth',this.markerLineWidth);
         end
-        function figure0 = createGluFigure3(this, yLabel)
-            %% CREATEGLUFIGURE
+        function figure0 = createBarErr(this, yLabel)
+            %% CREATEBARERR
             %  e.g., glutf = GluTFigures;
-            %        f = glutf.createGluFigure(glutf.CMRglu./glutf.plasma_glu, 'CMR_{glu}/arterial plasma glucose')
+            %        f = glutf.createBarErr('CMR_{glu}/CBV')
 
             %y = 1e3*y/55.507; % converts frac{\mumol}{100 g min} \frac{dL}{mg} to mL/100g/min
             %y = 100*y; % converts \frac{\mumol}{g} \frac{100 g}{mL} to \frac{\mumol}{mL}
             
-            yLabel1 = yLabel;
-            conversionFactor2 = 1;
-            switch (yLabel)
-                case 'CMR_{glu}'
-                    y = this.CMRglu;
-                    yLabel1 = [yLabel ' (\mumol/100 g/min)'];
-                case 'CTX_{glu}'
-                    y = this.CTX;
-                    yLabel1 = [yLabel ' (\mumol/100 g/min)'];
-                case 'free glucose'
-                    y = this.free_glu;                   
-                    yLabel1 = [yLabel ' (\mumol/g)'];
-                case 'CTX_{glu}/CBV'
-                    y = this.CTX ./ this.CBV;
-                    yLabel1 = [yLabel ' (\mumol/mL/min)'];
-                case 'CMR_{glu}/CBV'
-                    y = this.CMRglu ./ this.CBV;               
-                    yLabel1 = [yLabel ' (\mumol/mL/min)'];
-                case 'free glucose/CBV'   
-                    y = this.free_glu ./ this.CBV;
-                    y = 100*y; % converts \frac{\mumol}{g} \frac{100 g}{mL} to \frac{\mumol}{mL} 
-                    yLabel1 = [yLabel ' (\mumol/mL)'];
-                case 'CBF'
-                    y = this.Videen_CBF;
-                    yLabel1 = [yLabel ' (mL/100 g/min)']; 
-                case 'CBV'
-                    y = this.CBV;
-                    yLabel1 = [yLabel ' (mL/100 g)'];                    
-                case 'insulin'
-                    y = this.Insulin;
-                    yLabel1 = [yLabel ' (\muU/mL)'];
-                    yLabel2 =          '(nmol/L)';
-                    conversionFactor2 = 6.945e-3;
-                case 'epinephrine'
-                    y = this.Epi;
-                    yLabel1 = [yLabel ' (pg/mL)'];
-                    yLabel2 =          '(nmol/L)';
-                    conversionFactor2 = 5.485e-3;
-                case 'glucagon'
-                    y = this.Glucagon;
-                    yLabel1 = [yLabel ' (pg/mL)'];
-                    yLabel2 =          '(pmol/L)';
-                    conversionFactor2 = 0.2871;
-                case 'cortisol'
-                    y = this.Cortisol;
-                    yLabel1 = [yLabel ' (\mug/dL)'];
-                    yLabel2 =          '(pmol/L)';
-                    conversionFactor2 = 27.59e-3; 
-                case 'arterial plasma glucose'    
-                    y = this.plasma_glu;
-                    yLabel1 = [yLabel ' (mg/dL)'];
-                    yLabel2 =          '(mmol/L)';
-                    conversionFactor2 = 0.0551;
-                case 'total Sx'
-                    y = this.NGSx + this.NGPSx;
-                    yLabel1 = yLabel;
-            end
-
-            xLabel  = 'arterial plasma glucose';
-            xLabel1 = [xLabel ' (mg/dL)'];
-            xLabel2 =          '(mmol/L)';
-            conversionFactor1 = 0.0551;
+            [y, yLabel1, yLabel2, conversionFactor2] = this.yLabelLookup(yLabel);            
+            [x, xLabel1, xLabel2, conversionFactor1] = this.xLabelLookup;
             
-            glu   = this.plasma_glu;            
-            glu95 = glu(1:10);   y95 = y(1:10);
-            glu75 = glu(11:18);  y75 = y(11:18);
-            glu65 = glu(19:28);  y65 = y(19:28);
-            glu45 = glu(29:end); y45 = y(29:end);
-
-            %range95 = [min(glu95) max(glu95)];
-            %range75 = [min(glu75) max(glu75)];
-            %range65 = [min(glu65) max(glu65)];
-            %range45 = [min(glu45) max(glu45)];
-
-            %x0 = [range45(1) mean([range45(2) range65(1)]) mean([range65(2) range75(1)]) mean([range75(2) range95(1)]) range95(2)];
-            %y0 = [mean(y45) mean(y65) mean(y75) mean(y95) mean(y95)];
-
+            y95 = y(1:10);
+            y75 = y(11:18);
+            y65 = y(19:28);
+            y45 = y(29:end);
+            x95 = x(1:10);
+            x75 = x(11:18);
+            x65 = x(19:28);
+            x45 = x(29:end);
+            
             % Create figure
             figure0 = figure;
 
@@ -430,9 +366,9 @@ classdef GluTFigures
             if (conversionFactor2 ~= 1)
                 ylabel(axes2, yLabel2); end
 
-            xlim(axes2,this.axesLim(glu*conversionFactor1)); 
-            ylim(axes2,this.axesLim(y  *conversionFactor2));
-            set(axes2,'FontSize',this.axesFontSize,'XDir','reverse','XAxisLocation','top','YAxisLocation','right');
+            xlim(axes2,this.axesLim(x*conversionFactor1)); 
+            ylim(axes2,this.axesLim(y*conversionFactor2));
+            set(axes2,'FontSize',this.axesFontSize,'XDir','reverse','XTick',[2.5 3.4 4.1 5.1],'XAxisLocation','top','YAxisLocation','right');
 
             % Create axes1
             axes1 = axes('Parent',figure0);
@@ -441,24 +377,21 @@ classdef GluTFigures
             xlabel(axes1, xLabel1);
             ylabel(axes1, yLabel1);
 
-            xlim(axes1,this.axesLim(glu));           
+            xlim(axes1,this.axesLim(x));           
             ylim(axes1,this.axesLim(y));
             box(axes1,'on');
-            set(axes1,'FontSize',this.axesFontSize,'XDir','reverse','XAxisLocation','bottom','YAxisLocation','left');
-
-            % Create stairs
-            %stairs(x0,y0,'LineWidth',2,'Color',this.stairsColor);
+            set(axes1,'FontSize',this.axesFontSize,'XDir','reverse','XTick',[46 62 75 92],'XAxisLocation','bottom','YAxisLocation','left');
 
             % Create bar
-            xb95 = [95 65];
-            xb75 = [75 45];
+            xb95 = [mean(x95) mean(x65)];
+            xb75 = [mean(x75) mean(x45)];
             yb95 = [mean(y95) mean(y65)];
             yb75 = [mean(y75) mean(y45)];
-            bar(xb95, yb95, 1/3, 'FaceColor', [0.92 0.92 0.92]);
-            bar(xb75, yb75, 1/3, 'FaceColor', [1 1 1]);
+            bar(xb95, yb95, this.barWidth, 'FaceColor', [1 1 1]);
+            bar(xb75, yb75, this.barWidth, 'FaceColor', [0.92 0.92 0.92]);
             
             % Create errorbar
-            xe = [95 75 65 45];
+            xe = [mean(x95) mean(x75) mean(x65) mean(x45)];
             ye = [mean(y95) mean(y75) mean(y65) mean(y45)];
             ee = [ std(y95)  std(y75)  std(y65)  std(y45)] ./ ...
                  sqrt([length(y95) length(y75) length(y65) length(y45)]);
@@ -466,51 +399,51 @@ classdef GluTFigures
                 'Color',[0 0 0]);
 
             % Create textboxes
-            R   = this.axesLim(y);
-            L   = R(1);
-            D   = R(2) - R(1);
-            z45 = 0.12 + 0.8*(mean(y45) - L)/D;
-            z65 = 0.12 + 0.8*(mean(y65) - L)/D;
-            z75 = 0.12 + 0.8*(mean(y75) - L)/D;
-            z95 = 0.12 + 0.8*(mean(y95) - L)/D;  
+            %R   = this.axesLim(y);
+            %L   = R(1);
+            %D   = R(2) - R(1);
+            %z45 = 0.12 + 0.8*(mean(y45) - L)/D;
+            %z65 = 0.12 + 0.8*(mean(y65) - L)/D;
+            %z75 = 0.12 + 0.8*(mean(y75) - L)/D;
+            %z95 = 0.12 + 0.8*(mean(y95) - L)/D;  
             zN  = 0.12;
             zV  = 0.17;
-            annotation(figure0,'textbox',[0.718 zV 0.09 0.07],...
+            annotation(figure0,'textbox',[0.710 zV 0.09 0.07],...
                 'String',{sprintf(this.boxFormat, mean(y45))},...
                 'LineStyle','none',...
                 'FontSize',this.boxFontSize,...
                 'FitBoxToText','off');
-            annotation(figure0,'textbox',[0.535 zV 0.09 0.07],...
+            annotation(figure0,'textbox',[0.564 zV 0.09 0.07],...
                 'String',{sprintf(this.boxFormat, mean(y65))},...
                 'LineStyle','none',...
                 'FontSize',this.boxFontSize,...
                 'FitBoxToText','off');
-            annotation(figure0,'textbox',[0.441 zV 0.09 0.07],...
+            annotation(figure0,'textbox',[0.449 zV 0.09 0.07],...
                 'String',{sprintf(this.boxFormat, mean(y75))},...
                 'LineStyle','none',...
                 'FontSize',this.boxFontSize,...
                 'FitBoxToText','off');
-            annotation(figure0,'textbox',[0.259 zV 0.09 0.07],...
+            annotation(figure0,'textbox',[0.289 zV 0.09 0.07],...
                 'String',{sprintf(this.boxFormat, mean(y95))},...
                 'LineStyle','none',...
                 'FontSize',this.boxFontSize,...
                 'FitBoxToText','off');   
-            annotation(figure0,'textbox',[0.720 zN 0.09 0.07],...
+            annotation(figure0,'textbox',[0.705 zN 0.09 0.07],...
                 'String',{sprintf('N = %i', length(y45))},...
                 'LineStyle','none',...
                 'FontSize',this.boxFontSize,...
                 'FitBoxToText','off');
-            annotation(figure0,'textbox',[0.528 zN 0.09 0.07],...
+            annotation(figure0,'textbox',[0.555 zN 0.09 0.07],...
                 'String',{sprintf('N = %i', length(y65))},...
                 'LineStyle','none',...
                 'FontSize',this.boxFontSize,...
                 'FitBoxToText','off');
-            annotation(figure0,'textbox',[0.439 zN 0.09 0.07],...
+            annotation(figure0,'textbox',[0.446 zN 0.09 0.07],...
                 'String',{sprintf('N = %i', length(y75))},...
                 'LineStyle','none',...
                 'FontSize',this.boxFontSize,...
                 'FitBoxToText','off');
-            annotation(figure0,'textbox',[0.254 zN 0.09 0.07],...
+            annotation(figure0,'textbox',[0.280 zN 0.09 0.07],...
                 'String',{sprintf('N = %i', length(y95))},...
                 'LineStyle','none',...
                 'FontSize',this.boxFontSize,...
@@ -606,6 +539,72 @@ classdef GluTFigures
             low   = max(low, 0);
             high  = max(dat) + Delta;
             range = [low high];
+        end
+        function [x,xLabel1,xLabel2,conversionFactor1] = xLabelLookup(this)
+            x       = this.plasma_glu;  
+            xLabel  = 'arterial plasma glucose';
+            xLabel1 = [xLabel ' (mg/dL)'];
+            xLabel2 =          '(mmol/L)';
+            conversionFactor1 = 0.0551;
+        end
+        function [y,yLabel1,yLabel2,conversionFactor2] = yLabelLookup(this, yLabel)
+            conversionFactor2 = 1;
+            yLabel2 = '';
+            switch (yLabel)
+                case 'CMR_{glu}'
+                    y = this.CMRglu;
+                    yLabel1 = [yLabel ' (\mumol/100 g/min)'];
+                case 'CTX_{glu}'
+                    y = this.CTX;
+                    yLabel1 = [yLabel ' (\mumol/100 g/min)'];
+                case 'free glucose'
+                    y = this.free_glu;                   
+                    yLabel1 = [yLabel ' (\mumol/g)'];
+                case 'CTX_{glu}/CBV'
+                    y = this.CTX ./ this.CBV;
+                    yLabel1 = [yLabel ' (\mumol/mL/min)'];
+                case 'CMR_{glu}/CBV'
+                    y = this.CMRglu ./ this.CBV;               
+                    yLabel1 = [yLabel ' (\mumol/mL/min)'];
+                case 'free glucose/CBV'   
+                    y = this.free_glu ./ this.CBV;
+                    y = 100*y; % converts \frac{\mumol}{g} \frac{100 g}{mL} to \frac{\mumol}{mL} 
+                    yLabel1 = [yLabel ' (\mumol/mL)'];
+                case 'CBF'
+                    y = this.Videen_CBF;
+                    yLabel1 = [yLabel ' (mL/100 g/min)']; 
+                case 'CBV'
+                    y = this.CBV;
+                    yLabel1 = [yLabel ' (mL/100 g)'];                    
+                case 'insulin'
+                    y = this.Insulin;
+                    yLabel1 = [yLabel ' (\muU/mL)'];
+                    yLabel2 =          '(nmol/L)';
+                    conversionFactor2 = 6.945e-3;
+                case 'epinephrine'
+                    y = this.Epi;
+                    yLabel1 = [yLabel ' (pg/mL)'];
+                    yLabel2 =          '(nmol/L)';
+                    conversionFactor2 = 5.485e-3;
+                case 'glucagon'
+                    y = this.Glucagon;
+                    yLabel1 = [yLabel ' (pg/mL)'];
+                    yLabel2 =          '(pmol/L)';
+                    conversionFactor2 = 0.2871;
+                case 'cortisol'
+                    y = this.Cortisol;
+                    yLabel1 = [yLabel ' (\mug/dL)'];
+                    yLabel2 =          '(pmol/L)';
+                    conversionFactor2 = 27.59e-3; 
+                case 'arterial plasma glucose'    
+                    y = this.plasma_glu;
+                    yLabel1 = [yLabel ' (mg/dL)'];
+                    yLabel2 =          '(mmol/L)';
+                    conversionFactor2 = 0.0551;
+                case 'total Sx'
+                    y = this.NGSx + this.NGPSx;
+                    yLabel1 = yLabel;
+            end
         end
     end
 

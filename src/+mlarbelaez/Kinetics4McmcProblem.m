@@ -24,7 +24,7 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
         yLabel = 'concentration/(wellcounts/mL)'
         
         Ca
-        mode = 'AlexsRois'
+        mode = 'WholeBrain'
         region
     end
     
@@ -62,7 +62,7 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
             m('k04') = struct('fixed', 1, 'min', 0,       'mean', this.K04, 'max', 1); 
             m('k12') = struct('fixed', 0, 'min', 0.00192, 'mean', this.k12, 'max', 0.0204);  % Powers' monkey paper
             m('k21') = struct('fixed', 0, 'min', 0.0435,  'mean', this.k21, 'max', 0.0942);  % "
-            m('k32') = struct('fixed', 0, 'min', 0.0015,  'mean', this.k32, 'max', 0.559);   % "
+            m('k32') = struct('fixed', 0, 'min', 0.0015,  'mean', this.k32, 'max', 0.0413);  % " excluding last 3 entries
             m('k43') = struct('fixed', 0, 'min', 2.03e-5, 'mean', this.k43, 'max', 3.85e-4); % "
             m('t0' ) = struct('fixed', 0, 'min', 0,       'mean', this.t0,  'max', 5e2);  
         end
@@ -182,7 +182,7 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
             this.pnumber   = ip.Results.pnum;
             this.snumber   = ip.Results.snum;
             this.region    = ip.Results.region;
-            this.gluTxlsx_ = mlarbelaez.GluTxlsx;               
+            this.gluTxlsx_ = mlarbelaez.GluTxlsx(this.mode);               
             this.k04       = this.K04;
             this.expectedBestFitParams_ = ...
                 [this.k04 this.k12 this.k21 this.k32 this.k43 this.t0];
@@ -220,7 +220,7 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
         end
         function Q    = estimateDataFast(this, k04, k12, k21, k32, k43, t0)
             Q = this.concentrationQ(k04, k12, k21, k32, k43, t0, this.Ca, this.VB, this.dt, this.times);
-        end        
+        end   
         
         function        plotProduct(this)
             figure;

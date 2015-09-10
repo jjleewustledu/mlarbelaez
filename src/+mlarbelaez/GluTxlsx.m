@@ -14,7 +14,7 @@ classdef GluTxlsx
         xlsx_filename = '/Volumes/InnominateHD2/Arbelaez/GluT/GluT de novo 2015aug11.xlsx'
         sheet_wholeBrain = 'wholeBrain'
         sheet_regional = 'regional'
-        mode = 'AlexsRois'
+        mode = 'WholeBrain'
         pid_map
         regions = {'amygdala' 'hippocampus' 'hypothalamus' 'large-hypothalamus' 'thalamus'}
     end 
@@ -43,7 +43,13 @@ classdef GluTxlsx
     
 	methods 
 		
- 		function this = GluTxlsx
+ 		function this = GluTxlsx(varargin)
+            
+            ip = inputParser;
+            addOptional(ip, 'mode', 'WholeBrain', @ischar);
+            parse(ip, varargin{:});
+            
+            this.mode = ip.Results.mode;
             switch (this.mode)
                 case 'WholeBrain'
                     this = this.loadWholeBrain;
