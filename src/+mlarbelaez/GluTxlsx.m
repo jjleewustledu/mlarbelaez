@@ -11,7 +11,7 @@ classdef GluTxlsx
  	 
 
 	properties  		 
-        xlsx_filename = '/Volumes/InnominateHD2/Arbelaez/GluT/GluT de novo 2015aug11.xlsx'
+        xlsx_filename = '/Volumes/InnominateHD3/Arbelaez/GluT/GluT de novo 2015aug11.xlsx'
         sheet_wholeBrain = 'wholeBrain'
         sheet_regional = 'regional'
         mode = 'WholeBrain'

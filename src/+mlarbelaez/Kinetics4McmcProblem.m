@@ -98,8 +98,8 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
             tsc = TSC.import(tscFqfn);
             len = min(length(dta.timeInterpolants), length(tsc.timeInterpolants));
             timeInterp = tsc.timeInterpolants(1:len);
-            Ca_ = dta.wellCountInterpolants(1:len);
-            Q_  = tsc.becquerelInterpolants(1:len);            
+            Q_  = tsc.becquerelInterpolants(1:len); 
+            Ca_ = dta.wellCountInterpolants(1:len);           
             %figure; plot(timeInterp, Ca_, timeInterp, Q_)            
             kmp = mlarbelaez.Kinetics4McmcProblem(timeInterp, Q_, Ca_, pnum, snum);
             
@@ -197,7 +197,6 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
             
             import mlbayesian.*;
             this.paramsManager = BayesianParameters(varargin{:});
-            this.paramsManager.nBeta = 100;
             this.ensureKeyOrdering({'k04' 'k12' 'k21' 'k32' 'k43' 't0'});
             this.mcmc          = MCMC(this, this.dependentData, this.paramsManager);
             [~,~,this.mcmc]    = this.mcmc.runMcmc;

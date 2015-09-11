@@ -10,7 +10,7 @@ classdef GluTReports
  	%  $Id$ 
  	 
 	properties         
-        mode = 'AlexsRois'
+        mode = 'WholeBrain'
         
         dt
         ks
