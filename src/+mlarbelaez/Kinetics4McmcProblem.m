@@ -23,7 +23,7 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
         xLabel = 'times/s'
         yLabel = 'concentration/(wellcounts/mL)'
         
-        Ca
+        dta
         mode = 'WholeBrain'
         region
     end
@@ -94,19 +94,15 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
             
             import mlpet.*;
                         
-            dta = DTA.load(dtaFqfn);
-            tsc = TSC.import(tscFqfn);
-            len = min(length(dta.timeInterpolants), length(tsc.timeInterpolants));
-            timeInterp = tsc.timeInterpolants(1:len);
-            Q_  = tsc.becquerelInterpolants(1:len); 
-            Ca_ = dta.wellCountInterpolants(1:len);           
+            dta_ = DTA.load(dtaFqfn);
+            tsc_ = TSC.import(tscFqfn);          
             %figure; plot(timeInterp, Ca_, timeInterp, Q_)            
-            kmp = mlarbelaez.Kinetics4McmcProblem(timeInterp, Q_, Ca_, pnum, snum);
+            kmp = mlarbelaez.Kinetics4McmcProblem(tsc_.times, tsc_.becquerels, dta_, pnum, snum);
             
             fprintf('Kinetics4McmcProblem.run.pth -> %s\n', pth);
             fprintf('Kinetics4McmcProblem.run.snum -> %s\n', snum);
-            disp(dta)
-            disp(tsc)
+            disp(dta_)
+            disp(tsc_)
             disp(kmp)
             
             kmp = kmp.estimateParameters(kmp.map);
@@ -141,23 +137,24 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
             k   = [kmp.finalParams('k04'), kmp.finalParams('k12'), kmp.finalParams('k21'), ...
                    kmp.finalParams('k32'), kmp.finalParams('k43'), kmp.finalParams('t0')]; 
         end 
-        function Q = concentrationQ(k04, k12, k21, k32, k43, t0, Ca, VB, dt, t)
-            k22 = k12 + k32;
-            len = length(t);
-            
+        function Q_sampl = concentrationQ(k04, k12, k21, k32, k43, t0, dta, VB, dt, t_sampl)
+            t                    = dta.timeInterpolants; % use interpolants internally            
             t0_idx               = floor(t0/dt) + 1;
-            cart                 = Ca(end) * ones(1, len);
-            cart(1:end-t0_idx+1) = Ca(t0_idx:end); 
+            cart                 = dta.wellCountInterpolants(end) * ones(1, length(t));
+            cart(1:end-t0_idx+1) = dta.wellCountInterpolants(t0_idx:end); % shift cart earlier in time
             
+            k22 = k12 + k32;
+            q1_ = VB * cart;
             q2_ = VB * k21 * exp(-k22*t);
             q3_ = VB * k21 * k32 * (k22 - k43)^-1 * (exp(-k43*t) - exp(-k22*t));
             q4_ = VB * k21 * k32 * k43 * ( ...
                      exp(-k22*t)/((k04 - k22)*(k43 - k22)) + ...
                      exp(-k43*t)/((k22 - k43)*(k04 - k43)) + ...
                      exp(-k04*t)/((k22 - k04)*(k43 - k04)));
-            q234 = conv(q2_ + q3_ + q4_, cart);
-            q234 = q234(1:len);
-            Q    = VB * cart + q234;  
+                 
+            q234    = conv(q2_ + q3_ + q4_, cart);
+            Q       = q1_ + q234(1:length(t)); % truncate convolution         
+            Q_sampl = pchip(t, Q, t_sampl); % resample interpolants
         end
         function f = VBtoFB(v)
             % 1/s
@@ -172,13 +169,13 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
             ip = inputParser;
             addRequired(ip, 't', @isnumeric);
             addRequired(ip, 'y', @isnumeric);
-            addRequired(ip, 'ca', @isnumeric);
+            addRequired(ip, 'ca', @(x) isa(x, 'mlpet.IWellData'));
             addRequired(ip, 'pnum', @(x) lstrfind(x, 'p'));
             addRequired(ip, 'snum', @isnumeric);
             addOptional(ip, 'region', '', @ischar);
             parse(ip, t, y, ca, pnum, snum, varargin{:});
             
-            this.Ca        = ip.Results.ca;
+            this.dta        = ip.Results.ca;
             this.pnumber   = ip.Results.pnum;
             this.snumber   = ip.Results.snum;
             this.region    = ip.Results.region;
@@ -187,8 +184,8 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
             this.expectedBestFitParams_ = ...
                 [this.k04 this.k12 this.k21 this.k32 this.k43 this.t0];
         end
-        function Q = itsConcentrationQ(this)
-            Q = this.concentrationQ(this.k04, this.k12, this.k21, this.k32, this.k43, this.t0, this.Ca, this.VB, this.dt, this.times);
+        function Q    = itsConcentrationQ(this)
+            Q = this.concentrationQ(this.k04, this.k12, this.k21, this.k32, this.k43, this.t0, this.dta, this.VB, this.dt, this.times);
         end
         function this = estimateParameters(this, varargin)
             ip = inputParser;
@@ -218,22 +215,26 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
                 this.finalParams(keys{6}));
         end
         function Q    = estimateDataFast(this, k04, k12, k21, k32, k43, t0)
-            Q = this.concentrationQ(k04, k12, k21, k32, k43, t0, this.Ca, this.VB, this.dt, this.times);
+            Q = this.concentrationQ(k04, k12, k21, k32, k43, t0, this.dta, this.VB, this.dt, this.times);
         end   
         
         function        plotProduct(this)
+            try
             figure;
-            max_ecat = max(max(this.itsConcentrationQ), max(this.dependentData));
-            max_aif  = max(this.Ca);
-            
-            plot(this.times, this.itsConcentrationQ / max_ecat, ...
-                 this.times, this.dependentData     / max_ecat, ...
-                 this.times, this.Ca                / max_aif);
-            legend('concentration_{ecat}', 'data_{ecat}', ...
-                   'concentration_{art}'); 
-            title(this.detailedTitle, 'Interpreter', 'none');
-            xlabel(this.xLabel);
-            ylabel(sprintf('arbitrary:  ECAT norm %g, AIF norm %g', max_ecat, max_aif));
+                max_ecat = max(max(this.itsConcentrationQ), max(this.dependentData));
+                max_aif  = max(this.dta.wellCounts);
+
+                plot(this.times, this.itsConcentrationQ / max_ecat, ...
+                     this.times, this.dependentData     / max_ecat, ...
+                     this.dta.times, this.dta.wellCounts    / max_aif);
+                legend('concentration_{ecat}', 'data_{ecat}', ...
+                       'concentration_{art}'); 
+                title(this.detailedTitle, 'Interpreter', 'none');
+                xlabel(this.xLabel);
+                ylabel(sprintf('arbitrary:  ECAT norm %g, AIF norm %g', max_ecat, max_aif));
+            catch ME
+                handwarning(ME);
+            end
         end  
         function        plotParVars(this, par, vars)
             assert(lstrfind(par, properties('mlarbelaez.Kinetics4McmcProblem')));
@@ -241,22 +242,22 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
             switch (par)
                 case 'k04'
                     for v = 1:length(vars)
-                        args{v} = { vars(v)  this.k12 this.k21 this.k32 this.k43 this.t0 this.Ca this.VB this.dt this.times }; end
+                        args{v} = { vars(v)  this.k12 this.k21 this.k32 this.k43 this.t0 this.dta.wellCounts this.VB this.dt this.times }; end
                 case 'k12'
                     for v = 1:length(vars)
-                        args{v} = { this.k04 vars(v)  this.k21 this.k32 this.k43 this.t0 this.Ca this.VB this.dt this.times }; end
+                        args{v} = { this.k04 vars(v)  this.k21 this.k32 this.k43 this.t0 this.dta.wellCounts this.VB this.dt this.times }; end
                 case 'k21'
                     for v = 1:length(vars)
-                        args{v} = { this.k04 this.k12 vars(v)  this.k32 this.k43 this.t0 this.Ca this.VB this.dt this.times }; end
+                        args{v} = { this.k04 this.k12 vars(v)  this.k32 this.k43 this.t0 this.dta.wellCounts this.VB this.dt this.times }; end
                 case 'k32'
                     for v = 1:length(vars)
-                        args{v} = { this.k04 this.k12 this.k21 vars(v)  this.k43 this.t0 this.Ca this.VB this.dt this.times }; end
+                        args{v} = { this.k04 this.k12 this.k21 vars(v)  this.k43 this.t0 this.dta.wellCounts this.VB this.dt this.times }; end
                 case 'k43'
                     for v = 1:length(vars)
-                        args{v} = { this.k04 this.k12 this.k21 this.k32 vars(v)  this.t0 this.Ca this.VB this.dt this.times }; end
+                        args{v} = { this.k04 this.k12 this.k21 this.k32 vars(v)  this.t0 this.dta.wellCounts this.VB this.dt this.times }; end
                 case 't0'
                     for v = 1:length(vars)
-                        args{v} = { this.k04 this.k12 this.k21 this.k32 this.k43 vars(v) this.Ca this.VB this.dt this.times }; end
+                        args{v} = { this.k04 this.k12 this.k21 this.k32 this.k43 vars(v) this.dta.wellCounts this.VB this.dt this.times }; end
             end
             this.plotParArgs(par, args, vars);
         end  
