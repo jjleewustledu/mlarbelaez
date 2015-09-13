@@ -1,5 +1,5 @@
-classdef GluTReport  
-	%% GLUTREPORT   
+classdef GluTNestReport  
+	%% GluTNestReport   
 
 	%  $Revision$ 
  	%  was created $Date$ 
@@ -18,12 +18,11 @@ classdef GluTReport
         kmps
         gluTxlsx
         
-        ik04 = 1
-        ik12 = 2
-        ik21 = 3
-        ik32 = 4
-        ik43 = 5
-        it0  = 6
+        ik12 = 1
+        ik21 = 2
+        ik32 = 3
+        ik43 = 4
+        it0  = 5
         
         K04
         K21
@@ -79,9 +78,9 @@ classdef GluTReport
     end
     
 	methods 		  
- 		function this = GluTReport(pnum, ks, kmps) 
- 			%% GLUTREPORT 
- 			%  Usage:  this = GluTReport(ks_cell, kmps_cell) 
+ 		function this = GluTNestReport(pnum, ks, kmps) 
+ 			%% GluTNestReport 
+ 			%  Usage:  this = GluTNestReport(ks_cell, kmps_cell) 
 
             this.pnum = pnum;
             this.snum = kmps.scanIndex;
@@ -91,13 +90,13 @@ classdef GluTReport
 
             if (~isempty(this.ks))
                 try
-                    this.K04      = this.ks(this.ik04)*60;
                     this.K21      = this.ks(this.ik21)*60;
                     this.K12      = this.ks(this.ik12)*60;
                     this.K32      = this.ks(this.ik32)*60;
                     this.K43      = this.ks(this.ik43)*60;
                     this.T0       = this.ks(this.it0);
 
+                    this.K04      = 60 * this.F1 / this.V1;
                     this.MTT      = 60 * this.V1 / this.F1;
                     this.Chi      = this.K21 * this.K32 / (this.K12 + this.K32);
                     this.UF       = this.Chi * (this.MTT/60) / (1 + 0.835 * this.Chi * this.MTT/60);

@@ -19,7 +19,7 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
         t0  = 44.1
         
         pnumber
-        snumber
+        scanIndex
         xLabel = 'times/s'
         yLabel = 'concentration/(wellcounts/mL)'
         
@@ -50,21 +50,22 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
         function inf = get.gluTxlsxInfo(this)
             switch (this.mode)
                 case 'WholeBrain'
-                    inf = this.gluTxlsx_.pid_map(this.pnumber).(sprintf('scan%i', this.snumber));
+                    inf = this.gluTxlsx_.pid_map(this.pnumber).(sprintf('scan%i', this.scanIndex));
                 case 'AlexsRois'
-                    inf = this.gluTxlsx_.rois_map(strtok(this.region, '_')).(sprintf('scan%i', this.snumber));                    
+                    inf = this.gluTxlsx_.rois_map(strtok(this.region, '_')).(sprintf('scan%i', this.scanIndex));                    
                 otherwise
                     error('mlarbelaez:failedSwitch', 'Kinetics4McmcProblem.get.gluTxlsxInfo');
             end
         end        
         function m   = get.map(this)
             m = containers.Map;
-            m('k04') = struct('fixed', 1, 'min', 0,       'mean', this.K04, 'max', 1); 
-            m('k12') = struct('fixed', 0, 'min', 0.00192, 'mean', this.k12, 'max', 0.0204);  % Powers' monkey paper
-            m('k21') = struct('fixed', 0, 'min', 0.0435,  'mean', this.k21, 'max', 0.0942);  % "
-            m('k32') = struct('fixed', 0, 'min', 0.0015,  'mean', this.k32, 'max', 0.0413);  % " excluding last 3 entries
-            m('k43') = struct('fixed', 0, 'min', 2.03e-5, 'mean', this.k43, 'max', 3.85e-4); % "
-            m('t0' ) = struct('fixed', 0, 'min', 0,       'mean', this.t0,  'max', 5e2);  
+            fL = 1/3; fH = 3;
+            m('k04') = struct('fixed', 1, 'min', 0*fL,       'mean', this.K04, 'max', 1*fH); 
+            m('k12') = struct('fixed', 0, 'min', 0.00192*fL, 'mean', this.k12, 'max', 0.0204*fH);  % Powers' monkey paper
+            m('k21') = struct('fixed', 0, 'min', 0.0435*fL,  'mean', this.k21, 'max', 0.0942*fH);  % "
+            m('k32') = struct('fixed', 0, 'min', 0.0015*fL,  'mean', this.k32, 'max', 0.0413*fH);  % " excluding last 3 entries
+            m('k43') = struct('fixed', 0, 'min', 2.03e-5*fL, 'mean', this.k43, 'max', 3.85e-4*fH); % "
+            m('t0' ) = struct('fixed', 0, 'min', 0*fL,       'mean', this.t0,  'max', 5e2*fH);  
         end
         function v   = get.VB(this)
             % fraction
@@ -115,21 +116,21 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
             import mlpet.*;
             
             tscf = TSCFiles('pnumPath', pth, 'scanIndex', snum, 'region', region);                        
-            dta  = DTA.load(tscf.dtaFqfilename);
-            tsc  = TSC.loadTscFiles(tscf);
-            len  = min(length(dta.timeInterpolants), length(tsc.timeInterpolants));           
+            dta_ = DTA.load(tscf.dtaFqfilename);
+            tsc_ = TSC.loadTscFiles(tscf);
+            len  = min(length(dta_.timeInterpolants), length(tsc_.timeInterpolants));           
             %figure; plot(timeInterp, Ca_, timeInterp, Q_)
             kmp  = mlarbelaez.Kinetics4McmcProblem( ...
-                tsc.timeInterpolants(1:len), ...
-                tsc.becquerelInterpolants(1:len), ...
-                dta.wellCountInterpolants(1:len), ...
+                tsc_.timeInterpolants(1:len), ...
+                tsc_.becquerelInterpolants(1:len), ...
+                dta_, ...
                 str2pnum(pth), snum, region);
             
             fprintf('Kinetics4McmcProblem.runRegions.pth  -> %s\n', pth);
             fprintf('Kinetics4McmcProblem.runRegions.snum -> %i\n', snum);
             fprintf('Kinetics4McmcProblem.runRegions.region -> %s\n', region);
-            disp(dta)
-            disp(tsc)
+            disp(dta_)
+            disp(tsc_)
             disp(kmp)
             
             kmp = kmp.estimateParameters(kmp.map);
@@ -137,9 +138,9 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
             k   = [kmp.finalParams('k04'), kmp.finalParams('k12'), kmp.finalParams('k21'), ...
                    kmp.finalParams('k32'), kmp.finalParams('k43'), kmp.finalParams('t0')]; 
         end 
-        function Q_sampl = concentrationQ(k04, k12, k21, k32, k43, t0, dta, VB, dt, t_sampl)
+        function Q_sampl = concentrationQ(k04, k12, k21, k32, k43, t0, dta, VB, t_sampl)
             t                    = dta.timeInterpolants; % use interpolants internally            
-            t0_idx               = floor(t0/dt) + 1;
+            t0_idx               = floor(t0/dta.dt) + 1;
             cart                 = dta.wellCountInterpolants(end) * ones(1, length(t));
             cart(1:end-t0_idx+1) = dta.wellCountInterpolants(t0_idx:end); % shift cart earlier in time
             
@@ -156,28 +157,24 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
             Q       = q1_ + q234(1:length(t)); % truncate convolution         
             Q_sampl = pchip(t, Q, t_sampl); % resample interpolants
         end
-        function f = VBtoFB(v)
-            % 1/s
-            f = 0.076339*v^0.671;
-        end
     end
     
     methods
-        function this = Kinetics4McmcProblem(t, y, ca, pnum, snum, varargin)
+        function this = Kinetics4McmcProblem(t, y, dta, pnum, snum, varargin)
             this = this@mlbayesian.AbstractMcmcProblem(t, y);
             
             ip = inputParser;
             addRequired(ip, 't', @isnumeric);
             addRequired(ip, 'y', @isnumeric);
-            addRequired(ip, 'ca', @(x) isa(x, 'mlpet.IWellData'));
+            addRequired(ip, 'dta', @(x) isa(x, 'mlpet.IWellData'));
             addRequired(ip, 'pnum', @(x) lstrfind(x, 'p'));
             addRequired(ip, 'snum', @isnumeric);
             addOptional(ip, 'region', '', @ischar);
-            parse(ip, t, y, ca, pnum, snum, varargin{:});
+            parse(ip, t, y, dta, pnum, snum, varargin{:});
             
-            this.dta        = ip.Results.ca;
+            this.dta       = ip.Results.dta;
             this.pnumber   = ip.Results.pnum;
-            this.snumber   = ip.Results.snum;
+            this.scanIndex = ip.Results.snum;
             this.region    = ip.Results.region;
             this.gluTxlsx_ = mlarbelaez.GluTxlsx(this.mode);               
             this.k04       = this.K04;
@@ -185,7 +182,7 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
                 [this.k04 this.k12 this.k21 this.k32 this.k43 this.t0];
         end
         function Q    = itsConcentrationQ(this)
-            Q = this.concentrationQ(this.k04, this.k12, this.k21, this.k32, this.k43, this.t0, this.dta, this.VB, this.dt, this.times);
+            Q = this.concentrationQ(this.k04, this.k12, this.k21, this.k32, this.k43, this.t0, this.dta, this.VB, this.times);
         end
         function this = estimateParameters(this, varargin)
             ip = inputParser;
@@ -215,7 +212,7 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
                 this.finalParams(keys{6}));
         end
         function Q    = estimateDataFast(this, k04, k12, k21, k32, k43, t0)
-            Q = this.concentrationQ(k04, k12, k21, k32, k43, t0, this.dta, this.VB, this.dt, this.times);
+            Q = this.concentrationQ(k04, k12, k21, k32, k43, t0, this.dta, this.VB, this.times);
         end   
         
         function        plotProduct(this)

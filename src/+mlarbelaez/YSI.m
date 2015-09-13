@@ -11,7 +11,7 @@ classdef YSI
  	 
 
 	properties (Constant)
-        GLUT_HOME = '/Volumes/InnominateHD2/Arbelaez/GluT'
+        GLUT_HOME = '/Volumes/InnominateHD3/Arbelaez/GluT'
         YSI_XLSX  = '/Users/jjlee/Documents/WUSTL/Arbelaez/Glucose Threshold manuscript/report_2015jul21.xlsx'
     end 
 
