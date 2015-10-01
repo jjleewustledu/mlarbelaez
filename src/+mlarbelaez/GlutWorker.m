@@ -259,7 +259,7 @@ classdef GlutWorker
             kmps = cell(length(dt.dns),2);
             
             cd(subjectsPth);
-            logFn = fullfile(subjectsPth, sprintf('Kinetics4McmcProblems.loopKinetics4_%s.log', datestr(now, 30)));
+            logFn = fullfile(subjectsPth, sprintf('Kinetics4McmcProblem.loopKinetics4_%s.log', datestr(now, 30)));
             diary(logFn);
             for d = 1:length(dt.dns)
                 for s = 1:2
@@ -275,9 +275,9 @@ classdef GlutWorker
                 end                
             end
             cd(subjectsPth);
-            save(sprintf('Kinetics4McmcProblems.loopKinetics4_%s.mat', datestr(now,30)));
+            save(sprintf('Kinetics4McmcProblem.loopKinetics4_%s.mat', datestr(now,30)));
             cd(p.Results.figFolder);
-            save(sprintf('Kinetics4McmcProblems.loopKinetics4_%s.mat', datestr(now,30)));
+            save(sprintf('Kinetics4McmcProblem.loopKinetics4_%s.mat', datestr(now,30)));
             mlpet.AutoradiographyTester.saveFigs;
             cd(pwd0);
             diary off

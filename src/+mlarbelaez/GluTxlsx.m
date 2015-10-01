@@ -1,4 +1,4 @@
-classdef GluTxlsx  
+classdef GluTxlsx < mlarbelaez.IGluTxlsx 
 	%% GLUTXLSX   
 
 	%  $Revision$ 
@@ -10,8 +10,8 @@ classdef GluTxlsx
  	%  $Id$ 
  	 
 
-	properties  		 
-        xlsx_filename = '/Volumes/InnominateHD3/Arbelaez/GluT/GluT de novo 2015aug11.xlsx'
+	properties  	
+        xlsx_filename	 
         sheet_wholeBrain = 'wholeBrain'
         sheet_regional = 'regional'
         mode = 'WholeBrain'
@@ -21,11 +21,15 @@ classdef GluTxlsx
 
     properties (Dependent)
         title
+        defaultFilename
     end
     
     methods %% GET
         function t = get.title(this)
             [~,t] = fileparts(this.xlsx_filename);
+        end
+        function x = get.defaultFilename(this) %#ok<MANU>
+            x = fullfile(getenv('ARBELAEZ'), 'GluT', 'GluT de novo 2015aug11.xlsx');
         end
     end
     
@@ -46,10 +50,12 @@ classdef GluTxlsx
  		function this = GluTxlsx(varargin)
             
             ip = inputParser;
-            addOptional(ip, 'mode', 'WholeBrain', @ischar);
+            addParameter(ip, 'Mode', 'WholeBrain', @ischar);
+            addParameter(ip, 'Filename', this.defaultFilename, @(x) lexist(x, 'file'));
             parse(ip, varargin{:});
             
-            this.mode = ip.Results.mode;
+            this.xlsx_filename = ip.Results.Filename;
+            this.mode = ip.Results.Mode;
             switch (this.mode)
                 case 'WholeBrain'
                     this = this.loadWholeBrain;

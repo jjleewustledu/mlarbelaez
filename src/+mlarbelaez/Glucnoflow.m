@@ -11,9 +11,9 @@ classdef Glucnoflow
     
     
     properties
-        localBasePath = '/Volumes/PassportStudio2/Arbelaez/GluT'
+        localBasePath = '/Volumes/InnominateHD3/Arbelaez/GluT'
         nilBasePath = '/data/nil-bluearc/hershey/unix/AMA/GluT'
-        csvFile = '/Volumes/PassportStudio2/Arbelaez/GluT/Glucnoflow.csv'
+        csvFile = '/Volumes/InnominateHD3/Arbelaez/GluT/Glucnoflow.csv'
         pnumPath
         petIndex          % integer  
         isotope = '11C'
@@ -54,7 +54,11 @@ classdef Glucnoflow
             pth = fullfile(this.petPath, ['scan' num2str(this.petIndex)], '');
         end
         function pth = get.procPath(this)
-            pth = fullfile(this.pnumPath, 'jjl_proc', '');
+            if (1 == this.petIndex)
+                pth = fullfile(this.pnumPath, 'wjp_proc_v2', '');
+            else                
+                pth = fullfile(this.pnumPath, 'wjp_proc2_v2', '');
+            end
         end
         function p   = get.pnumber(this)
             p = str2pnum(this.pnumPath);
@@ -121,11 +125,19 @@ classdef Glucnoflow
             end
         end
         function this = createProcfiles(pth, idx)
-            %% CREATETSC
+            %% CREATEPROCFILES
             %  Usage:  this = Glucnoflow.createProcfiles(pnumber_path, pet_index)
             
             try
                 this = mlarbelaez.Glucnoflow(pth, idx);
+                this.injectionTIme = this.getInjectionTime;
+                this.mask = this.makeMask( ...
+                    NIfTI.load(this.maskFqFilename));
+                [this.petGluc_decayCorrect,this.times,this.taus] = ...
+                    this.decayCorrect( ...
+                        this.maskPet( ...
+                            NIfTI.load(this.glucFqFilename), this.mask));
+                this.dtaDuration = this.getDtaDuration;  
                 fqfn = fullfile(this.procPath, sprintf('%swb%i.tsc', this.pnumber, this.petIndex));
                 label = [this.petGluc_decayCorrect.fqfilename];
                 counts = plotPet(this, this.petGluc_decayCorrect, this.mask); 
@@ -163,15 +175,7 @@ classdef Glucnoflow
             assert(isnumeric(petidx));
             this.petIndex = petidx;
             
-            import mlfourd.*;
-            this.injectionTIme = this.getInjectionTime;
-            this.mask      = this.makeMask( ...
-                                 NIfTI.load(this.maskFqFilename));
-            [this.petGluc_decayCorrect,this.times,this.taus] = ...
-                             this.decayCorrect( ...
-                                 this.maskPet( ...
-                                     NIfTI.load(this.glucFqFilename), this.mask));
-            this.dtaDuration = this.getDtaDuration;            
+            import mlfourd.*;          
             this.gluTxlsx = mlarbelaez.GluTxlsx;
         end
            
@@ -438,8 +442,17 @@ classdef Glucnoflow
             end
         end  
         function [results,rrow] = readDLog(this)
-            fid = fopen( ...
-                  fullfile(this.procPath, sprintf('%swb%id.log', this.pnumber, this.petIndex)));
+            try
+                fid = fopen( ...
+                    fullfile(this.procPath, sprintf('%swb%id_db.log', this.pnumber, this.petIndex)));
+            catch      %#ok<CTCH>
+                try
+                    fid = fopen( ...
+                        fullfile(this.procPath, sprintf('%swb60d_db.log', this.pnumber)));
+                catch ME
+                    handexcept(ME);
+                end
+            end
             textscan(fid, '%s',    1, 'Delimiter', '\n');
             textscan(fid, '%s',    1, 'Delimiter', '\n');
             textscan(fid, '%s',    1, 'Delimiter', '\n');
@@ -449,9 +462,9 @@ classdef Glucnoflow
             results.cbf     = ts(1,1);
             results.cbv     = ts(1,2);
             results.glu_art = ts(1,3);
-            results.k01     = ts(1,4);
+            results.k04     = ts(1,4);
             results.k21     = ts(1,5);
-            results.k22     = ts(1,6);
+            results.k12     = ts(1,6);
             results.k32     = ts(1,7);
             results.k43     = ts(2,1);
             results.t0      = ts(2,2);
@@ -479,9 +492,9 @@ classdef Glucnoflow
             results.det = tp.parseRightAssociatedNumeric('DETERMINANT OF FI MATRIX');
             rrow = [results.condition results.det];
         end
-        function [results,rrow] = readALog(this)
+        function [results,rrow] = readALogTail(this)
             tp = mlio.TextParser.load( ...
-                 fullfile(this.procPath, sprintf('%swb%ia.log', this.pnumber, this.petIndex)));
+                 fullfile(this.procPath, sprintf('%swb%ia_db.log', this.pnumber, this.petIndex)));
             tmp = tp.parseRightAssociatedNumeric2('WEIGHTED SUM-OF-SQUARES & RMSE');
             results.weighted_sum_of_squares = tmp(1);
             results.rmse = tmp(2);
@@ -490,17 +503,17 @@ classdef Glucnoflow
         function printCsvHeader(this)      
             fid = fopen(this.csvFile, 'w');
             results = ...
-                'p#,scan#,glu (mg/dL),Hct,cbf,cbv,glu art,k01,k21,k22,k32,k43,t0,t12,util. frac.,glu met,chi,kd,forward flux,brain glu,cond. #,det(FI),wt sum squares,rmse\n';
+                'p#,scan#,glu (mg/dL),Hct,cbf,cbv,glu art,k04,k21,k12,k32,k43,t0,t12,util. frac.,glu met,chi,kd,forward flux,brain glu,cond. #,det(FI),wt sum squares,rmse\n';
             fprintf(fid, results);
             fclose(fid);
         end
         function printCsv(this)            
             fid = fopen(this.csvFile, 'a');            
             gx = this.gluTxlsx.pid_map(this.pnumber).(['scan' num2str(this.petIndex)]);          
-            [~,rDLog] = this.readDLog;
-            [~,rOut]  = this.readOut;
-            [~,rALog] = this.readALog;
-            results = this.cell2csv([{this.pnumber this.petIndex gx.glu gx.hct} num2cell(rDLog) num2cell(rOut) num2cell(rALog)]);
+            [~,rALogH] = this.readDLog;
+            [~,rOut]   = this.readOut;
+            [~,rALogT] = this.readALogTail;
+            results = this.cell2csv([{this.pnumber this.petIndex gx.glu gx.hct} num2cell(rALogH) num2cell(rOut) num2cell(rALogT)]);
             fprintf(fid, results);
             fprintf(fid, '\n');
             fclose(fid);

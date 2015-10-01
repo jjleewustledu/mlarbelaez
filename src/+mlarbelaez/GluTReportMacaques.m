@@ -1,5 +1,5 @@
-classdef GluTReports  
-	%% GLUTREPORTS   
+classdef GluTReportMacaques  
+	%% GLUTREPORTMACAQUES   
 
 	%  $Revision$ 
  	%  was created $Date$ 
@@ -10,7 +10,7 @@ classdef GluTReports
  	%  $Id$ 
  	 
 	properties         
-        mode = 'WholeBrain'
+        mode = 'Macaque'
         
         dt
         ks
@@ -41,6 +41,7 @@ classdef GluTReports
         Freeglu
         MTT
         FluxMet
+        ENET
     end 
 
     properties (Dependent)
@@ -54,14 +55,14 @@ classdef GluTReports
     end
     
 	methods 		  
- 		function this = GluTReports(dt, ks, kmps) 
- 			%% GLUTREPORTS 
- 			%  Usage:  this = GluTReports(DirTool_obj, ks_cell, kmps_cell) 
+ 		function this = GluTReportMacaques(dt, ks, kmps) 
+ 			%% GLUTREPORTMACAQUES 
+ 			%  Usage:  this = GluTReportMacaques(DirTool_obj, ks_cell, kmps_cell) 
 
             this.dt = dt;
             this.ks = ks;
             this.kmps = kmps;            
-            this.gluTxlsx  = mlarbelaez.GluTxlsx;
+            this.gluTxlsx  = mlarbelaez.GluTxlsxMacaque;
             
             this.F1       = cell(this.size);
             this.V1       = cell(this.size);
@@ -80,6 +81,7 @@ classdef GluTReports
             this.Freeglu  = cell(this.size);
             this.MTT      = cell(this.size);
             this.FluxMet  = cell(this.size);
+            this.ENET     = cell(this.size);
             
             for p = 1:this.size(1)
                 for s = 1:this.size(2)
@@ -103,6 +105,7 @@ classdef GluTReports
                             this.CTX{p,s}      = this.KD{p,s}  * this.Bloodglu{p,s};
                             this.Freeglu{p,s}  = this.CMRglu{p,s} / this.K32{p,s} / 100;
                             this.FluxMet{p,s}  = this.CTX{p,s} / this.CMRglu{p,s};
+                            this.ENET{p,s}     = this.Chi{p,s} * this.V1{p,s} / this.F1{p,s};
                         catch ME
                             handwarning(ME);
                         end
@@ -155,7 +158,10 @@ classdef GluTReports
             if (isnumeric(k))
                 k = str2pnum(this.dt.dns{k});
             end
+            regions = {'left' 'right'};
             switch (this.mode)
+                case 'Macaque'
+                    g = this.gluTxlsx.pid_map(k).(regions{s});
                 case 'WholeBrain'
                     g = this.gluTxlsx.pid_map(k).(sprintf('scan%i', s));
                 case 'AlexsRois'
@@ -181,18 +187,18 @@ classdef GluTReports
         function printCsvHeader(~, fid)  
             fprintf(fid, sprintf('Glucose Threshold, JJL, %s\n\n', datestr(now)));
             results = ...
-                'p#,scan#,CBF,CBV,blood glu,k04,k21,k12,k32,k43,t0,Util Frac,CMR glu,chi,Kd,CTX,free glu,MTT,flux/met\n';
+                'p#,scan#,CBF,CBV,blood glu,k04,k21,k12,k32,k43,t0,Util Frac,CMR glu,chi,Kd,CTX,free glu,MTT,flux/met,ENET\n';
             fprintf(fid, results);
         end
         function printCsvLine(this, fid, p, s)    
             pnum = str2pnum(this.dt.dns{p});
             results = ...
-                sprintf('%s,%i,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n', ...
+                sprintf('%s,%i,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n', ...
                     pnum, s, ...
                     this.F1{p,s}, this.V1{p,s}, this.Bloodglu{p,s}, ...
                     this.K04{p,s}, this.K21{p,s}, this.K12{p,s}, this.K32{p,s}, this.K43{p,s}, this.T0{p,s}, ...
                     this.UF{p,s}, this.CMRglu{p,s}, this.Chi{p,s}, this.KD{p,s}, this.CTX{p,s}, this.Freeglu{p,s}, ...
-                    this.MTT{p,s}, this.FluxMet{p,s});
+                    this.MTT{p,s}, this.FluxMet{p,s}, this.ENET{p,s});
             fprintf(fid, results);
         end
         function printCsvLinePrevious(this, fqfn)

@@ -1,4 +1,4 @@
-classdef GluTReport  
+classdef GluTReportMacaque  
 	%% GLUTREPORT   
 
 	%  $Revision$ 
@@ -90,13 +90,13 @@ classdef GluTReport
     end
     
 	methods 		  
- 		function this = GluTReport(ks, kmps) 
+ 		function this = GluTReportMacaque(ks, kmps) 
  			%% GLUTREPORT 
- 			%  Usage:  this = GluTReport(ks_cell, kmps_cell) 
+ 			%  Usage:  this = GluTReportMacaque(ks_cell, kmps_cell) 
 
             this.ks = ks;
             this.kmps = kmps;            
-            this.gluTxlsx  = mlarbelaez.GluTxlsx;
+            this.gluTxlsx  = mlarbelaez.GluTxlsxMacaque;
 
             if (~isempty(this.ks))
                 try
