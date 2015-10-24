@@ -16,7 +16,6 @@ classdef GluTxlsx < mlarbelaez.IGluTxlsx
         sheet_regional = 'regional'
         mode = 'WholeBrain'
         pid_map
-        regions = {'amygdala' 'hippocampus' 'hypothalamus' 'large-hypothalamus' 'thalamus'}
     end 
 
     properties (Dependent)
@@ -28,8 +27,8 @@ classdef GluTxlsx < mlarbelaez.IGluTxlsx
         function t = get.title(this)
             [~,t] = fileparts(this.xlsx_filename);
         end
-        function x = get.defaultFilename(this) %#ok<MANU>
-            x = fullfile(getenv('ARBELAEZ'), 'GluT', 'GluT de novo 2015aug11.xlsx');
+        function f = get.defaultFilename(this) %#ok<MANU>
+            f = mlarbelaez.ArbelaezRegistry.instance.gluTxlsxFqfilename;
         end
     end
     
@@ -45,12 +44,10 @@ classdef GluTxlsx < mlarbelaez.IGluTxlsx
         end
     end
     
-	methods 
-		
- 		function this = GluTxlsx(varargin)
-            
+	methods 		
+ 		function this = GluTxlsx(varargin)            
             ip = inputParser;
-            addParameter(ip, 'Mode', 'WholeBrain', @ischar);
+            addParameter(ip, 'Mode',     'WholeBrain',         @ischar);
             addParameter(ip, 'Filename', this.defaultFilename, @(x) lexist(x, 'file'));
             parse(ip, varargin{:});
             
@@ -107,7 +104,7 @@ classdef GluTxlsx < mlarbelaez.IGluTxlsx
         function this = loadAlexsRois(this)  
             [~,~,this.raw_] = xlsread(this.xlsx_filename, this.sheet_regional);
             this.pid_map = containers.Map;
-            D = length(this.regions);
+            D = length(mlarbelaez.ArbelaezRegistry.instance.regionLabels);
             for p = 2:2
                 cbfs1 = zeros(D,1);
                 cbvs1 = zeros(D,1);
