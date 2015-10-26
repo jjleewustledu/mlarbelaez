@@ -12,7 +12,7 @@ classdef ArbelaezRegistry < mlpatterns.Singleton
         sessionRegexp = '\S*(?<pnum>p\d+)_JJL\S*'
         scanIndexRegexp = 'scan(?<sid>\d)'
         sessionNamePattern = 'p*_JJL'
-        regionLabels = {'amygdala' 'hippocampus' 'hypothalamus' 'thalamus'}
+        regionLabels = {'amygdala' 'hippocampus' 'large-hypothalamus' 'thalamus'}
         gluTxlsxFileprefix = 'GluT de novo 2015aug11.xlsx'
     end
     

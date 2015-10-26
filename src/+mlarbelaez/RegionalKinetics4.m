@@ -32,6 +32,7 @@ classdef RegionalKinetics4 < mlbayesian.AbstractMcmcProblem
         VB
         FB
         K04
+        parameters
     end
     
     methods %% GET
@@ -80,6 +81,10 @@ classdef RegionalKinetics4 < mlbayesian.AbstractMcmcProblem
             % 1/s
             k = this.FB/this.VB;
         end
+        function p  = get.parameters(this)            
+            p   = [this.finalParams('k04'), this.finalParams('k12frac'), this.finalParams('k21'), ...
+                   this.finalParams('k32'), this.finalParams('k43'),     this.finalParams('t0')]; 
+        end
     end
     
     methods (Static)
@@ -87,8 +92,7 @@ classdef RegionalKinetics4 < mlbayesian.AbstractMcmcProblem
             rk4 = mlarbelaez.RegionalKinetics4(meas);
             disp(rk4)            
             rk4 = rk4.estimateParameters(rk4.map);
-            k   = [rk4.finalParams('k04'), rk4.finalParams('k12frac'), rk4.finalParams('k21'), ...
-                   rk4.finalParams('k32'), rk4.finalParams('k43'),     rk4.finalParams('t0')]; 
+            k   = rk4.parameters; 
         end 
         function Q_sampl = concentrationQ(k04, k12frac, k21, k32, k43, t0, dta, VB, t_sampl)
             t      = dta.timeInterpolants; % use interpolants internally            
@@ -124,7 +128,7 @@ classdef RegionalKinetics4 < mlbayesian.AbstractMcmcProblem
             this = this@mlbayesian.AbstractMcmcProblem(meas.tsc.times, meas.tsc.becquerels);
             
             ip = inputParser;
-            addRequired(ip, 'measurements', [], @(x) isa(x, 'mlarbelaez.RegionalMeasurements'));
+            addRequired(ip, 'measurements', @(x) isa(x, 'mlarbelaez.RegionalMeasurements'));
             parse(ip, meas);
             this.measurements_          = ip.Results.measurements;    
             this.k04                    = this.K04;

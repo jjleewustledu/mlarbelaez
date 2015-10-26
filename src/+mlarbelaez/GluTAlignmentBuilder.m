@@ -228,7 +228,9 @@ classdef GluTAlignmentBuilder
             this.ensureSaved(ic);
             this.ensureSaved(icRef);
             this.product        = this.squeezeTime(ic);
-            this.referenceImage = icRef;           
+            this.referenceImage = icRef; 
+            this.inweight       = [];   
+            this.refweight      = [];
             fv                  = mlfsl.FlirtVisitor('sessionPath', this.sessionPath);
             [~,xfm]             = fv.visitFlirtMultimodal(this);
         end
@@ -284,17 +286,26 @@ classdef GluTAlignmentBuilder
             
             import mlfourd.*;
             for s = 1:2
-                this.tr_{s} = ImagingContext( ...
-                              fullfile(this.sessionPath, 'PET', sprintf('scan%i', s), sprintf('%str%i.nii.gz', this.pnumber, s)));
-                this.oc_{s} = ImagingContext( ...
-                              fullfile(this.sessionPath, 'PET', sprintf('scan%i', s), sprintf('%soc%i.nii.gz', this.pnumber, s)));
-                this.ho_{s} = ImagingContext( ...
-                              fullfile(this.sessionPath, 'PET', sprintf('scan%i', s), sprintf('%sho%i.nii.gz', this.pnumber, s)));
+                this.tr_{s}   = ImagingContext( ...
+                                fullfile(this.sessionPath, 'PET', sprintf('scan%i', s), sprintf('%str%i.nii.gz', this.pnumber, s)));
+                this.oc_{s}   = ImagingContext( ...
+                                fullfile(this.sessionPath, 'PET', sprintf('scan%i', s), sprintf('%soc%i.nii.gz', this.pnumber, s)));
+                this.ho_{s}   = ImagingContext( ...
+                                fullfile(this.sessionPath, 'PET', sprintf('scan%i', s), sprintf('%sho%i.nii.gz', this.pnumber, s)));
                 this.gluc_{s} = ImagingContext( ...
                                 fullfile(this.sessionPath, 'PET', sprintf('scan%i', s), sprintf('%sgluc%i.nii.gz', this.pnumber, s)));
+                this.hoXfms_{s} = ...
+                                fullfile(this.sessionPath, 'PET', sprintf('scan%i', s), sprintf('001_on_%sho%i_sumt.mat', this.pnumber, s));
+                this.glucXfms_{s} = ...
+                                fullfile(this.sessionPath, 'PET', sprintf('scan%i', s), sprintf('001_on_%sgluc%i_sumt.mat', this.pnumber, s));
             end
             this.mprage_ = ImagingContext( ...
-                           fullfile(this.sessionPath, 'rois', '001.nii.gz'));
+                           fullfile(this.sessionPath, 'rois', '001.nii.gz'));                       
+            this.ocXfms_{1} = ...
+                           fullfile(this.sessionPath, 'PET', sprintf('001_on_atlas_scan1_pass3.mat'));
+            this.ocXfms_{2} = ...
+                           fullfile(this.sessionPath, 'PET', sprintf('001_on_%satlas_session.mat', this.pnumber));
+                 
  		end
     end 
     

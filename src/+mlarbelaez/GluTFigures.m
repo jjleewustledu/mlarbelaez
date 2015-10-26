@@ -11,7 +11,7 @@ classdef GluTFigures
  	 
 
 	properties 
-        glut_xlsx = '/Volumes/InnominateHD3/Arbelaez/GluT/loopKinetics4_Kinetics4McmcProblem_20150919T1936/loopKinetics4_Kinetics4McmcProblem_20150919T1936.xlsx'
+        glut_xlsx = '/Volumes/SeagateBP4/Arbelaez/GluT/loopKinetics4_Kinetics4McmcProblem_20150919T1936/loopKinetics4_Kinetics4McmcProblem_20150919T1936.xlsx'
         glut_sheet = 'LoopKinetics4';
         dataRows = [2 37]
         mapKin4
@@ -574,6 +574,9 @@ classdef GluTFigures
             switch (yLabel)
                 case 'CMR_{glu}'
                     y = this.CMRglu;
+                    yLabel1 = [yLabel ' (\mumol/100 g/min)'];
+                case 'CTX_{glu} - CMR_{glu}'
+                    y = this.CTX - this.CMRglu;
                     yLabel1 = [yLabel ' (\mumol/100 g/min)'];
                 case 'CTX_{glu}'
                     y = this.CTX;

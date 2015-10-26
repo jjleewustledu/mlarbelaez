@@ -84,9 +84,9 @@ classdef GluTAlignmentDirector
             parse(ip, region, petTarg, varargin{:});
             
             import mlfourd.*;            
-            region = this.regionImagingContext(region, mlpet.PETRegistry.instance.petPointSpread);
-            xfm    = this.findXfmForTarget(petTarg);
-            regionOnPet = this.builder_.applyXfmNN(xfm, region, petTarg);
+            ic  = this.regionImagingContext(region, mlpet.PETRegistry.instance.petPointSpread);
+            xfm = this.findXfmForTarget(petTarg);
+            regionOnPet = this.builder_.applyXfmNN(xfm, ic, petTarg);
             if (~isempty(ip.Results.viewer))
                 if (lstrfind(ip.Results.viewer, 'fsl'))
                     petTarg.niftid.fslview(regionOnPet.fqfilename);
@@ -104,35 +104,33 @@ classdef GluTAlignmentDirector
             assert(ischar(fp));
             if (lstrfind(fp, 'amygdala'))
                 fp = '001-amygdala';
+                ic = mlfourd.ImagingContext(fullfile(this.sessionPath, 'rois', [fp '_454552fwhh.nii.gz']));
+                return
             end
             if (lstrfind(fp, 'hippocampus'))
                 fp = '001-hippocampus';
+                ic = mlfourd.ImagingContext(fullfile(this.sessionPath, 'rois', [fp '_454552fwhh.nii.gz']));
+                return
             end
             if (lstrfind(fp, 'hypothalamus'))
-                fp = '001-hypothalamus';
+                fp = '001-large-hypothalamus';
+                ic = mlfourd.ImagingContext(fullfile(this.sessionPath, 'rois', [fp '_454552fwhh.nii.gz']));
+                return
             end
             if (lstrfind(fp, 'large-hypothalamus'))
                 fp = '001-large-hypothalamus';
+                ic = mlfourd.ImagingContext(fullfile(this.sessionPath, 'rois', [fp '_454552fwhh.nii.gz']));
+                return
             end
             if (lstrfind(fp, 'thalamus'))
                 fp = '001-thalamus';
+                ic = mlfourd.ImagingContext(fullfile(this.sessionPath, 'rois', [fp '_454552fwhh.nii.gz']));
+                return
             end
-            ic = mlfourd.ImagingContext(fullfile(this.sessionPath, 'rois', [fp '_454552fwhh.nii.gz']));
             
             %if (~isempty(ip.Results.blur))
             %    ic = this.blurThenBinarize(ic, ip.Results.blur);
             %end
-        end
-        function ic   = blurThenBinarize(this, ic, blur)
-            import mlfourd.*;
-            ic.niftid;
-            assert(ic.niftid.rank == 3, 'rank(%s)->%i', ic.fqfilename, ic.niftid.rank);
-            bnii = BlurringNIfTId(ic.niftid, 'blur', blur);
-            thresh = max(max(max(bnii.img)))/10;
-            bnii.img = double(bnii.img > thresh);
-            nii = bnii.component;
-            nii.save;
-            ic = ImagingContext(nii);
         end
         function xfm  = findXfmForTarget(this, petTarg)
             assert(isa(petTarg, 'mlfourd.ImagingContext'));
@@ -191,12 +189,8 @@ classdef GluTAlignmentDirector
             this.sessionAtlasFilename_ = ip.Results.fqfn;
             if (lexist(this.sessionAtlasFilename_))
                 this.sessionAtlas_ = mlfourd.ImagingContext(this.sessionAtlasFilename);
-            end            
-            if (lexist(this.atlasCheckpointFilename, 'file'))
-                load(this.atlasCheckpointFilename);
                 return
-            end
-            if (isempty(this.sessionAtlas_))
+            else
                 this = this.directBuildingSessionAtlas;
             end
         end 
@@ -210,12 +204,9 @@ classdef GluTAlignmentDirector
             this.sessionAnatomyFilename_ = ip.Results.fqfn;
             if (lexist(this.sessionAnatomyFilename_))
                 this.sessionAnatomy_ = mlfourd.ImagingContext(this.sessionAnatomyFilename);
-            end            
-            if (lexist(this.anatomyCheckpointFilename, 'file'))
-                load(this.anatomyCheckpointFilename);
+                %load(this.anatomyCheckpointFilename);
                 return
-            end
-            if (isempty(this.sessionAnatomy_))
+            else
                 this = this.directBuildingSessionAnatomy;
             end
         end        
@@ -376,6 +367,22 @@ classdef GluTAlignmentDirector
             % viz., align anatomy to session atlas for PET
             p2m_xfm = bldr.flirtMultimodal(this.sessionAtlas_, mpr);
             m2p_xfm = bldr.invertXfm(p2m_xfm);
+            mpr     = bldr.applyXfm(m2p_xfm, mpr, this.sessionAtlas_);
+            
+            % align anatomy to oc, ho, gluc by concatention of xfms
+            oxfms{1} = bldr.concatXfms({m2p_xfm oxfms{1}});
+            for s = 1:2
+                hxfms{s} = bldr.concatXfms({m2p_xfm hxfms{s}});
+                gxfms{s} = bldr.concatXfms({m2p_xfm gxfms{s}});
+            end
+            
+            this.builder_ = bldr;
+        end
+        function [this,mpr,oxfms,hxfms,gxfms] = align_mprage_direct(this, mpr, oxfms, hxfms, gxfms)
+            bldr = this.builder_;
+            
+            % directly align anatomy to session atlas for PET
+            m2p_xfm = bldr.flirtMultimodal(mpr, this.sessionAtlas_);
             mpr     = bldr.applyXfm(m2p_xfm, mpr, this.sessionAtlas_);
             
             % align anatomy to oc, ho, gluc by concatention of xfms
