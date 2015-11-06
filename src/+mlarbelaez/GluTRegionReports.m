@@ -1,5 +1,5 @@
 classdef GluTRegionReports  
-	%% GLUTREPORTS   
+	%% GLUTREPORTS is a rapid prototype. 
 
 	%  $Revision$ 
  	%  was created $Date$ 
@@ -10,13 +10,13 @@ classdef GluTRegionReports
  	%  $Id$ 
  	 
 	properties         
-        dt
+        dtdns
         ks
         kmps
         gluTxlsx
         
         ik04 = 1
-        ik12 = 2
+        ik12frac = 2
         ik21 = 3
         ik32 = 4
         ik43 = 5
@@ -52,13 +52,18 @@ classdef GluTRegionReports
     end
     
 	methods 		  
- 		function this = GluTRegionReports(dt, ks, kmps) 
+ 		function this = GluTRegionReports(varargin) 
  			%% GLUTREPORTS 
- 			%  Usage:  this = GluTRegionReports(DirTool_obj, ks_cell, kmps_cell) 
+ 			%  Usage:  this = GluTRegionReports(sessionFolderNames, ks_cell[, kmps_cell]) 
 
-            this.dt = dt;
-            this.ks = ks;
-            this.kmps = kmps;            
+            ip = inputParser;
+            addRequired(ip, 'dtdns', @iscell);
+            addRequired(ip, 'ks',    @iscell);
+            addOptional(ip, 'kmps',  @(x) ~isempty(x));
+            parse(ip, varargin{:});
+            this.dtdns = ip.Results.dtdns;
+            this.ks    = ip.Results.ks;
+            this.kmps  = ip.Results.kmps;
             this.gluTxlsx  = mlarbelaez.GluTxlsx;
             
             this.F1       = cell(this.size);
@@ -66,7 +71,7 @@ classdef GluTRegionReports
             this.Bloodglu = cell(this.size);
             this.K04      = cell(this.size);
             this.K21      = cell(this.size);
-            this.K12      = cell(this.size);
+            this.K12  = cell(this.size);
             this.K32      = cell(this.size);
             this.K43      = cell(this.size);
             this.T0       = cell(this.size);            
@@ -79,20 +84,20 @@ classdef GluTRegionReports
             this.MTT      = cell(this.size);
             this.FluxMet  = cell(this.size);
             
-            for p = 11:11 % 1:this.size(1)
+            for p = 1:this.size(1)
                 for s = 1:this.size(2)
                     for r = 1:this.size(3)
                         if (~isempty(this.ks{p,s,r}))
                             try
-                                this.V1{p,s,r}       = this.getV1(p,s,r);
-                                this.F1{p,s,r}       = this.getF1(p,s,r);
+                                this.V1{p,s,r}       = this.ks{p,s,r}.v * 100;
+                                this.F1{p,s,r}       = this.ks{p,s,r}.f * 6000/1.05;
                                 this.Bloodglu{p,s,r} = this.getBloodglu(p,s);
-                                this.K04{p,s,r}      = this.ks{p,s,r}(this.ik04)*60;
-                                this.K21{p,s,r}      = this.ks{p,s,r}(this.ik21)*60;
-                                this.K12{p,s,r}      = this.ks{p,s,r}(this.ik12)*60;
-                                this.K32{p,s,r}      = this.ks{p,s,r}(this.ik32)*60;
-                                this.K43{p,s,r}      = this.ks{p,s,r}(this.ik43)*60;
-                                this.T0{p,s,r}       = this.ks{p,s,r}(this.it0);
+                                this.K04{p,s,r}      = this.ks{p,s,r}.k4parameters(this.ik04)*60;
+                                this.K21{p,s,r}      = this.ks{p,s,r}.k4parameters(this.ik21)*60;
+                                this.K12{p,s,r}      = this.ks{p,s,r}.k4parameters(this.ik12frac)*this.K21{p,s,r};
+                                this.K32{p,s,r}      = this.ks{p,s,r}.k4parameters(this.ik32)*60;
+                                this.K43{p,s,r}      = this.ks{p,s,r}.k4parameters(this.ik43)*60;
+                                this.T0{p,s,r}       = this.ks{p,s,r}.k4parameters(this.it0);
 
                                 this.MTT{p,s,r}      = 60 * this.V1{p,s,r} / this.F1{p,s,r};
                                 this.Chi{p,s,r}      = this.K21{p,s,r} * this.K32{p,s,r} / (this.K12{p,s,r} + this.K32{p,s,r});
@@ -116,9 +121,9 @@ classdef GluTRegionReports
 
             fid = fopen(fqfn, 'w');
             this.printCsvHeader(fid);
-            for s = 1:this.size(2)
+            for r = 1:this.size(3)
                 for p = 1:this.size(1)
-                    for r = 1:this.size(3)
+                    for s = 1:this.size(2)
                         try
                             this.printCsvLine(fid, p, s, r);
                         catch ME
@@ -152,7 +157,7 @@ classdef GluTRegionReports
         end
         function g = getGluTxlsxInfo(this, p, s)
             if (isnumeric(p))
-                p = str2pnum(this.dt.dns{p});
+                p = str2pnum(this.dtdns{p});
             end         
             g = this.gluTxlsx.pid_map(p).(sprintf('scan%i', s));
         end
@@ -177,7 +182,7 @@ classdef GluTRegionReports
             fprintf(fid, results);
         end
         function printCsvLine(this, fid, p, s, r)    
-            pnum = str2pnum(this.dt.dns{p});
+            pnum = str2pnum(this.dtdns{p});
             results = ...
                 sprintf('%s,%i,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n', ...
                     pnum, s, ...
@@ -187,6 +192,9 @@ classdef GluTRegionReports
                     this.MTT{p,s,r}, this.FluxMet{p,s,r});
             fprintf(fid, results);
         end
+        
+        %% LEGACY for reading output from Joanne Markhams' glucnoflow
+        
         function printCsvLinePrevious(this, fqfn)
             fid = fopen(fqfn, 'a');            
             gx = this.getGluTxlsxInfo(this.pnumber, this.petIndex);         
