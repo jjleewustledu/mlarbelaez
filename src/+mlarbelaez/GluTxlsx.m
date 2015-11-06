@@ -1,5 +1,9 @@
 classdef GluTxlsx < mlarbelaez.IGluTxlsx 
-	%% GLUTXLSX   
+	%% GLUTXLSX is a rapid prototype that read xlsx files containing whole-brain data or data 
+    %  obtained using Alex Shimony's ROIs.  It is used primarily for its property pid_map.
+    %  See also:  /Volumes/SeagateBP4/Arbeleaz/GluT/GluT de novo 2015aug11.xlsx 
+    %             mlarbelaez.Kinetics4McmcProblem
+    %             mlarbelaez.RegionalMeasurements
 
 	%  $Revision$ 
  	%  was created $Date$ 
@@ -7,8 +11,7 @@ classdef GluTxlsx < mlarbelaez.IGluTxlsx
  	%  last modified $LastChangedDate$ 
  	%  and checked into repository $URL$,  
  	%  developed on Matlab 8.4.0.150421 (R2014b) 
- 	%  $Id$ 
- 	 
+ 	%  $Id$  	 
 
 	properties  	
         xlsx_filename	 

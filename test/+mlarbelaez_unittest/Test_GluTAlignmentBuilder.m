@@ -25,6 +25,15 @@ classdef Test_GluTAlignmentBuilder < matlab.unittest.TestCase
  			this.verifyEqual(1,1);
  			this.assertEqual(1,1);
  		end
+        function test_concatXfms(this)
+            bldr  = mlarbelaez.GluTAlignmentBuilder(this.sessionPath);
+            xfm21 = fullfile(this.sessionPath, 'PET', 'scan1', 'atlas_scan2_pass3_on_atlas_scan1_pass3.mat');
+            bldr  = bldr.set_hoXfms( ...
+                    fullfile(this.sessionPath, 'PET', 'scan1', 'atlas_scan1_pass3_on_atlas_scan2_pass3.mat'), 'scan', 1);
+            xfm   = bldr.concatXfms({xfm21 bldr.get_hoXfms('scan', 1)});
+            bldr  = bldr.set_hoXfms(xfm, 'scan', 1);
+            this.verifyEqual(bldr.get_hoXfms('scan', 1), fullfile(this.sessionPath, 'PET', 'scan1', 'atlas_scan2_pass3_on_atlas_scan2_pass3.mat'));
+        end
  	end
 
  	methods (TestClassSetup)

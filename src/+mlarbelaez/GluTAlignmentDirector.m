@@ -17,11 +17,15 @@ classdef GluTAlignmentDirector
         atlasCheckpointFilename
         anatomyCheckpointFilename
         
+        builder
         header
         data 		
     end
 
     methods % GET
+        function g = get.builder(this)
+            g = this.builder_;
+        end
         function g = get.sessionAtlas(this)
             g = this.sessionAtlas_;
         end
@@ -56,9 +60,19 @@ classdef GluTAlignmentDirector
     end
     
     methods (Static)
-        function this = createAligned(sessPth)
+        function this = createAllAligned(sessPth)
             import mlarbelaez.*;
-            this = GluTAlignmentDirector(GluTAlignmentBuilder(sessPth));            
+            this = GluTAlignmentDirector(GluTAlignmentBuilder.loadUntouched(sessPth));             
+            this = this.ensureSessionAtlas(this.sessionAtlasFilename);
+            this = this.ensureSessionAnatomy(this.sessionAnatomyFilename);         
+        end
+        function this = loadUntouched(varargin)
+            import mlarbelaez.*;
+            this = GluTAlignmentDirector(GluTAlignmentBuilder.loadUntouched(varargin{:}));
+        end
+        function this = loadTouched(varargin)
+            import mlarbelaez.*;
+            this = GluTAlignmentDirector(GluTAlignmentBuilder.loadTouched(varargin{:}));
         end
     end
     
@@ -187,12 +201,7 @@ classdef GluTAlignmentDirector
             parse(ip, varargin{:});
             
             this.sessionAtlasFilename_ = ip.Results.fqfn;
-            if (lexist(this.sessionAtlasFilename_))
-                this.sessionAtlas_ = mlfourd.ImagingContext(this.sessionAtlasFilename);
-                return
-            else
-                this = this.directBuildingSessionAtlas;
-            end
+            this = this.directBuildingSessionAtlas;
         end 
         function this = ensureSessionAnatomy(this, varargin)
             ip = inputParser;
@@ -202,13 +211,7 @@ classdef GluTAlignmentDirector
             this = this.ensureSessionAtlas;
             
             this.sessionAnatomyFilename_ = ip.Results.fqfn;
-            if (lexist(this.sessionAnatomyFilename_))
-                this.sessionAnatomy_ = mlfourd.ImagingContext(this.sessionAnatomyFilename);
-                %load(this.anatomyCheckpointFilename);
-                return
-            else
-                this = this.directBuildingSessionAnatomy;
-            end
+            this = this.directBuildingSessionAnatomy;
         end        
         
  		function this = GluTAlignmentDirector(bldr)
@@ -217,9 +220,14 @@ classdef GluTAlignmentDirector
 
             assert(isa(bldr, 'mlarbelaez.GluTAlignmentBuilder'));
             this.builder_  = bldr;
-            
-            this = this.ensureSessionAtlas(this.sessionAtlasFilename);
-            this = this.ensureSessionAnatomy(this.sessionAnatomyFilename);
+            if (lexist(this.sessionAtlasFilename))
+                this.sessionAtlas_ = mlfourd.ImagingContext(this.sessionAtlasFilename);
+                %load(this.atlasCheckpointFilename);
+            end
+            if (lexist(this.sessionAnatomyFilename))
+                this.sessionAnatomy_ = mlfourd.ImagingContext(this.sessionAnatomyFilename);
+                %load(this.anatomyCheckpointFilename);
+            end
  		end
  	end 
 
@@ -249,7 +257,7 @@ classdef GluTAlignmentDirector
             this.sessionAtlas_.save;     
             
             this.checkSanitySessionAtlas(tr, oc, ho, gluc);
-            save(this.atlasCheckpointFilename, 'this');
+            %save(this.atlasCheckpointFilename, 'this');
         end
         function [t,o,h,g] = get_tohg(this)
             bldr = this.builder_;
@@ -349,7 +357,7 @@ classdef GluTAlignmentDirector
             this.sessionAnatomy_.save;
             
             this.checkSanitySessionAnatomy
-            save(this.anatomyCheckpointFilename, 'this');
+            %save(this.anatomyCheckpointFilename, 'this');
         end
         function [m,o,h,g] = get_mohg(this)
             bldr = this.builder_;

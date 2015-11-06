@@ -14,7 +14,7 @@ classdef Test_GluTAlignmentDirector < matlab.unittest.TestCase
  	
 
 	properties
-        extended = true
+        extended = false
  		registry
         scanFolder = 'scan2'
         
@@ -52,26 +52,16 @@ classdef Test_GluTAlignmentDirector < matlab.unittest.TestCase
     end
 
 	methods (Test)
-        function test_alignedRegion(this)
-            regionIC = this.testObj.alignRegion(this.regionFilename);
-            regionIC.niftid.fslview(this.mprFilename);
+        function test_regionImagingContext(this)
+            
         end
-        function test_alignAnat(this)
-            xfmFromAnat = this.testObj.alignAnat(this.mprFilename, this.testObj.sessionAtlas);
-            this.verifyTrue(lexist(xfmFromAnat, 'file'));
-        end
-        function test_viewSessionAtlas(this)
-            if (~this.extended); return; end
-            this.testObj.sessionAtlas.fslview;
-        end
-        function test_concatXfms(this)
-            bldr  = mlarbelaez.GluTAlignmentBuilder(this.sessionPath);
-            xfm21 = fullfile(this.sessionPath, 'PET', 'scan1', 'atlas_scan2_pass3_on_atlas_scan1_pass3.mat');
-            bldr  = bldr.set_hoXfms( ...
-                    fullfile(this.sessionPath, 'PET', 'scan1', 'atlas_scan1_pass3_on_atlas_scan2_pass3.mat'), 'scan', 1);
-            xfm   = bldr.concatXfms({xfm21 bldr.get_hoXfms('scan', 1)});
-            bldr  = bldr.set_hoXfms(xfm, 'scan', 1);
-            this.verifyEqual(bldr.get_hoXfms('scan', 1), fullfile(this.sessionPath, 'PET', 'scan1', 'atlas_scan2_pass3_on_atlas_scan2_pass3.mat'));
+        function test_alignRegion(this)
+            glucIC = this.testObj.builder.get_gluc('scan', 1);
+            regionIC = this.testObj.alignRegion(this.regionFilename, glucIC);
+            this.assertClass(regionIC.niftid, 'mlfourd.NIfTId');
+            if (this.extended)
+                regionIC.niftid.freeview;
+            end
         end
         function test_sessionAnatomy(this)            
             anat = this.testObj.sessionAnatomy;
@@ -83,14 +73,37 @@ classdef Test_GluTAlignmentDirector < matlab.unittest.TestCase
             this.verifyEqual(atl.filepath, fullfile(this.sessionPath, 'PET', ''));
             this.verifyEqual(atl.fqfilename, this.sessionAtlasFilename);
         end
+        function test_createAllAligned(this)
+            if (~this.extended); return; end
+            this.testObj = mlarbelaez.GluTAlignmentDirector.createAllAligned(this.sessionPath);
+            this.assertClass(this.testObj, 'mlarbelaez.GluTAlignmentDirector');
+        end
+        function test_loadUntouched(this)
+ 			obj = mlarbelaez.GluTAlignmentDirector.loadUntouched(this.sessionPath);
+            this.assertClass(obj, 'mlarbelaez.GluTAlignmentDirector');
+            this.assertEqual(obj.sessionPath, this.sessionPath);
+            this.assertClass(obj.sessionAtlas, 'mlfourd.ImagingContext');
+            this.assertClass(obj.sessionAnatomy, 'mlfourd.ImagingContext');
+            glucIC = obj.builder.get_gluc('scan', 1);
+            this.assertClass(glucIC, 'mlfourd.ImagingContext');
+            this.assertEqual(glucIC.fileprefix, 'p7991gluc1');
+        end
+        function test_loadTouched(this)
+            this.assertClass(this.testObj, 'mlarbelaez.GluTAlignmentDirector');
+            this.assertEqual(this.testObj.sessionPath, this.sessionPath);
+            this.assertClass(this.testObj.sessionAtlas, 'mlfourd.ImagingContext');
+            this.assertClass(this.testObj.sessionAnatomy, 'mlfourd.ImagingContext');
+            glucIC = this.testObj.builder.get_gluc('scan', 1);
+            this.assertClass(glucIC, 'mlfourd.ImagingContext');
+            this.assertEqual(glucIC.fileprefix, 'p7991gluc1_454552fwhh_mcf');
+        end
  	end
 
  	methods (TestClassSetup)
  		function setupGluTAlignmentDirector(this)
  			import mlarbelaez.*;
             this.registry = ArbelaezRegistry.instance;
- 			this.testObj  = GluTAlignmentDirector( ...
-                            GluTAlignmentBuilder(this.sessionPath));
+ 			this.testObj  = GluTAlignmentDirector.loadTouched(this.sessionPath);
  		end
  	end
 

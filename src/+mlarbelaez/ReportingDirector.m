@@ -23,11 +23,9 @@ classdef ReportingDirector
             import mlarbelaez.*;
             x = CohortXlsx(this.header, this.data);
         end
- 		function this = ReportingDirector(reggionalDir)
+ 		function this = ReportingDirector()
  			%% REPORTINGDIRECTOR
- 			%  Usage:  this = ReportingDirector(regionalDirectorObject)
-
-            assert(isa(regionalDir, 'mlarbelaez.RegionalDirector'));
+ 			%  Usage:  this = ReportingDirector()
             
             this.header = ;
             this.data   = ;

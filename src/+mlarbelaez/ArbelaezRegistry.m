@@ -80,9 +80,18 @@ classdef ArbelaezRegistry < mlpatterns.Singleton
             %  All flows should have units of 1/s.
             %  Usage:  f = this.regressFHerscToVideen(f)
             
+            assert(all(f < 1));
             f = 6000 * f / 1.05; % to mL/min/100 g
             f = 0.3789*f + 19.24;
             f = 1.05 * f / 6000; % to 1/s
+        end
+        function f = regressFVideenToHersc(~, f)
+            %% REGRESSFVIDEENTOHERSC uses regressions on NP755 cases to scale Videen flows to Kety-Schmidt-Herscovitch.
+            %  All flows should have units of mL/min/100g.
+            %  Usage:  f = this.regressFHerscToVideen(f)
+            
+            assert(all(f > 20));
+            f = 2.6392*(f - 19.24);
         end
     end
     

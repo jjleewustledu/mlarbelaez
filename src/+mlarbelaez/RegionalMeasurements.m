@@ -136,7 +136,7 @@ classdef RegionalMeasurements
             gTx = GluTxlsx;
             this.gluTxlsxMap_ = gTx.pid_map;
             
-            this.gluTAlignmentDirector_ = GluTAlignmentDirector(GluTAlignmentBuilder(this.sessionPath));
+            this.gluTAlignmentDirector_ = GluTAlignmentDirector.loadTouched(this.sessionPath);
             
             this.dta_ = DTA.load(this.dtaFqfn_);
             this.tsc_ = TSC.load( ...
@@ -158,6 +158,8 @@ classdef RegionalMeasurements
                 end
                 k = this.kinetics4Cached_;
             catch ME
+                disp(ME)
+                struct2str(ME.stack)
                 handwarning(ME);
                 k = nan;
             end
@@ -177,6 +179,8 @@ classdef RegionalMeasurements
                 end
                 f = this.fFracCached_;
             catch ME
+                disp(ME)
+                struct2str(ME.stack)
                 handwarning(ME);
                 f = nan;
             end
@@ -193,6 +197,8 @@ classdef RegionalMeasurements
                 end
                 v = this.vFracCached_;
             catch ME
+                disp(ME)
+                struct2str(ME.stack)
                 handwarning(ME);
                 v = nan;
             end

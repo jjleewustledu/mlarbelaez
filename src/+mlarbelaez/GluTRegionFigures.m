@@ -1,5 +1,5 @@
-classdef GluTFigures  
-	%% GLUTFIGURES   
+classdef GluTRegionFigures  
+	%% GLUTREGIONFIGURES is a rapid prototype
 
 	%  $Revision$ 
  	%  was created $Date$ 
@@ -11,26 +11,21 @@ classdef GluTFigures
  	 
 
 	properties 
-        glut_xlsx = '/Volumes/SeagateBP4/Arbelaez/GluT/loopKinetics4_Kinetics4McmcProblem_20150919T1936/loopKinetics4_Kinetics4McmcProblem_20150919T1936.xlsx'
-        glut_sheet = 'LoopKinetics4';
-        dataRows = [2 37]
+        glut_xlsx = '/Volumes/SeagateBP4/Arbelaez/GluT/loopRegionalMeasurements_2015oct29_2125.xlsx'
+        glut_sheet = 'loopRegionalMeasurements';
+        dataRows = [2 81 2 21]
         mapKin4
         mapMetab
         mapSx
 
-        boxFormat = '%4.2f'
-        boxFontSize = 14
+        boxFormat = '%4.1f'
+        boxFontSize = 12
         axesFontSize = 14
-        axesLabelFontSize = 16
-        markerEdgeColor   = [0 0 0]
-        markerEdgeColor95 = [0.8 0.309 0.1]
-        markerEdgeColor75 = [0.1 0.309 0.8]
-        markerFaceColor   = [1 1 1]
-        markerFaceColor95 = [1 1 1]
-        markerFaceColor75 = [0 0 0]
+        markerFaceColor95 = [1   1   1  ] %[0.8 0.309 0.1]
+        markerFaceColor75 = [0.3 0.3 0.3] %[0.1 0.309 0.8]
         markerLineWidth = 1
         stairsColor = [0.618 0.618 0.618]
-        barWidth = 0.45
+        barWidth = 0.475
         
         nominalGlu      = [90 75 60 45]
         nominalRising   = [45 60 75 90]
@@ -70,8 +65,8 @@ classdef GluTFigures
     
     
 	methods		  
- 		function this = GluTFigures(varargin) 
- 			%% GLUTFIGURES 
+ 		function this = GluTRegionFigures(varargin) 
+ 			%% GLUTREGIONFIGURES 
  			%  Usage:  this = GluTFigures() 
 
             ip = inputParser;
@@ -83,191 +78,39 @@ classdef GluTFigures
             this = this.xlsRead;
             this.registry_ = mlarbelaez.ArbelaezRegistry.instance;
         end 
-        function figure0 = createScatterStairs(this, yLabel)
-            %% CREATESCATTERSTAIRS
+        function [glu,y] = selectRegion(this, y, region)            
+            glu = this.plasma_glu;
+            switch (region)
+                case 'amygdala'
+                    rng =  1:20;
+                case 'hippocampus'
+                    rng = 21:40;
+                case 'hypothalamus'
+                    rng = 41:60;
+                case 'thalamus'
+                    rng = 61:80;
+                otherwise
+                    error('mlarbelaez:unsupportedSwitchCase', 'GluTRegionFigures.selectRegion.region->%s', region);
+            end
+            glu = glu(rng);
+            y   = y(  rng);
+        end
+        function figure0 = createScatter(this, yLabel, region)
+            %% CREATESCATTERSTAIRS2
             %  e.g., glutf = GluTFigures;
-            %        f = glutf.createScatterStairs('CMR_{glu}/CBV')
+            %        f = glutf.createScatterStairs2('CMR_{glu}/arterial plasma glucose')
 
             %y = 1e3*y/55.507; % converts frac{\mumol}{100 g min} \frac{dL}{mg} to mL/100g/min
             %y = 100*y; % converts \frac{\mumol}{g} \frac{100 g}{mL} to \frac{\mumol}{mL}
-                        
-            [y, yLabel1, yLabel2, conversionFactor2] = this.yLabelLookup(yLabel);            
+            
+            [y, yLabel1, yLabel2, conversionFactor2] = this.yLabelLookup(yLabel, region);            
             [~, xLabel1, xLabel2, conversionFactor1] = this.xLabelLookup('arterial plasma glucose');            
+            [glu,y] = this.selectRegion(y, region); 
             
-            glu   = this.plasma_glu;            
-            glu95 = glu(1:10);   y95 = y(1:10);
-            glu75 = glu(11:18);  y75 = y(11:18);
-            glu65 = glu(19:28);  y65 = y(19:28);
-            glu45 = glu(29:end); y45 = y(29:end);
-
-            range95 = [min(glu95) max(glu95)];
-            range75 = [min(glu75) max(glu75)];
-            range65 = [min(glu65) max(glu65)];
-            range45 = [min(glu45) max(glu45)];
-
-            x0 = [range45(1) mean([range45(2) range65(1)]) mean([range65(2) range75(1)]) mean([range75(2) range95(1)]) range95(2)];
-            y0 = [mean(y45) mean(y65) mean(y75) mean(y95) mean(y95)];
-
-            sz1 = 220;
-            sz2 = 150;
-            sz3 = 220;
-            sz4 = 150;
-            mark1 = 's';
-            mark2 = 'o';
-            mark3 = 's';
-            mark4 = 'o';
-
-            % Create figure
-            figure0 = figure;
-
-            % Create axes2
-            axes2 = axes('Parent',figure0);
-            hold(axes2,'on');
-
-            xlabel(axes2, xLabel2);
-            if (conversionFactor2 ~= 1)
-                ylabel(axes2, yLabel2); end
-
-            xlim(axes2,this.axesLimX(glu*conversionFactor1)); 
-            ylim(axes2,this.axesLimY(y  *conversionFactor2));
-            set(axes2,'FontSize',this.axesFontSize,'XDir','reverse','XAxisLocation','top','YAxisLocation','right');
-
-            % Create axes1
-            axes1 = axes('Parent',figure0);
-            hold(axes1,'on');
-
-            xlabel(axes1, xLabel1);
-            ylabel(axes1, yLabel1);
-
-            xlim(axes1,this.axesLimX(glu));           
-            ylim(axes1,this.axesLimY(y));
-            box(axes1,'on');
-            set(axes1,'FontSize',this.axesFontSize,'XDir','reverse','XAxisLocation','bottom','YAxisLocation','left');
-
-            % Create stairs
-            stairs(x0,y0,'LineWidth',2,'Color',this.stairsColor);
-
-            % Create scatter
-            scatter(glu45,y45,sz1,mark1,'MarkerEdgeColor',this.markerEdgeColor75,'LineWidth',this.markerLineWidth);
-            scatter(glu65,y65,sz2,mark2,'MarkerEdgeColor',this.markerEdgeColor95,'LineWidth',this.markerLineWidth);
-            scatter(glu75,y75,sz3,mark3,'MarkerEdgeColor',this.markerEdgeColor75,'LineWidth',this.markerLineWidth);
-            scatter(glu95,y95,sz4,mark4,'MarkerEdgeColor',this.markerEdgeColor95,'LineWidth',this.markerLineWidth);
-            
-            % Create textboxes
-            annotation(figure0,'textbox',[0.735223615662053 0.415099651058484 0.101920723226704 0.0702210663198959],...
-                'String',{sprintf(this.boxFormat, mean(y45))},...
-                'LineStyle','none',...
-                'FontSize',this.boxFontSize,...
-                'FitBoxToText','off');
-            annotation(figure0,'textbox',[0.565239409726313 0.580644144778168 0.0866216968011125 0.0650195058517556],...
-                'String',{sprintf(this.boxFormat, mean(y65))},...
-                'LineStyle','none',...
-                'FontSize',this.boxFontSize,...
-                'FitBoxToText','off');
-            annotation(figure0,'textbox',[0.419856226868767 0.576703059383082 0.0838400556328233 0.0689206762028608],...
-                'String',{sprintf(this.boxFormat, mean(y75))},...
-                'LineStyle','none',...
-                'FontSize',this.boxFontSize,...
-                'FitBoxToText','off');
-            annotation(figure0,'textbox',[0.27481721317272 0.668005571299824 0.0754951321279559 0.081924577373212],...
-                'String',{sprintf(this.boxFormat, mean(y95))},...
-                'LineStyle','none',...
-                'FontSize',this.boxFontSize,...
-                'FitBoxToText','off');    
-        end
-        function figure0 = createScatterStairs2(this, yLabel)
-            %% CREATESCATTERSTAIRS2
-            %  e.g., glutf = GluTFigures;
-            %        f = glutf.createScatterStairs2('CMR_{glu}/arterial plasma glucose')
-
-            %y = 1e3*y/55.507; % converts frac{\mumol}{100 g min} \frac{dL}{mg} to mL/100g/min
-            %y = 100*y; % converts \frac{\mumol}{g} \frac{100 g}{mL} to \frac{\mumol}{mL}
-            
-            [y, yLabel1, yLabel2, conversionFactor2] = this.yLabelLookup(yLabel);            
-            [~, xLabel1, xLabel2, conversionFactor1] = this.xLabelLookup('arterial plasma glucose');
-            
-            glu   = this.plasma_glu;            
-            glu95 = glu(1:10);   y95 = y(1:10);
-            glu75 = glu(11:18);  y75 = y(11:18);
-            glu65 = glu(19:28);  y65 = y(19:28);
-            glu45 = glu(29:end); y45 = y(29:end);
-
-            range95 = [min(glu95) max(glu95)];
-            range75 = [min(glu75) max(glu75)];
-            range65 = [min(glu65) max(glu65)];
-            range45 = [min(glu45) max(glu45)];
-
-            x0 = [range45(1) mean([range45(2) range65(1)]) mean([range65(2) range75(1)]) mean([range75(2) range95(1)]) range95(2)];
-            y0 = [mean(y45) mean(y65) mean(y75) mean(y95) mean(y95)];
-
-            sz1 = 220;
-            sz2 = 150;
-            sz3 = 220;
-            sz4 = 150;
-            mark1 = 's';
-            mark2 = 'o';
-            mark3 = 's';
-            mark4 = 'o';
-
-            % Create figure
-            figure0 = figure;
-
-            % Create axes2
-            axes2 = axes('Parent',figure0);
-            hold(axes2,'on');
-
-            xlabel(axes2, xLabel2);
-            if (conversionFactor2 ~= 1)
-                ylabel(axes2, yLabel2); end
-
-            xlim(axes2,this.axesLimX(glu*conversionFactor1)); 
-            ylim(axes2,this.axesLimY(y  *conversionFactor2));
-            set(axes2,'FontSize',this.axesFontSize,'XDir','reverse','XAxisLocation','top','YAxisLocation','right');
-
-            % Create axes1
-            axes1 = axes('Parent',figure0);
-            hold(axes1,'on');
-
-            xlabel(axes1, xLabel1);
-            ylabel(axes1, yLabel1);
-
-            xlim(axes1,this.axesLimX(glu));           
-            ylim(axes1,this.axesLimY(y));
-            box(axes1,'on');
-            set(axes1,'FontSize',this.axesFontSize,'XDir','reverse','XAxisLocation','bottom','YAxisLocation','left');
-
-            % Create stairs
-            stairs(x0,y0,'LineWidth',2,'Color',this.stairsColor);
-
-            % Create scatter
-            scatter(glu45,y45,sz1,mark1,'MarkerEdgeColor',this.markerEdgeColor75,'LineWidth',this.markerLineWidth);
-            scatter(glu65,y65,sz2,mark2,'MarkerEdgeColor',this.markerEdgeColor95,'LineWidth',this.markerLineWidth);
-            scatter(glu75,y75,sz3,mark3,'MarkerEdgeColor',this.markerEdgeColor75,'LineWidth',this.markerLineWidth);
-            scatter(glu95,y95,sz4,mark4,'MarkerEdgeColor',this.markerEdgeColor95,'LineWidth',this.markerLineWidth);
-        end
-        function cf      = cftool(this, yLabel)
-            [y, yLabel1, yLabel2, conversionFactor2] = this.yLabelLookup(yLabel);            
-            [~, xLabel1, xLabel2, conversionFactor1] = this.xLabelLookup('arterial plasma glucose');
-            
-            glu   = this.plasma_glu;          
-            cftool(glu,y);
-        end
-        function figure0 = createScatter(this, yLabel)
-            %% CREATESCATTERSTAIRS2
-            %  e.g., glutf = GluTFigures;
-            %        f = glutf.createScatterStairs2('CMR_{glu}/arterial plasma glucose')
-
-            %y = 1e3*y/55.507; % converts frac{\mumol}{100 g min} \frac{dL}{mg} to mL/100g/min
-            %y = 100*y; % converts \frac{\mumol}{g} \frac{100 g}{mL} to \frac{\mumol}{mL}
-            
-            [y, yLabel1, yLabel2, conversionFactor2] = this.yLabelLookup(yLabel);            
-            [~, xLabel1, xLabel2, conversionFactor1] = this.xLabelLookup('arterial plasma glucose');
-            
-            glu   = this.plasma_glu;            
-            glu95 = glu(1:10);   y95 = y(1:10);
-            glu75 = glu(11:18);  y75 = y(11:18);
-            glu65 = glu(19:28);  y65 = y(19:28);
-            glu45 = glu(29:end); y45 = y(29:end);
+            glu95 = glu(1:5);    y95 = y(1:5);
+            glu75 = glu(6:10);   y75 = y(6:10);
+            glu65 = glu(11:15);  y65 = y(11:15);
+            glu45 = glu(16:end); y45 = y(16:end);
 
             range95 = [min(glu95) max(glu95)];
             range75 = [min(glu75) max(glu75)];
@@ -281,10 +124,10 @@ classdef GluTFigures
             sz2 = 220;
             sz3 = 220;
             sz4 = 220;
-            mark1 = 'o';
-            mark2 = 'o';
-            mark3 = 'o';
-            mark4 = 'o';
+            mark1 = 's';
+            mark2 = 's';
+            mark3 = 's';
+            mark4 = 's';
 
             % Create figure
             figure0 = figure;
@@ -293,9 +136,9 @@ classdef GluTFigures
             axes2 = axes('Parent',figure0);
             hold(axes2,'on');
 
-            xlabel(axes2, xLabel2, 'FontSize', this.axesLabelFontSize);
+            xlabel(axes2, xLabel2);
             if (conversionFactor2 ~= 1)
-                ylabel(axes2, yLabel2, 'FontSize', this.axesLabelFontSize); end
+                ylabel(axes2, yLabel2); end
 
             xlim(axes2,this.axesLimX(glu*conversionFactor1)); 
             ylim(axes2,this.axesLimY(y  *conversionFactor2));
@@ -305,8 +148,8 @@ classdef GluTFigures
             axes1 = axes('Parent',figure0);
             hold(axes1,'on');
 
-            xlabel(axes1, xLabel1, 'FontSize', this.axesLabelFontSize);
-            ylabel(axes1, yLabel1, 'FontSize', this.axesLabelFontSize);
+            xlabel(axes1, xLabel1);
+            ylabel(axes1, yLabel1);
 
             xlim(axes1,this.axesLimX(glu));           
             ylim(axes1,this.axesLimY(y));
@@ -317,10 +160,10 @@ classdef GluTFigures
             % stairs(x0,y0,'LineWidth',2,'Color',this.stairsColor);
 
             % Create scatter
-            scatter(glu45,y45,sz1,mark1,'MarkerEdgeColor',this.markerEdgeColor,'MarkerFaceColor',this.markerFaceColor75,'LineWidth',this.markerLineWidth);
-            scatter(glu65,y65,sz2,mark2,'MarkerEdgeColor',this.markerEdgeColor,'MarkerFaceColor',this.markerFaceColor95,'LineWidth',this.markerLineWidth);
-            scatter(glu75,y75,sz3,mark3,'MarkerEdgeColor',this.markerEdgeColor,'MarkerFaceColor',this.markerFaceColor75,'LineWidth',this.markerLineWidth);
-            scatter(glu95,y95,sz4,mark4,'MarkerEdgeColor',this.markerEdgeColor,'MarkerFaceColor',this.markerFaceColor95,'LineWidth',this.markerLineWidth);
+            scatter(glu45,y45,sz1,mark1,'MarkerEdgeColor',[0 0 0],'MarkerFaceColor',this.markerFaceColor75,'LineWidth',this.markerLineWidth);
+            scatter(glu65,y65,sz2,mark2,'MarkerEdgeColor',[0 0 0],'MarkerFaceColor',this.markerFaceColor95,'LineWidth',this.markerLineWidth);
+            scatter(glu75,y75,sz3,mark3,'MarkerEdgeColor',[0 0 0],'MarkerFaceColor',this.markerFaceColor75,'LineWidth',this.markerLineWidth);
+            scatter(glu95,y95,sz4,mark4,'MarkerEdgeColor',[0 0 0],'MarkerFaceColor',this.markerFaceColor95,'LineWidth',this.markerLineWidth);
         end
         function figure0 = createBarErr(this, yLabel, varargin)
             %% CREATEBARERR
@@ -332,20 +175,18 @@ classdef GluTFigures
             
             ip = inputParser;
             addRequired(ip, 'yLabel', @ischar);
+            addOptional(ip, 'region', 'thalamus', @ischar);
             addOptional(ip, 'limYHard', [], @isnumeric);
             parse(ip, yLabel, varargin{:});
             
-            [y, yLabel1, yLabel2, conversionFactor2] = this.yLabelLookup(ip.Results.yLabel);   
-            [x, xLabel1, xLabel2, conversionFactor1] = this.xLabelLookup('nominal arterial plasma glucose');
+            [y, yLabel1, yLabel2, conversionFactor2] = this.yLabelLookup(ip.Results.yLabel, ip.Results.region);   
+            [~, xLabel1, xLabel2, conversionFactor1] = this.xLabelLookup('nominal arterial plasma glucose');            
+            [x, y] = this.selectRegion(y, ip.Results.region); 
             
-            y95 = y(1:10);
-            y75 = y(11:18);
-            y65 = y(19:28);
-            y45 = y(29:end);
-            %x95 = x(1:10);
-            %x75 = x(11:18);
-            %x65 = x(19:28);
-            %x45 = x(29:end);
+            y95 = y( 1:5);
+            y75 = y( 6:10);
+            y65 = y(11:15);
+            y45 = y(16:end);
             
             % Create figure
             figure0 = figure;
@@ -354,9 +195,9 @@ classdef GluTFigures
             axes2 = axes('Parent',figure0);
             hold(axes2,'on');
 
-            xlabel(axes2, xLabel2, 'FontSize', this.axesLabelFontSize);
+            xlabel(axes2, xLabel2);
             if (conversionFactor2 ~= 1)
-                ylabel(axes2, yLabel2, 'FontSize', this.axesLabelFontSize); end
+                ylabel(axes2, yLabel2); end
 
             xlim(axes2,this.axesLimXBar(x*conversionFactor1)); 
             ylim(axes2,this.axesLimYBar(y*conversionFactor2, ip.Results.limYHard*conversionFactor2));
@@ -366,8 +207,8 @@ classdef GluTFigures
             axes1 = axes('Parent',figure0);
             hold(axes1,'on');
 
-            xlabel(axes1, xLabel1, 'FontSize', this.axesLabelFontSize);
-            ylabel(axes1, yLabel1, 'FontSize', this.axesLabelFontSize);
+            xlabel(axes1, xLabel1);
+            ylabel(axes1, yLabel1);
 
             xlim(axes1,this.axesLimXBar(x));        
             ylim(axes1,this.axesLimYBar(y, ip.Results.limYHard));
@@ -398,53 +239,48 @@ classdef GluTFigures
             %z65 = 0.12 + 0.8*(mean(y65) - L)/D;
             %z75 = 0.12 + 0.8*(mean(y75) - L)/D;
             %z95 = 0.12 + 0.8*(mean(y95) - L)/D;  
-            zN  = 0.10;
-            zV  = 0.15;
-            annotation(figure0,'textbox',[0.705 zV 0.09 0.07],...
+            zN  = 0.12;
+            zV  = 0.17;
+            annotation(figure0,'textbox',[0.712 zV 0.09 0.07],...
                 'String',{sprintf(this.boxFormat, mean(y45))},...
                 'LineStyle','none',...
                 'FontSize',this.boxFontSize,...
                 'FitBoxToText','off');
-            annotation(figure0,'textbox',[0.555 zV 0.11 0.07],...
+            annotation(figure0,'textbox',[0.562 zV 0.09 0.07],...
                 'String',{sprintf(this.boxFormat, mean(y65))},...
                 'LineStyle','none',...
                 'FontSize',this.boxFontSize,...
                 'FitBoxToText','off');
-            annotation(figure0,'textbox',[0.413 zV 0.09 0.07],...
+            annotation(figure0,'textbox',[0.42 zV 0.09 0.07],...
                 'String',{sprintf(this.boxFormat, mean(y75))},...
                 'LineStyle','none',...
                 'FontSize',this.boxFontSize,...
                 'FitBoxToText','off');
-            annotation(figure0,'textbox',[0.266 zV 0.11 0.07],...
+            annotation(figure0,'textbox',[0.275 zV 0.09 0.07],...
                 'String',{sprintf(this.boxFormat, mean(y95))},...
                 'LineStyle','none',...
                 'FontSize',this.boxFontSize,...
                 'FitBoxToText','off');   
-            annotation(figure0,'textbox',[0.698 zN 0.09 0.07],...
+            annotation(figure0,'textbox',[0.707 zN 0.09 0.07],...
                 'String',{sprintf('N = %i', length(y45))},...
                 'LineStyle','none',...
                 'FontSize',this.boxFontSize,...
                 'FitBoxToText','off');
-            annotation(figure0,'textbox',[0.548 zN 0.11 0.07],...
+            annotation(figure0,'textbox',[0.555 zN 0.09 0.07],...
                 'String',{sprintf('N = %i', length(y65))},...
                 'LineStyle','none',...
                 'FontSize',this.boxFontSize,...
                 'FitBoxToText','off');
-            annotation(figure0,'textbox',[0.406 zN 0.09 0.07],...
+            annotation(figure0,'textbox',[0.415 zN 0.09 0.07],...
                 'String',{sprintf('N = %i', length(y75))},...
                 'LineStyle','none',...
                 'FontSize',this.boxFontSize,...
                 'FitBoxToText','off');
-            annotation(figure0,'textbox',[0.256 zN 0.11 0.07],...
+            annotation(figure0,'textbox',[0.265 zN 0.09 0.07],...
                 'String',{sprintf('N = %i', length(y95))},...
                 'LineStyle','none',...
                 'FontSize',this.boxFontSize,...
-                'FitBoxToText','off');
-            annotation(figure0,'textbox',[0.433 0.790 0.158 0.0739],...
-                'String',{'p = 0.0'},...
-                'LineStyle','none',...
-                'FontSize',14,...
-                'FitBoxToText','off');
+                'FitBoxToText','off');            
         end        
     end 
     
@@ -508,8 +344,8 @@ classdef GluTFigures
             
             [~,~,metab_] = xlsread(this.glut_xlsx, 'Metabolites');
             this.mapMetab = containers.Map('KeyType', 'uint32', 'ValueType', 'any');      
-            for idx = this.dataRows(1):this.dataRows(2)
-                this.mapMetab(uint32(idx-this.dataRows(1)+1)) = ...
+            for idx = this.dataRows(3):this.dataRows(4)
+                this.mapMetab(uint32(idx-this.dataRows(3)+1)) = ...
                     struct('p',        metab_{idx, 2}, ...
                         'scan',        metab_{idx, 3}, ...
                         'nominal_glu', metab_{idx, 4}, ...
@@ -520,16 +356,16 @@ classdef GluTFigures
                         'Insulin',     metab_{idx,10}, ...
                         'Cortisol',    metab_{idx,7});
             end
-            this.Glucagon = this.vectorize(metab_,11);
-            this.Epi      = this.vectorize(metab_,12);
-            this.Norepi   = this.vectorize(metab_,13);
-            this.Insulin  = this.vectorize(metab_,10);
-            this.Cortisol = this.vectorize(metab_,7);
+            this.Glucagon = this.vectorize(metab_,11, true);
+            this.Epi      = this.vectorize(metab_,12, true);
+            this.Norepi   = this.vectorize(metab_,13, true);
+            this.Insulin  = this.vectorize(metab_,10, true);
+            this.Cortisol = this.vectorize(metab_,7,  true);
             
             [~,~,sx_] = xlsread(this.glut_xlsx, 'Sx');
             this.mapSx = containers.Map('KeyType', 'uint32', 'ValueType', 'any');       
-            for idx = this.dataRows(1):this.dataRows(2)
-                this.mapSx(uint32(idx-this.dataRows(1)+1)) = ...
+            for idx = this.dataRows(3):this.dataRows(4)
+                this.mapSx(uint32(idx-this.dataRows(3)+1)) = ...
                     struct('p',        sx_{idx,2}, ...
                         'scan',        sx_{idx,3}, ...
                         'nominal_glu', sx_{idx,4}, ...
@@ -538,21 +374,31 @@ classdef GluTFigures
                         'NGSx',        sx_{idx,7}, ...
                         'TotalSx',     sx_{idx,8});
             end
-            this.NGPSx   = this.vectorize(sx_,6);
-            this.NGSx    = this.vectorize(sx_,7);            
-            this.TotalSx = this.vectorize(sx_,8);
+            this.NGPSx   = this.vectorize(sx_,6, true);
+            this.NGSx    = this.vectorize(sx_,7, true);            
+            this.TotalSx = this.vectorize(sx_,8, true);
         end
-        function c = cellulize(this, arr, col)
-            clen = this.dataRows(2) - this.dataRows(1) + 1;
-            D = this.dataRows(1) - 1;
+        function c = cellulize(this, arr, col, secondSheets)
+            if (exist('secondSheets', 'var'))
+                clen = this.dataRows(4) - this.dataRows(3) + 1;
+                D = this.dataRows(3) - 1;
+            else
+                clen = this.dataRows(2) - this.dataRows(1) + 1;
+                D = this.dataRows(1) - 1;
+            end
             c = cell(1, clen);
             for ic = 1:clen
                 c{ic} = arr{ic+D, col};
             end
         end
-        function v = vectorize(this, arr, col)
-            vlen = this.dataRows(2) - this.dataRows(1) + 1;
-            D = this.dataRows(1) - 1;
+        function v = vectorize(this, arr, col, secondSheets)
+            if (exist('secondSheets', 'var'))
+                vlen = this.dataRows(4) - this.dataRows(3) + 1;
+                D = this.dataRows(3) - 1;
+            else
+                vlen = this.dataRows(2) - this.dataRows(1) + 1;
+                D = this.dataRows(1) - 1;
+            end
             v = zeros(vlen, 1);
             for iv = 1:vlen
                 v(iv) = arr{iv+D, col};
@@ -590,16 +436,10 @@ classdef GluTFigures
             xLabel2 =          '(mmol/L)';
             conversionFactor1 = 0.0551;
         end
-        function [y,yLabel1,yLabel2,conversionFactor2] = yLabelLookup(this, yLabel)
+        function [y,yLabel1,yLabel2,conversionFactor2] = yLabelLookup(this, yLabel, region)
             conversionFactor2 = 1;
             yLabel2 = '';
             switch (yLabel)
-                case 'CTX_{glu} - \langle CMR_{glu}(>45 mg/dL) \rangle'
-                    y = this.CTX - mean(this.CMRglu(1:28));
-                    yLabel1 = [yLabel ''];
-                case 'CTX_{glu} - CMR_{glu}(92 mg/dL)'
-                    y = this.CTX - 23.6;
-                    yLabel1 = [yLabel ''];
                 case 'CTX_{glu}/CMR_{glu}'
                     y = this.CTX ./ this.CMRglu;
                     yLabel1 = [yLabel ''];
@@ -607,7 +447,7 @@ classdef GluTFigures
                     y = (this.CTX - this.CMRglu) ./ this.CBV;
                     yLabel1 = [yLabel ' (\mumol/mL/min)'];
                 case 'CTX_{glu} - CMR_{glu}'
-                    y = this.CTX - this.CMRglu;
+                    y = (this.CTX - this.CMRglu);
                     yLabel1 = [yLabel ' (\mumol/100 g/min)'];
                 case 'CMR_{glu}'
                     y = this.CMRglu;
@@ -641,22 +481,19 @@ classdef GluTFigures
                 case 'MTT'
                     y = this.MTT;
                     yLabel1 = [yLabel ' (s)']; 
-                case 'k_{04}'
+                case 'k04'
                     y = this.k04;
                     yLabel1 = [yLabel ' (1/min)'];
-                case 'k_{21}'
+                case 'k21'
                     y = this.k21;
                     yLabel1 = [yLabel ' (1/min)'];
-                case 'k_{21}k_{32} / (k_{12} + k_{32})'
-                    y = this.k21 .* this.k32 ./ (this.k12 + this.k32);
-                    yLabel1 = [yLabel ' (1/min)'];
-                case 'k_{12}'
+                case 'k12'
                     y = this.k12;
                     yLabel1 = [yLabel ' (1/min)'];
-                case 'k_{32}'
+                case 'k32'
                     y = this.k32;
                     yLabel1 = [yLabel ' (1/min)'];
-                case 'k_{43}'
+                case 'k43'
                     y = this.k43;
                     yLabel1 = [yLabel ' (1/min)'];
                 case 'E_{net}'
@@ -690,15 +527,8 @@ classdef GluTFigures
                 case 'total Sx'
                     y = this.NGSx + this.NGPSx;
                     yLabel1 = yLabel;
-                case 'neurogenic symptom score'
-                    y = this.NGSx;
-                    yLabel1 = yLabel;
-                case 'neuroglycopenic symptom score'
-                    y = this.NGPSx;
-                    yLabel1 = yLabel;                    
-                otherwise
-                    error('mlarbelaez:unsupportedSwitchCase', 'yLabel was %s', yLabel);
             end
+            yLabel1 = [region ' ' yLabel1];
         end
     end
 
