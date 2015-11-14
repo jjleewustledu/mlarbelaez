@@ -11,7 +11,8 @@ classdef GluTFigures
  	 
 
 	properties 
-        glut_xlsx = '/Volumes/SeagateBP4/Arbelaez/GluT/loopKinetics4_Kinetics4McmcProblem_20150919T1936/loopKinetics4_Kinetics4McmcProblem_20150919T1936.xlsx'
+        glut_xlsx = '/Users/jjlee/Tmp/loopKinetics4_Kinetics4McmcProblem_20150919T1936.xlsx';
+        %'/Volumes/SeagateBP4/Arbelaez/GluT/loopKinetics4_Kinetics4McmcProblem_20150919T1936/loopKinetics4_Kinetics4McmcProblem_20150919T1936.xlsx'
         glut_sheet = 'LoopKinetics4';
         dataRows = [2 37]
         mapKin4
@@ -603,6 +604,9 @@ classdef GluTFigures
                 case 'CTX_{glu}/CMR_{glu}'
                     y = this.CTX ./ this.CMRglu;
                     yLabel1 = [yLabel ''];
+                case 'CMR_{glu}/CTX_{glu}'
+                    y = this.CMRglu ./ this.CTX;
+                    yLabel1 = [yLabel ''];
                 case '(CTX_{glu} - CMR_{glu})/CBV'
                     y = (this.CTX - this.CMRglu) ./ this.CBV;
                     yLabel1 = [yLabel ' (\mumol/mL/min)'];
@@ -649,6 +653,9 @@ classdef GluTFigures
                     yLabel1 = [yLabel ' (1/min)'];
                 case 'k_{21}k_{32} / (k_{12} + k_{32})'
                     y = this.k21 .* this.k32 ./ (this.k12 + this.k32);
+                    yLabel1 = [yLabel ' (1/min)'];
+                case 'k_{32} / (k_{12} + k_{32})'
+                    y = this.k32 ./ (this.k12 + this.k32);
                     yLabel1 = [yLabel ' (1/min)'];
                 case 'k_{12}'
                     y = this.k12;
