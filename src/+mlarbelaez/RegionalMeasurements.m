@@ -17,6 +17,10 @@ classdef RegionalMeasurements
         GLUC_FILE_SUFFIX = '_454552fwhh_mcf.nii.gz'
         HO_FILE_SUFFIX = '_454552fwhh.nii.gz'
         OC_FILE_SUFFIX = '_141414fwhh.nii.gz'
+        
+        dns  = {'p7873_JJL' 'p7901_JJL' 'p7926_JJL' 'p7935_JJL' ...
+                'p7954_JJL' 'p7979_JJL' 'p7991_JJL' 'p8015_JJL' ...
+                'p8018_JJL' 'p8039_JJL' 'p8042_JJL' 'p8047_JJL'};
     end
     
     properties (Dependent)
@@ -153,7 +157,7 @@ classdef RegionalMeasurements
                 end
                 if (isempty(this.kinetics4Cached_))
                     director = KineticsDirector.loadRegionalKinetics4(this);
-                    director = director.estimateAll;
+                    director = director.estimateAllFixedT0(this.registry_.getKinetics4T0(this.scanIndex, this.pnumber));
                     this.kinetics4Cached_ = director.product;
                 end
                 k = this.kinetics4Cached_;

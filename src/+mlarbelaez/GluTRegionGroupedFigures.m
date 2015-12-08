@@ -1,5 +1,5 @@
-classdef GluTRegionFigures  
-	%% GLUTREGIONFIGURES is a rapid prototype
+classdef GluTRegionGroupedFigures  
+	%% GLUTREGIONGROUPEDFIGURES is a rapid prototype
 
 	%  $Revision$ 
  	%  was created $Date$ 
@@ -25,7 +25,7 @@ classdef GluTRegionFigures
         markerFaceColor75 = [0.3 0.3 0.3] %[0.1 0.309 0.8]
         markerLineWidth = 1
         stairsColor = [0.618 0.618 0.618]
-        barWidth = 0.475
+        barWidth = 0.8
         
         nominalGlu      = [90 75 60 45]
         nominalRising   = [45 60 75 90]
@@ -61,12 +61,15 @@ classdef GluTRegionFigures
         Kd
         flux_met
         E_net
+        region
+        
+        regions = {'amygdala' 'hippocampus' 'hypothalamus' 'mpfc' 'thalamus'};
     end
     
     
 	methods		  
- 		function this = GluTRegionFigures(varargin) 
- 			%% GLUTREGIONFIGURES 
+ 		function this = GluTRegionGroupedFigures(varargin) 
+ 			%% GLUTREGIONGROUPEDFIGURES 
  			%  Usage:  this = GluTFigures() 
 
             ip = inputParser;
@@ -78,7 +81,7 @@ classdef GluTRegionFigures
             this = this.xlsRead;
             this.registry_ = mlarbelaez.ArbelaezRegistry.instance;
         end 
-        function [x,y] = selectRegion(this, y, region)
+        function y = selectRegion(~, y, region)            
             switch (region)
                 case 'amygdala'
                     rng =  1:22;
@@ -90,83 +93,10 @@ classdef GluTRegionFigures
                     rng = 67:88;
                 case 'thalamus'
                     rng = 89:110;
-                    
                 otherwise
-                    error('mlarbelaez:unsupportedSwitchCase', 'GluTRegionFigures.selectRegion.region->%s', region);
+                    error('mlarbelaez:unsupportedSwitchCase', 'GluTRegionGroupedFigures.selectRegion.region->%s', region);
             end
-            x = this.plasma_glu;
-            x = x(rng);
             y = y(rng);
-        end
-        function figure0 = createScatter(this, yLabel, region)
-            %% CREATESCATTERSTAIRS2
-            %  e.g., glutf = GluTFigures;
-            %        f = glutf.createScatterStairs2('CMR_{glu}/arterial plasma glucose')
-
-            %y = 1e3*y/55.507; % converts frac{\mumol}{100 g min} \frac{dL}{mg} to mL/100g/min
-            %y = 100*y; % converts \frac{\mumol}{g} \frac{100 g}{mL} to \frac{\mumol}{mL}
-            
-            [y, yLabel1, yLabel2, conversionFactor2] = this.yLabelLookup(yLabel, region);            
-            [~, xLabel1, xLabel2, conversionFactor1] = this.xLabelLookup('arterial plasma glucose');            
-            [glu,y] = this.selectRegion(y, region); 
-            
-            glu95 = glu(1:5);    y95 = y(1:5);
-            glu75 = glu(6:10);   y75 = y(6:10);
-            glu65 = glu(11:15);  y65 = y(11:15);
-            glu45 = glu(16:end); y45 = y(16:end);
-
-            range95 = [min(glu95) max(glu95)];
-            range75 = [min(glu75) max(glu75)];
-            range65 = [min(glu65) max(glu65)];
-            range45 = [min(glu45) max(glu45)];
-
-            x0 = [range45(1) mean([range45(2) range65(1)]) mean([range65(2) range75(1)]) mean([range75(2) range95(1)]) range95(2)];
-            y0 = [mean(y45) mean(y65) mean(y75) mean(y95) mean(y95)];
-
-            sz1 = 220;
-            sz2 = 220;
-            sz3 = 220;
-            sz4 = 220;
-            mark1 = 's';
-            mark2 = 's';
-            mark3 = 's';
-            mark4 = 's';
-
-            % Create figure
-            figure0 = figure;
-
-            % Create axes2
-            axes2 = axes('Parent',figure0);
-            hold(axes2,'on');
-
-            xlabel(axes2, xLabel2);
-            if (conversionFactor2 ~= 1)
-                ylabel(axes2, yLabel2); end
-
-            xlim(axes2,this.axesLimX(glu*conversionFactor1)); 
-            ylim(axes2,this.axesLimY(y  *conversionFactor2));
-            set(axes2,'FontSize',this.axesFontSize,'XDir','reverse','XAxisLocation','top','YAxisLocation','right');
-
-            % Create axes1
-            axes1 = axes('Parent',figure0);
-            hold(axes1,'on');
-
-            xlabel(axes1, xLabel1);
-            ylabel(axes1, yLabel1);
-
-            xlim(axes1,this.axesLimX(glu));           
-            ylim(axes1,this.axesLimY(y));
-            box(axes1,'on');
-            set(axes1,'FontSize',this.axesFontSize,'XDir','reverse','XAxisLocation','bottom','YAxisLocation','left');
-
-            % Create stairs
-            % stairs(x0,y0,'LineWidth',2,'Color',this.stairsColor);
-
-            % Create scatter
-            scatter(glu45,y45,sz1,mark1,'MarkerEdgeColor',[0 0 0],'MarkerFaceColor',this.markerFaceColor75,'LineWidth',this.markerLineWidth);
-            scatter(glu65,y65,sz2,mark2,'MarkerEdgeColor',[0 0 0],'MarkerFaceColor',this.markerFaceColor95,'LineWidth',this.markerLineWidth);
-            scatter(glu75,y75,sz3,mark3,'MarkerEdgeColor',[0 0 0],'MarkerFaceColor',this.markerFaceColor75,'LineWidth',this.markerLineWidth);
-            scatter(glu95,y95,sz4,mark4,'MarkerEdgeColor',[0 0 0],'MarkerFaceColor',this.markerFaceColor95,'LineWidth',this.markerLineWidth);
         end
         function figure0 = createBarErr(this, yLabel, varargin)
             %% CREATEBARERR
@@ -178,18 +108,24 @@ classdef GluTRegionFigures
             
             ip = inputParser;
             addRequired(ip, 'yLabel', @ischar);
-            addOptional(ip, 'region', 'thalamus', @ischar);
             addOptional(ip, 'limYHard', [], @isnumeric);
             parse(ip, yLabel, varargin{:});
             
-            [y, yLabel1, yLabel2, conversionFactor2] = this.yLabelLookup(ip.Results.yLabel, ip.Results.region);   
-            [~, xLabel1, xLabel2, conversionFactor1] = this.xLabelLookup('nominal arterial plasma glucose');            
-            [x,y] = this.selectRegion(y, ip.Results.region); 
+            [y, yLabel1, yLabel2, conversionFactor2] = this.yLabelLookup(ip.Results.yLabel);   
+            [x, xLabel1, xLabel2, conversionFactor1] = this.xLabelLookup('nominal arterial plasma glucose'); 
             
-            y95 = y( 1:5);
-            y75 = y( 6:11);
-            y65 = y(12:16);
-            y45 = y(17:22);
+            NR  = length(this.regions);
+            y90 = zeros(5,NR);
+            y75 = zeros(6,NR);
+            y60 = zeros(5,NR);
+            y45 = zeros(6,NR);
+            for r = 1:NR
+                yr = this.selectRegion(y, this.regions{r});
+                y90(:,r) = yr(1:5);
+                y75(:,r) = yr(6:11);
+                y60(:,r) = yr(12:16);
+                y45(:,r) = yr(17:22);
+            end
             
             % Create figure
             figure0 = figure;
@@ -213,25 +149,28 @@ classdef GluTRegionFigures
             xlabel(axes1, xLabel1);
             ylabel(axes1, yLabel1);
 
-            xlim(axes1,this.axesLimXBar(x));
+            xlim(axes1,this.axesLimXBar(x));        
             ylim(axes1,this.axesLimYBar(y, ip.Results.limYHard));
             box(axes1,'on');
             set(axes1,'FontSize',this.axesFontSize,'XDir','reverse','XTick',this.nominalRising,'XAxisLocation','bottom','YAxisLocation','left');
 
             % Create bar
-            xb95 = [this.nominalGlu(1) this.nominalGlu(3)];
-            xb75 = [this.nominalGlu(2) this.nominalGlu(4)];
-            yb95 = [mean(y95) mean(y65)];
-            yb75 = [mean(y75) mean(y45)];
-            bar(xb95, yb95, this.barWidth, 'FaceColor', [1 1 1]);
-            bar(xb75, yb75, this.barWidth, 'FaceColor', [0.92 0.92 0.92]);
+            xb = this.nominalGlu;
+            yb = [mean(y90); mean(y75); mean(y60); mean(y45)];
+            theBar = bar(xb, yb, this.barWidth); %,'FaceColor',[1 1 1]);            
+            for r = 1:NR
+                set(theBar(r),'DisplayName',this.regions{r});
+            end
+
+            % Create legend 
+            theLegend = legend(axes1,'show');
+            set(theLegend,'EdgeColor',[1 1 1]);
             
             % Create errorbar
-            xe = this.nominalGlu;
-            ye = [mean(y95) mean(y75) mean(y65) mean(y45)];
-            ee = [ std(y95)  std(y75)  std(y65)  std(y45)] ./ ...
-                 sqrt([length(y95) length(y75) length(y65) length(y45)]);
-            errorbar(xe,ye,ee,'Parent',axes1,'MarkerFaceColor',[0 0 0],'MarkerEdgeColor',[0 0 0],'LineStyle','none','LineWidth',1.5,...
+            xe = [this.barOrigins(90); this.barOrigins(75); this.barOrigins(60); this.barOrigins(45)];
+            ye = [mean(y90); mean(y75); mean(y60); mean(y45)];
+            ee = [std(y90)./sqrt(length(y90)); std(y75)./sqrt(length(y75)); std(y60)./sqrt(length(y60)); std(y45)./sqrt(length(y45))];
+            errorbar(xe, ye, ee, 'Parent',axes1,'MarkerFaceColor',[0 0 0],'MarkerEdgeColor',[0 0 0],'LineStyle','none','LineWidth',1,...
                 'Color',[0 0 0]);
 
             % Create textboxes
@@ -293,7 +232,10 @@ classdef GluTRegionFigures
         registry_
     end
     
-    methods (Access = 'private')        
+    methods (Access = 'private')     
+        function x    = barOrigins(~, x0)
+            x = [(x0 - 4.6) (x0 - 2.3) x0 (x0 + 2.3) (x0 + 4.6)];
+        end
         function this = xlsRead(this)
             [~,~,kin4_] = xlsread(this.glut_xlsx, this.glut_sheet);
             this.mapKin4 = containers.Map('KeyType', 'uint32', 'ValueType', 'any');
@@ -434,12 +376,12 @@ classdef GluTRegionFigures
             range = [low high];
         end
         function [x,xLabel1,xLabel2,conversionFactor1] = xLabelLookup(this, xLabel)
-            x       = this.plasma_glu;  
+            x       = this.nominal_glu;  
             xLabel1 = [xLabel ' (mg/dL)'];
             xLabel2 =          '(mmol/L)';
             conversionFactor1 = 0.0551;
         end
-        function [y,yLabel1,yLabel2,conversionFactor2] = yLabelLookup(this, yLabel, region)
+        function [y,yLabel1,yLabel2,conversionFactor2] = yLabelLookup(this, yLabel)
             conversionFactor2 = 1;
             yLabel2 = '';
             switch (yLabel)
@@ -531,7 +473,6 @@ classdef GluTRegionFigures
                     y = this.NGSx + this.NGPSx;
                     yLabel1 = yLabel;
             end
-            yLabel1 = [region ' ' yLabel1];
         end
     end
 

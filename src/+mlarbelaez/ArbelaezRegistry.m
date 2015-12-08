@@ -12,7 +12,7 @@ classdef ArbelaezRegistry < mlpatterns.Singleton
         sessionRegexp = '\S*(?<pnum>p\d+)_JJL\S*'
         scanIndexRegexp = 'scan(?<sid>\d)'
         sessionNamePattern = 'p*_JJL'
-        regionLabels = {'amygdala' 'hippocampus' 'large-hypothalamus' 'thalamus'}
+        regionLabels = {'amygdala' 'hippocampus' 'large-hypothalamus' 'mpfc' 'thalamus'}
         gluTxlsxFileprefix = 'GluT de novo 2015aug11.xlsx'
     end
     
@@ -75,6 +75,17 @@ classdef ArbelaezRegistry < mlpatterns.Singleton
             end
             s = map(pnum);
         end
+        function s = getKinetics4T0(this, si, pnum)
+            if (1 == si)
+                map = containers.Map(this.gluTShiftKeys_, this.scan1Kinetics4T0_);
+            else
+                map = containers.Map(this.gluTShiftKeys_, this.scan2Kinetics4T0_);
+            end
+            if (~lstrfind(pnum, this.gluTShiftKeys_))
+                error('mlarbelaez:mapKeyNotFound', 'ArbelaezRegistry.getGluTShifts: scan->%i, pnum->%s', si, pnum);
+            end
+            s = map(pnum);
+        end
         function f = regressFHerscToVideen(~, f)
             %% REGRESSFHERSCTOVIDEEN uses regressions on NP755 cases to scale Kety-Schmidt-Herscovitch flows to Videen flows.
             %  All flows should have units of 1/s.
@@ -106,6 +117,10 @@ classdef ArbelaezRegistry < mlpatterns.Singleton
             -34 -43 -24 -35 -43 -36    -33 -30 -38 -25 -50 -43    -43 -42 -30 -44 -33];
         scan2Values_ = [ ...
             -38 -30 -19 -22 -38 -23    -25 -31 -30 -21 -45 -25    -33 -24 -26 -25 -18];
+        scan1Kinetics4T0_ = [ ...
+             30  21  17  35  30  19     11  14  14  18  23  12     24   9  15   7  14];
+        scan2Kinetics4T0_ = [ ...
+             33  17  27  12   5   7      9  16  18  12  35  14     16   2  17   5   6];
     end
     
 	methods (Access = 'private')		  

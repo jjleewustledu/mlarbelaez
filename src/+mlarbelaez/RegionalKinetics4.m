@@ -62,7 +62,7 @@ classdef RegionalKinetics4 < mlbayesian.AbstractMcmcProblem
             m('k21')     = struct('fixed', 0, 'min', 0.0435*fL,  'mean', this.k21,     'max', 0.0942*fH);  % "
             m('k32')     = struct('fixed', 0, 'min', 0.0015*fL,  'mean', this.k32,     'max', 0.5589*fH);  % " excluding last 2 entries
             m('k43')     = struct('fixed', 0, 'min', 2.03e-4*fL, 'mean', this.k43,     'max', 3.85e-4*fH); % "
-            m('t0' )     = struct('fixed', 0, 'min',-2e2*fL,     'mean', this.t0,      'max', 2e2*fH);  
+            m('t0' )     = struct('fixed', 1, 'min',-2e2*fL,     'mean', this.t0,      'max', 2e2*fH);  
         end
         function v  = get.VB(this)
             % fraction

@@ -55,6 +55,9 @@ classdef GluTRegionReports
  		function this = GluTRegionReports(varargin) 
  			%% GLUTREPORTS 
  			%  Usage:  this = GluTRegionReports(sessionFolderNames, ks_cell[, kmps_cell]) 
+            %
+            %          grr = GluTRegionReports(RegionalMeasurements.dns, job92_output{1})
+            %          grr.report('loopRegionalMeasurements_2015oct29_2125.csv')
 
             ip = inputParser;
             addRequired(ip, 'dtdns', @iscell);

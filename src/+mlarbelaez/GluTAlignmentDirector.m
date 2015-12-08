@@ -136,6 +136,11 @@ classdef GluTAlignmentDirector
                 ic = mlfourd.ImagingContext(fullfile(this.sessionPath, 'rois', [fp '_454552fwhh.nii.gz']));
                 return
             end
+            if (lstrfind(fp, 'mpfc'))
+                fp = '001-mpfc';
+                ic = mlfourd.ImagingContext(fullfile(this.sessionPath, 'rois', [fp '_454552fwhh.nii.gz']));
+                return
+            end
             if (lstrfind(fp, 'thalamus'))
                 fp = '001-thalamus';
                 ic = mlfourd.ImagingContext(fullfile(this.sessionPath, 'rois', [fp '_454552fwhh.nii.gz']));

@@ -147,11 +147,10 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
         end 
         function [k,kmp] = runRegion(pth, snum, region)
 
-            import mlpet.*;
-            
-            tscf = TSCFiles('pnumPath', pth, 'scanIndex', snum, 'region', region);                        
+            import mlpet.* mlarbelaez.*;            
+            tscf = GluTFiles('pnumPath', pth, 'scanIndex', snum, 'region', region);                        
             dta_ = DTA.load(tscf.dtaFqfilename);
-            tsc_ = TSC.loadTscFiles(tscf);
+            tsc_ = TSC.loadGluTFiles(tscf);
             len  = min(length(dta_.timeInterpolants), length(tsc_.timeInterpolants));           
             %figure; plot(timeInterp, Ca_, timeInterp, Q_)
             kmp  = mlarbelaez.Kinetics4McmcProblem( ...

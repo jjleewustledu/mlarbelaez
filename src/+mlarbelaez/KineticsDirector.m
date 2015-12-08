@@ -36,6 +36,10 @@ classdef KineticsDirector
         function this = estimateAll(this)
             this.builder_ = this.builder_.estimateParameters(this.builder_.map);
         end
+        function this = estimateAllFixedT0(this, t0)
+            this.builder_.t0 = t0;
+            this.builder_ = this.builder_.estimateParameters(this.builder_.map);
+        end
  		function this = KineticsDirector(regMeas)
  			%% KINETICSDIRECTOR
  			%  Usage:  this = KineticsDirector()
