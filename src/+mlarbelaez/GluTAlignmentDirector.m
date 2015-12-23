@@ -257,7 +257,7 @@ classdef GluTAlignmentDirector
             
             % assemble session PET atlas
             this.sessionAtlas_ = this.builder_.add( ...
-                                 gzfileparts(this.sessionAtlasFilename), atlas{1}, atlas{2});
+                                 myfileparts(this.sessionAtlasFilename), atlas{1}, atlas{2});
             this.sessionAtlas_.fqfilename = this.sessionAtlasFilename;
             this.sessionAtlas_.save;     
             

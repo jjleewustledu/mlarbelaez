@@ -53,10 +53,10 @@ classdef YSI
                     try
                         cd(fullfile(mlarbelaez.YSI.GLUT_HOME, dt.dns{d}, 'PET', sprintf('scan%i', s), ''));
                         pnum = str2pnum(dt.dns{d});
-                        tr   = mlpet.ImgRecParser.load(sprintf('%str%i.img.rec',   pnum, s));
-                        oc   = mlpet.ImgRecParser.load(sprintf('%soc%i.img.rec',   pnum, s));
-                        ho   = mlpet.ImgRecParser.load(sprintf('%sho%i.img.rec',   pnum, s));
-                        gluc = mlpet.ImgRecParser.load(sprintf('%sgluc%i.img.rec', pnum, s));
+                        tr   = mlpet.EcatLogParser.load(sprintf('%str%i.img.rec',   pnum, s));
+                        oc   = mlpet.EcatLogParser.load(sprintf('%soc%i.img.rec',   pnum, s));
+                        ho   = mlpet.EcatLogParser.load(sprintf('%sho%i.img.rec',   pnum, s));
+                        gluc = mlpet.EcatLogParser.load(sprintf('%sgluc%i.img.rec', pnum, s));
                         
                         icell{s} = struct('tr', tr, 'oc', oc, 'ho', ho, 'gluc', gluc);
                     catch ME

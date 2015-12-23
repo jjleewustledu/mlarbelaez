@@ -251,8 +251,8 @@ classdef GluTAlignmentBuilder
             this.referenceImage = icRef;
             this.inweight       = this.createWeight(ic);   
             this.refweight      = this.createWeight(icRef);            
-            fv                  = mlfsl.FlirtVisitor('sessionPath', this.sessionPath);
-            [~,xfm]             = fv.visitFlirtForPET(this);
+            visit               = mlfsl.FlirtVisitor('sessionPath', this.sessionPath);
+            [~,xfm]             = visit.alignSmallAnglesGluT(this);
         end
         function xfm = flirtMultimodal(this, ic, icRef)
             this.ensureSaved(ic);
@@ -261,8 +261,8 @@ classdef GluTAlignmentBuilder
             this.referenceImage = icRef; 
             this.inweight       = [];   
             this.refweight      = [];
-            fv                  = mlfsl.FlirtVisitor('sessionPath', this.sessionPath);
-            [~,xfm]             = fv.visitFlirtMultimodal(this);
+            visit               = mlfsl.FlirtVisitor('sessionPath', this.sessionPath);
+            [~,xfm]             = visit.alignMultispectralGluT(this);
         end
         function ic  = applyXfm(this, xfm, ic, icRef)
             this.ensureSaved(ic);
@@ -270,8 +270,8 @@ classdef GluTAlignmentBuilder
             this.xfm            = xfm;          
             this.product        = ic;
             this.referenceImage = icRef;
-            fv                  = mlfsl.FlirtVisitor('sessionPath', this.sessionPath);
-            this                = fv.visitApplyXfm(this);
+            visit               = mlfsl.FlirtVisitor('sessionPath', this.sessionPath);
+            this                = visit.applyTransformForGluT(this);
             ic                  = this.product;
         end
         function ic  = applyXfmNN(this, xfm, ic, icRef)
@@ -280,15 +280,15 @@ classdef GluTAlignmentBuilder
             this.xfm            = xfm;          
             this.product        = ic;
             this.referenceImage = icRef;
-            fv                  = mlfsl.FlirtVisitor('sessionPath', this.sessionPath);
-            this                = fv.visitApplyXfmNN(this);
+            visit               = mlfsl.FlirtVisitor('sessionPath', this.sessionPath);
+            this                = visit.applyTransformNearestNeighbor(this);
             ic                  = this.product;
         end
         function xfm = invertXfm(this, xfm)
             assert(lexist(xfm, 'file'));
             this.xfm = xfm;
-            fv       = mlfsl.FlirtVisitor('sessionPath', this.sessionPath);
-            this     = fv.visitInvertXfm(this);
+            visit    = mlfsl.FlirtVisitor('sessionPath', this.sessionPath);
+            this     = visit.inverseTransformOfBuilder(this);
             xfm      = this.xfm;
         end
         function xfm = concatXfms(this, xfms)
@@ -298,9 +298,9 @@ classdef GluTAlignmentBuilder
             %         builder.xfm will contain <mat_AtoD>
             
             assert(iscell(xfms));
-            fv   = mlfsl.FlirtVisitor('sessionPath', this.sessionPath);
-            this = fv.visitConcatXfms(this, xfms); 
-            xfm  = this.xfm;
+            visit = mlfsl.FlirtVisitor('sessionPath', this.sessionPath);
+            this  = visit.concatTransformsOfBuilder(this, xfms); 
+            xfm   = this.xfm;
         end
         
  		function this = GluTAlignmentBuilder(varargin)
@@ -347,14 +347,14 @@ classdef GluTAlignmentBuilder
         glucXfms_
     end
     
-    methods (Access = 'private')        
+    methods (Access = 'private')
         function      ensureSaved(this, ic)
             if (~lexist(ic.fqfilename, 'file') || this.ALWAYS_SAVE)
                 ic.niftid;
                 ic.save;
             end
         end
-        function ic = createWeight(~, ic)            
+        function ic = createWeight(~, ic)
             niid                   = ic.niftid;
             sz                     = niid.size;
             img                    = ones(sz);

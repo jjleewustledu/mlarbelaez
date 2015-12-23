@@ -14,17 +14,12 @@ classdef Test_GluTAlignmentBuilder < matlab.unittest.TestCase
  	
 
 	properties
- 		registry
+        sessionFolder = 'p7991_JJL'
+ 		sessionPath
  		testObj
  	end
 
 	methods (Test)
- 		function test_afun(this)
- 			import mlarbelaez.*;
- 			this.assumeEqual(1,1);
- 			this.verifyEqual(1,1);
- 			this.assertEqual(1,1);
- 		end
         function test_concatXfms(this)
             bldr  = mlarbelaez.GluTAlignmentBuilder(this.sessionPath);
             xfm21 = fullfile(this.sessionPath, 'PET', 'scan1', 'atlas_scan2_pass3_on_atlas_scan1_pass3.mat');
@@ -39,6 +34,7 @@ classdef Test_GluTAlignmentBuilder < matlab.unittest.TestCase
  	methods (TestClassSetup)
  		function setupGluTAlignmentBuilder(this)
  			import mlarbelaez.*;
+            this.sessionPath = fullfile(getenv('MLUNIT_TEST_PATH'), 'Arbelaez', 'GluT', this.sessionFolder);
  			this.testObj = GluTAlignmentBuilder;
  		end
  	end
