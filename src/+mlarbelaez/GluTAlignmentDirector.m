@@ -9,11 +9,11 @@ classdef GluTAlignmentDirector
  	%% It was developed on Matlab 8.5.0.197613 (R2015a) for MACI64.
  	
 	properties (Dependent) 	
-        sessionPath
         sessionAtlas
         sessionAnatomy
         sessionAtlasFilename
         sessionAnatomyFilename
+        sessionPath
         atlasCheckpointFilename
         anatomyCheckpointFilename
         
@@ -26,30 +26,22 @@ classdef GluTAlignmentDirector
         function g = get.builder(this)
             g = this.builder_;
         end
-        function g = get.sessionAtlas(this)
-            g = this.sessionAtlas_;
-        end
         function g = get.sessionAnatomy(this)
             g = this.sessionAnatomy_;
         end
-        function g = get.sessionPath(this)
-            g = this.builder_.sessionPath;
-        end
-        function g = get.sessionAtlasFilename(this)
-            if (~isempty(this.sessionAtlasFilename_))
-                g = this.sessionAtlasFilename_;
-                return
-            end
-            g = fullfile(this.sessionPath, 'PET', ...
-                         sprintf('%satlas_session.nii.gz', this.builder_.pnumber));
-        end
         function g = get.sessionAnatomyFilename(this)
-            if (~isempty(this.sessionAnatomyFilename_))
-                g = this.sessionAnatomyFilename_;
-                return
-            end
-            g = fullfile(this.sessionPath, 'PET', ...
-                         sprintf('%smpr_session.nii.gz', this.builder_.pnumber));
+            assert(~isempty(this.sessionAnatomyFilename_))
+            g = this.sessionAnatomyFilename_;
+        end
+        function g = get.sessionAtlas(this)
+            g = this.sessionAtlas_;
+        end        
+        function g = get.sessionAtlasFilename(this)
+            assert(~isempty(this.sessionAtlasFilename_));
+            g = this.sessionAtlasFilename_;
+        end
+        function g = get.sessionPath(this)
+            g = this.builder.sessionPath;
         end
         function g = get.atlasCheckpointFilename(this)
             g = fullfile(this.sessionPath, 'GlutAlignmentDirector.directBuildingSessionAtlas_checkpoint.mat');
@@ -225,13 +217,17 @@ classdef GluTAlignmentDirector
 
             assert(isa(bldr, 'mlarbelaez.GluTAlignmentBuilder'));
             this.builder_  = bldr;
+            this.sessionAnatomyFilename_ = fullfile( ...
+                this.sessionPath, 'PET', ...
+                sprintf('%smpr_session.nii.gz', this.builder.pnumber));
+            this.sessionAtlasFilename_ = fullfile( ...
+                this.sessionPath, 'PET', ...
+                sprintf('%satlas_session.nii.gz', this.builder.pnumber));
             if (lexist(this.sessionAtlasFilename))
                 this.sessionAtlas_ = mlfourd.ImagingContext(this.sessionAtlasFilename);
-                %load(this.atlasCheckpointFilename);
             end
             if (lexist(this.sessionAnatomyFilename))
                 this.sessionAnatomy_ = mlfourd.ImagingContext(this.sessionAnatomyFilename);
-                %load(this.anatomyCheckpointFilename);
             end
  		end
  	end 

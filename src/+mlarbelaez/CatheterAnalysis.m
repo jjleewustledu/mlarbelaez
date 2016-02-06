@@ -85,8 +85,8 @@ classdef CatheterAnalysis < mlarbelaez.AbstractCatheterAnalysis
              
             p = inputParser;
             addRequired(p, 'Hct',           @isnumeric);
-            addRequired(p, 'fileprefix',       @ischar);
-            addOptional(p, 'pathname', pwd, @(x) lexist(x, 'dir'));
+            addRequired(p, 'fileprefix',    @ischar);
+            addOptional(p, 'pathname', pwd, @isdir);
             parse(p, varargin{:});
             
             import mlarbelaez.* mlpet.*;
@@ -136,7 +136,7 @@ classdef CatheterAnalysis < mlarbelaez.AbstractCatheterAnalysis
             
             p = inputParser;
             addRequired(p, 'fileprefix',       @ischar);
-            addOptional(p, 'pathname', pwd, @(x) lexist(x, 'dir'));
+            addOptional(p, 'pathname', pwd, @isdir);
             parse(p, varargin{:});
             
             import mlarbelaez.* mlpet.*;

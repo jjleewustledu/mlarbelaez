@@ -51,10 +51,11 @@ classdef DefaultModeRegions
             for ididx = 1:length(this.MPFC_IDS)
                 this.mpfc_.img = this.mpfc_.img + double(aparcA2009s.img == this.MPFC_IDS(ididx));
             end
-            this.mpfc_ = this.mpfc_.binarize;
+            this.mpfc_ = this.mpfc_.binarized;
             this.mpfc_ = BlurringNIfTId(this.mpfc_, 'blur', mlpet.PETRegistry.instance.petPointSpread);
             this.mpfc_ = MaskingNIfTId(this.mpfc_);
             this.mpfc_ = this.mpfc_.thresh(0.05);
+            this.mpfc_ = this.mpfc_.binarized;
             this.mpfc_.fqfilename = this.mpfc_fqfn;
             this.mpfc_.save;
         end
@@ -66,7 +67,7 @@ classdef DefaultModeRegions
  			%  Usage:  this = DefaultModeRegions(session_path)
 
  			ip = inputParser;
-            addOptional(ip, 'sessPth', pwd, @(x) lexist(x, 'dir'));
+            addOptional(ip, 'sessPth', pwd, @isdir);
             parse(ip, varargin{:});
             
             this.sessionPath_ = ip.Results.sessPth;

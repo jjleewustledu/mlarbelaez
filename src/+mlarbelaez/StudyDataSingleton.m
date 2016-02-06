@@ -9,20 +9,17 @@ classdef StudyDataSingleton < mlpipeline.StudyDataSingleton
  	%% It was developed on Matlab 9.0.0.307022 (R2016a) Prerelease for MACI64.
  	
 
-    properties (SetAccess = private)
+    properties (SetAccess = protected)
         arbelaezTrunk = '/Volumes/SeagateBP4/Arbelaez'
-
-        mriFolder = 'freesurfer/mri'
-        fslFolder = 'fsl'
     end
     
 	properties (Dependent)
-        subjectsDirs
+        subjectsDir
         loggingPath
     end
     
     methods %% GET
-        function g = get.subjectsDirs(this)
+        function g = get.subjectsDir(this)
             g = fullfile(this.arbelaezTrunk, 'GluT', '');
         end
         function g = get.loggingPath(this)
@@ -56,21 +53,64 @@ classdef StudyDataSingleton < mlpipeline.StudyDataSingleton
     end
     
     methods
+        function f = fslFolder(~, ~)
+            f = 'fsl';
+        end
         function f = hdrinfoFolder(this, sessDat)
             f = this.petFolder(sessDat);
         end   
+        function f = mriFolder(~, ~)
+            f = 'freesurfer/mri';
+        end
         function f = petFolder(~, sessDat)
             f = sprintf('PET/scan%i', sessDat.snumber);
-        end            
+        end        
+        
+        function fn = gluc_fn(~, sessDat)
+            try
+                fp = sprintf('%sgluc%i', sessDat.pnumber, sessDat.snumber);
+                fn = [fp '.nii.gz'];
+            catch ME
+                handwarning(ME);
+                fn = '';
+            end
+        end
+        function fn = ho_fn(~, sessDat)
+            try
+                fp = sprintf('%sho%i', sessDat.pnumber, sessDat.snumber);
+                fn = [fp '.nii.gz'];
+            catch ME
+                handwarning(ME);
+                fn = '';
+            end
+        end
+        function fn = oc_fn(~, sessDat)
+            try
+                fp = sprintf('%soc%i', sessDat.pnumber, sessDat.snumber);
+                fn = [fp '.nii.gz'];
+            catch ME
+                handwarning(ME);
+                fn = '';
+            end
+        end
+        function fn = tr_fn(~, sessDat)
+            try
+                fp = sprintf('%str%i', sessDat.pnumber, sessDat.snumber);
+                fn = [fp '.nii.gz'];
+            catch ME
+                handwarning(ME);
+                fn = '';
+            end
+        end
     end
     
-    %% PRIVATE
-
-	methods (Access = private)	 
+    %% PROTECTED
+    
+	methods (Access = protected) 
  		function this = StudyDataSingleton(varargin)
  			this = this@mlpipeline.StudyDataSingleton(varargin{:}); 
             
-            dt = mlsystem.DirTools(this.subjectsDirs);
+            dt = mlsystem.DirTools(this.subjectsDir);
             fqdns = {};
             for di = 1:length(dt.dns)
                 if (strcmp(dt.dns{di}(1), 'p') && strcmp(dt.dns{di}(end-3:end), '_JJL'))
@@ -81,9 +121,11 @@ classdef StudyDataSingleton < mlpipeline.StudyDataSingleton
                 mlpatterns.CellComposite( ...
                     cellfun(@(x) mlpipeline.SessionData('studyData', this, 'sessionPath', x), ...
                     fqdns, 'UniformOutput', false));
-            
-            mlpipeline.StudyDataSingletons.register('arbelaez', this);
+             this.registerThis;
  		end
+        function registerThis(this)
+            mlpipeline.StudyDataSingletons.register('arbelaez', this);
+        end
  	end 
 
 	%  Created with Newcl by John J. Lee after newfcn by Frank Gonzalez-Morphy

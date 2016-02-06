@@ -128,7 +128,7 @@ classdef RegionalMeasurements
             this.registry_ = ArbelaezRegistry.instance;
             
             ip = inputParser;
-            addRequired(ip, 'sessionPath', @(x) lexist(x, 'dir'));
+            addRequired(ip, 'sessionPath', @isdir);
             addRequired(ip, 'scanIndex',   @isnumeric);
             addRequired(ip, 'region',      @(x) lstrfind(x, this.registry_.regionLabels));
             parse(ip, sessionPath, scanIndex, region);

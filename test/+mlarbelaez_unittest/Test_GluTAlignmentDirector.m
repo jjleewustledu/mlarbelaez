@@ -14,7 +14,7 @@ classdef Test_GluTAlignmentDirector < matlab.unittest.TestCase
  	
 
 	properties
-        extended = false
+        extended = true
  		registry
         scanFolder = 'scan2'
         
@@ -60,7 +60,7 @@ classdef Test_GluTAlignmentDirector < matlab.unittest.TestCase
             regionIC = this.testObj.alignRegion(this.regionFilename, glucIC);
             this.assertClass(regionIC.niftid, 'mlfourd.NIfTId');
             if (this.extended)
-                regionIC.niftid.freeview;
+                regionIC.niftid.freeview(this.sessionAtlasFilename);
             end
         end
         function test_sessionAnatomy(this)            

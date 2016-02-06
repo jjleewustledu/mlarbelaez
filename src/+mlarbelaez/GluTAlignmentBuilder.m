@@ -15,12 +15,13 @@ classdef GluTAlignmentBuilder
     properties 
         product        % needed by FlirtVisitor
         referenceImage % "
+        sourceImage    % "
         xfm            % "
-        inweight
-        refweight
+        sourceWeight
+        referenceWeight
     end
     
-	properties (Dependent)         
+	properties (Dependent)
         sessionPath
         pnumber        
         mprage
@@ -207,7 +208,7 @@ classdef GluTAlignmentBuilder
             for v = 1:length(varargin)
                 try
                     ic = this.squeezeTime(varargin{v});
-                    img  = img + ic.niftid.img;
+                    img  = img + double(ic.niftid.img);
                 catch ME
                     handexcept(ME);
                 end
@@ -235,7 +236,7 @@ classdef GluTAlignmentBuilder
             this.ensureSaved(icRef);
             ndec = DynamicNIfTId(ic.niftid);
             ndec = ndec.mcflirtedAfterBlur(PETRegistry.instance.petPointSpread, 'reffile', icRef.fqfilename);
-            %ndec = ndec.revertFrames(ic.niftid, 1:5);
+            %ndec = ndec.withRevertedFrames(ic.niftid, 1:5);
             ic = ImagingContext(ndec.component);
         end
         function xfm = flirtPET(this, ic, icRef)
@@ -247,48 +248,48 @@ classdef GluTAlignmentBuilder
             ic                  = ImagingContext(bniid.component);
             bniidRef            = BlurringNIfTId(icRef.niftid, 'blur', PETRegistry.instance.petPointSpread);
             icRef               = ImagingContext(bniidRef.component);
-            this.product        = ic;
+            this.sourceImage    = ic;
             this.referenceImage = icRef;
-            this.inweight       = this.createWeight(ic);   
-            this.refweight      = this.createWeight(icRef);            
+            this.sourceWeight       = this.createWeight(ic);   
+            this.referenceWeight      = this.createWeight(icRef);            
             visit               = mlfsl.FlirtVisitor('sessionPath', this.sessionPath);
             [~,xfm]             = visit.alignSmallAnglesGluT(this);
         end
         function xfm = flirtMultimodal(this, ic, icRef)
             this.ensureSaved(ic);
             this.ensureSaved(icRef);
-            this.product        = this.squeezeTime(ic);
+            this.sourceImage    = this.squeezeTime(ic);
             this.referenceImage = icRef; 
-            this.inweight       = [];   
-            this.refweight      = [];
+            this.sourceWeight       = [];   
+            this.referenceWeight      = [];
             visit               = mlfsl.FlirtVisitor('sessionPath', this.sessionPath);
-            [~,xfm]             = visit.alignMultispectralGluT(this);
+            [~,xfm]             = visit.alignMultispectral(this);
         end
         function ic  = applyXfm(this, xfm, ic, icRef)
             this.ensureSaved(ic);
             this.ensureSaved(icRef);
             this.xfm            = xfm;          
-            this.product        = ic;
+            this.sourceImage    = ic;
             this.referenceImage = icRef;
             visit               = mlfsl.FlirtVisitor('sessionPath', this.sessionPath);
-            this                = visit.applyTransformForGluT(this);
+            this                = visit.transformGluT(this);
             ic                  = this.product;
         end
         function ic  = applyXfmNN(this, xfm, ic, icRef)
             this.ensureSaved(ic);
             this.ensureSaved(icRef);
             this.xfm            = xfm;          
-            this.product        = ic;
+            this.sourceImage    = ic;
             this.referenceImage = icRef;
             visit               = mlfsl.FlirtVisitor('sessionPath', this.sessionPath);
-            this                = visit.applyTransformNearestNeighbor(this);
+            this                = visit.transformNearestNeighbor(this);
             ic                  = this.product;
         end
         function xfm = invertXfm(this, xfm)
             assert(lexist(xfm, 'file'));
             this.xfm = xfm;
             visit    = mlfsl.FlirtVisitor('sessionPath', this.sessionPath);
-            this     = visit.inverseTransformOfBuilder(this);
+            this     = visit.inverseTransformBuilder(this);
             xfm      = this.xfm;
         end
         function xfm = concatXfms(this, xfms)
@@ -299,7 +300,7 @@ classdef GluTAlignmentBuilder
             
             assert(iscell(xfms));
             visit = mlfsl.FlirtVisitor('sessionPath', this.sessionPath);
-            this  = visit.concatTransformsOfBuilder(this, xfms); 
+            this  = visit.concatTransforms(this, xfms); 
             xfm   = this.xfm;
         end
         
@@ -308,7 +309,7 @@ classdef GluTAlignmentBuilder
  			%  Usage:  this = GluTAlignmentBuilder()
 
             ip = inputParser;
-            addOptional(ip, 'sessionPath', pwd, @(x) lexist(x, 'dir'));
+            addOptional(ip, 'sessionPath', pwd, @isdir);
             parse(ip, varargin{:});
             
             this.registry_    = mlarbelaez.ArbelaezRegistry.instance;

@@ -64,8 +64,8 @@ classdef LegacyCatheterAnalysis < mlarbelaez.AbstractCatheterAnalysis
         function [dccrv, dcv, modeledDeconv] = modelDeconvByBayes(this, varargin)
             
             p = inputParser;
-            addRequired(p, 'fileprefix',       @ischar);
-            addOptional(p, 'pathname', pwd, @(x) lexist(x, 'dir'));
+            addRequired(p, 'fileprefix',    @ischar);
+            addOptional(p, 'pathname', pwd, @isdir);
             parse(p, varargin{:});
             
             import mlarbelaez.* mlpet.*;
@@ -91,8 +91,8 @@ classdef LegacyCatheterAnalysis < mlarbelaez.AbstractCatheterAnalysis
         function [dccrv, dcv, modeledDeconv] = modelBetadcvDeconvByBayes(this, varargin)
             
             p = inputParser;
-            addRequired(p, 'fileprefix',       @ischar);
-            addOptional(p, 'pathname', pwd, @(x) lexist(x, 'dir'));
+            addRequired(p, 'fileprefix',    @ischar);
+            addOptional(p, 'pathname', pwd, @isdir);
             parse(p, varargin{:});
             
             import mlarbelaez.* mlpet.*;
