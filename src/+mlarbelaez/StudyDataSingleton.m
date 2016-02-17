@@ -64,39 +64,51 @@ classdef StudyDataSingleton < mlpipeline.StudyDataSingleton
         end
         function f = petFolder(~, sessDat)
             f = sprintf('PET/scan%i', sessDat.snumber);
-        end        
+        end
         
-        function fn = gluc_fn(~, sessDat)
+        function fn = gluc_fn(~, sessDat, varargin)            
+            ip = inputParser;
+            addOptional(ip, 'suff', '', @ischar);
+            parse(ip, varargin{:})
             try
                 fp = sprintf('%sgluc%i', sessDat.pnumber, sessDat.snumber);
-                fn = [fp '.nii.gz'];
+                fn = fullfile([fp ip.Results.suff '.nii.gz']);
             catch ME
                 handwarning(ME);
                 fn = '';
             end
         end
-        function fn = ho_fn(~, sessDat)
+        function fn = ho_fn(~, sessDat, varargin)            
+            ip = inputParser;
+            addOptional(ip, 'suff', '', @ischar);
+            parse(ip, varargin{:})
             try
                 fp = sprintf('%sho%i', sessDat.pnumber, sessDat.snumber);
-                fn = [fp '.nii.gz'];
+                fn = fullfile([fp ip.Results.suff '.nii.gz']);
             catch ME
                 handwarning(ME);
                 fn = '';
             end
         end
-        function fn = oc_fn(~, sessDat)
+        function fn = oc_fn(~, sessDat, varargin)            
+            ip = inputParser;
+            addOptional(ip, 'suff', '', @ischar);
+            parse(ip, varargin{:})
             try
                 fp = sprintf('%soc%i', sessDat.pnumber, sessDat.snumber);
-                fn = [fp '.nii.gz'];
+                fn = fullfile([fp ip.Results.suff '.nii.gz']);
             catch ME
                 handwarning(ME);
                 fn = '';
             end
         end
-        function fn = tr_fn(~, sessDat)
+        function fn = tr_fn(~, sessDat, varargin)            
+            ip = inputParser;
+            addOptional(ip, 'suff', '', @ischar);
+            parse(ip, varargin{:})
             try
                 fp = sprintf('%str%i', sessDat.pnumber, sessDat.snumber);
-                fn = [fp '.nii.gz'];
+                fn = fullfile([fp ip.Results.suff '.nii.gz']);
             catch ME
                 handwarning(ME);
                 fn = '';
@@ -119,7 +131,7 @@ classdef StudyDataSingleton < mlpipeline.StudyDataSingleton
             end
             this.sessionDataComposite_ = ...
                 mlpatterns.CellComposite( ...
-                    cellfun(@(x) mlpipeline.SessionData('studyData', this, 'sessionPath', x), ...
+                    cellfun(@(x) mlarbelaez.SessionData('studyData', this, 'sessionPath', x), ...
                     fqdns, 'UniformOutput', false));
              this.registerThis;
  		end

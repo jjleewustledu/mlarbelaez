@@ -1,6 +1,8 @@
 classdef StretchedExpResponse < mlaif.AbstractAifProblem
-	%% STRETCHEDEXPRESPONSE models responses ~ exp[-((t - t0)/tau)^beta] [1 + c1 (t - t0)/tau + c2 (t - t0)^2/tau^2, 0 < beta < 2.
-    %  Trained against case p8425, subarachnoid hemorrhage
+	%% STRETCHEDEXPRESPONSE estimates a parametric generalized-gamma model for the cathether impulse response
+    %  by fitting crv and dcv data.  It models responses ~ 
+    %      exp[-((t - t0)/tau)^beta] [1 + c1 (t - t0)/tau + c2 (t - t0)^2/tau^2, 0 < beta < 2.
+    %  It has been trained against case p8425, subarachnoid hemorrhage
 
 	%  $Revision$ 
  	%  was created $Date$ 

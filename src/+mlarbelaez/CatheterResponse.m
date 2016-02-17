@@ -1,5 +1,6 @@
 classdef CatheterResponse < mlaif.AbstractAifProblem & mlarbelaez.AbstractCatheterAnalysis 
-	%% CATHETERRESPONSE   
+	%% CATHETERRESPONSE fits two gamma-variates + steady-state to a putative catheter impulse response
+    %  that is the finite difference of crv from a Heaviside input of labelled blood into the catheter.
 
 	%  $Revision$ 
  	%  was created $Date$ 
@@ -10,7 +11,7 @@ classdef CatheterResponse < mlaif.AbstractAifProblem & mlarbelaez.AbstractCathet
  	%  $Id$ 
 
     properties 
-        baseTitle = 'Catheter response from AMAtests5-7'
+        baseTitle = 'Catheter response from AMAtest'
         xLabel    = 'time/s'
         yLabel    = 'counts'
     end
@@ -24,19 +25,19 @@ classdef CatheterResponse < mlaif.AbstractAifProblem & mlarbelaez.AbstractCathet
             ncnt0 = max(this.dependentData);
             eps0 = 1e-6;
             map = containers.Map;
-            map('alpha')  = struct('fixed', 0, 'min',     0.1, 'mean',     2,    'max',  10);
-            map('alpha2') = struct('fixed', 0, 'min',     0.1, 'mean',     2,    'max',  10);
-            map('beta')   = struct('fixed', 0, 'min',  eps0,   'mean',     0.3,  'max',  10);
-            map('beta2')  = struct('fixed', 0, 'min',  eps0,   'mean',     0.3,  'max',  10);
-            %map('c1')    = struct('fixed', 0, 'min',  -100,   'mean',     0,    'max', 100);
-            %map('c2')    = struct('fixed', 0, 'min',  -100,   'mean',     0,    'max', 100);
-            %map('c3')    = struct('fixed', 0, 'min',  -100,   'mean',     0,    'max', 100);
-            %map('c4')    = struct('fixed', 0, 'min',  -100,   'mean',     0,    'max', 100);
-            %map('delta') = struct('fixed', 0, 'min',  eps0,   'mean',     0.03, 'max',   1);
-            map('eps')    = struct('fixed', 0, 'min',  eps0,   'mean', 0.05,     'max',   0.5);
-            map('ncnt')   = struct('fixed', 0, 'min',  eps0,   'mean', 10*ncnt0, 'max',  50*ncnt0);
-            map('t0')     = struct('fixed', 0, 'min',    10,   'mean',    15,    'max',  35);    
-            map('tauRe')  = struct('fixed', 0, 'min',     1,   'mean',     5,    'max',  20);             
+            map('alpha')  = struct('fixed', 0, 'min',     0.1, 'mean',  2.726144, 'max',  10);
+            map('alpha2') = struct('fixed', 0, 'min',     0.1, 'mean',  7.032881, 'max',  10);
+            map('beta')   = struct('fixed', 0, 'min',  eps0,   'mean',  0.209150, 'max',  10);
+            map('beta2')  = struct('fixed', 0, 'min',  eps0,   'mean',  0.622979, 'max',  10);
+            %map('c1')    = struct('fixed', 0, 'min',  -100,   'mean',     0,     'max', 100);
+            %map('c2')    = struct('fixed', 0, 'min',  -100,   'mean',     0,     'max', 100);
+            %map('c3')    = struct('fixed', 0, 'min',  -100,   'mean',     0,     'max', 100);
+            %map('c4')    = struct('fixed', 0, 'min',  -100,   'mean',     0,     'max', 100);
+            %map('delta') = struct('fixed', 0, 'min',  eps0,   'mean',     0.03,  'max',   1);
+            map('eps')    = struct('fixed', 0, 'min',  eps0,   'mean',  0.235763, 'max',   0.5);
+            map('ncnt')   = struct('fixed', 0, 'min',  eps0,   'mean',  0.989062, 'max',  50*ncnt0);
+            map('t0')     = struct('fixed', 0, 'min',    10,   'mean', 11.913638, 'max',  35);    
+            map('tauRe')  = struct('fixed', 0, 'min',     1,   'mean',  6.713513, 'max',  20);             
             this = this.runMcmc(map);
         end           
         function ed   = estimateData(this)

@@ -23,14 +23,13 @@ classdef CatheterSavitzkyGolay
  	%  last modified $LastChangedDate$ 
  	%  and checked into repository $URL$,  
  	%  developed on Matlab 8.5.0.197613 (R2015a) 
- 	%  $Id$
+ 	%  $Id
 
 	properties
         dccrv
         times
         kernelBest
-        kernelBestFilename = '/Users/jjlee/Local/src/mlcvl/mlarbelaez/src/+mlarbelaez/kernelBest.mat'
-        intervalKernel = 1:102 
+        kernelBestintervalKernel = 1:102 
     end 
     
     properties (Dependent)
@@ -217,9 +216,8 @@ classdef CatheterSavitzkyGolay
             this.span   = ip.Results.span;
             this.degree = ip.Results.degree;
             this.times  = ip.Results.times;
-            load(this.kernelBestFilename);
-            this.kernelBest = kernelBest; 
-            this.kernelBest = this.kernelBest / sum(this.kernelBest);
+            crk         =  mlpet.CatheterResponseKernels('kernelBest');
+            this.kernelBest = crk.kernel;
  		end 
     end 
     

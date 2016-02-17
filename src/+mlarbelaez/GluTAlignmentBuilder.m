@@ -289,7 +289,7 @@ classdef GluTAlignmentBuilder
             assert(lexist(xfm, 'file'));
             this.xfm = xfm;
             visit    = mlfsl.FlirtVisitor('sessionPath', this.sessionPath);
-            this     = visit.inverseTransformBuilder(this);
+            this     = visit.invertTransform(this);
             xfm      = this.xfm;
         end
         function xfm = concatXfms(this, xfms)

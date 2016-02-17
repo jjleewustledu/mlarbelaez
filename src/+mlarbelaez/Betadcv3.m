@@ -1,5 +1,7 @@
 classdef Betadcv3  
-	%% BETADCV3
+	%% BETADCV3 duplicates functionality of the original betadcv from Avi Snyder.
+    %  The model of the catheter impulse response is in silentGETTKE.  silentBETADCV
+    %  returns the response and the dcv as vectors.
 
 	%  $Revision$ 
  	%  was created $Date$ 
@@ -241,30 +243,7 @@ classdef Betadcv3
                 E = 0.0302 - 0.0869 * (this.Hct - .3523);
             end
             return
-        end        
-        function curv                = standardizeCurve(this, curv)
-            %% STANDARDIZECURVE makes data-curve lengths consistent throughout the class; first two data-points are also ignored
-            
-            len = this.dataLength;
-            if (length(curv) < len) % pad with last available data point to obtain this.dataLength
-                tmp = zeros(len, 1);
-                tmp(1:length(curv)) = curv;
-                tmp(length(curv)+1:end) = curv(end)*ones(len - length(curv), 1);
-                curv = tmp;
-            end
-            if (length(curv) > len) % truncate data to this.dataLength
-                curv = curv(1:len);
-            end
-            curv(1) = curv(3);
-            curv(2) = curv(3);
-        end
-        function curv                = normalizeCurve(this, curv)
-            %% NORMALIZECURVE makes data-curve lengths consistent & normalizes data-curves 
-            
-            curv = this.standardizeCurve(curv);   
-            curv = curv / max(abs(curv));
-            curv = [curv; zeros(this.dataLength, 1)]; % zero-pad
-        end
+        end       
   		function this                = Betadcv3(varargin)
  			%% BETADCV3
  			%  Usage:  this = Betadcv3('p1234ho1')  			 
@@ -389,6 +368,29 @@ classdef Betadcv3
                      sprintf('dcv/%g',            max(abs(this.dcv_))); ...
                      sprintf('response/%g %s', max(abs(this.response_)), respAnnot) });
             title(this.fileprefix_, 'FontSize', 16); 
+        end 
+        function curv                = normalizeCurve(this, curv)
+            %% NORMALIZECURVE makes data-curve lengths consistent & normalizes data-curves 
+            
+            curv = this.standardizeCurve(curv);   
+            curv = curv / max(abs(curv));
+            curv = [curv; zeros(this.dataLength, 1)]; % zero-pad
+        end
+        function curv                = standardizeCurve(this, curv)
+            %% STANDARDIZECURVE makes data-curve lengths consistent throughout the class; first two data-points are also ignored
+            
+            len = this.dataLength;
+            if (length(curv) < len) % pad with last available data point to obtain this.dataLength
+                tmp = zeros(len, 1);
+                tmp(1:length(curv)) = curv;
+                tmp(length(curv)+1:end) = curv(end)*ones(len - length(curv), 1);
+                curv = tmp;
+            end
+            if (length(curv) > len) % truncate data to this.dataLength
+                curv = curv(1:len);
+            end
+            curv(1) = curv(3);
+            curv(2) = curv(3);
         end
     end
     

@@ -144,7 +144,7 @@ classdef CatheterAnalysis < mlarbelaez.AbstractCatheterAnalysis
                      CRV(p.Results.fileprefix, p.Results.pathname));
             assert(lexist(fullfile(this.pwdAmaTests, 'ecr7.mat')));
             load(         fullfile(this.pwdAmaTests, 'ecr7.mat'));            
-            cathd         = BetadcvCatheterDeconvolution(dccrv0, ecr7.estimateExpBetadcv); 
+            cathd         = CatheterDeconvolution(dccrv0, ecr7.estimateExpBetadcv); 
             modeledDeconv = cathd.estimateParameters;
             
             dccrv         = dccrv0;

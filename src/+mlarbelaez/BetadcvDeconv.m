@@ -1,5 +1,6 @@
 classdef BetadcvDeconv
-	%% BETADCVDECONV   
+	%% BETADCVDECONV determines dcv from provided crv and catheter impulse response.
+    %  It uses Fourier transformation and resampling to match the algorithm of the original betadcv.
 
 	%  $Revision$ 
  	%  was created $Date$ 
