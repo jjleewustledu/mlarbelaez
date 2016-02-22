@@ -145,6 +145,9 @@ classdef SessionData < mlpipeline.SessionData
         end
         function g = petfov(this)
             g = mlfourd.ImagingContext(this.petfov_fqfn);
+        end      
+        function p = petPointSpread(~)
+            p = mlpet.PETRegistry.instance.petPointSpread;
         end
         function g = tof(this)
             g = mlmr.MRImagingContext(this.tof_fqfn);
