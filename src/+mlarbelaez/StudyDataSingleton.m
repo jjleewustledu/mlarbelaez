@@ -10,7 +10,7 @@ classdef StudyDataSingleton < mlpipeline.StudyDataSingleton
  	
 
     properties (SetAccess = protected)
-        arbelaezTrunk = '/Volumes/SeagateBP4/Arbelaez'
+        arbelaezTrunk = getenv('ARBELAEZ')
     end
     
 	properties (Dependent)
