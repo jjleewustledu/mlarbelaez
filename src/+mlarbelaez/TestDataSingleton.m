@@ -40,7 +40,15 @@ classdef TestDataSingleton < mlarbelaez.StudyDataSingleton
  		function this = TestDataSingleton(varargin)
  			this = this@mlarbelaez.StudyDataSingleton(varargin{:});
             
-            this.arbelaezTrunk = '/Volumes/InnominateHD3/Local/test/Arbelaez';
+            [~,hn] = mlbash('hostname');
+            switch (strtrim(hn))
+                case {'innominate' 'innominate.local'}
+                    this.arbelaezTrunk = '/Volumes/InnominateHD3/Local/test/Arbelaez';
+                case 'vertebral'
+                    this.arbelaezTrunk = '/mnt/hgfs/InnominateHD3/Local/test/Arbelaez';
+                otherwise
+                    error('mlarbelaez:unsupportedSwitchCase', 'TestDataSingleton.ctor.hn->%s is not supported', hn);
+            end
             
             dt = mlsystem.DirTools(this.subjectsDir);
             fqdns = {};

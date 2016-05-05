@@ -24,47 +24,49 @@ classdef SessionData < mlpipeline.SessionData
         tr_fqfn
         T1_fqfn
         wmparc_fqfn
+        
+        petBlur
     end
     
     methods %% GET
         function g = get.aparcA2009sAseg_fqfn(this)
             g = fullfile(this.mriPath, 'aparc.a2009s+aseg.mgz');
-            if (2 ~= exist(g, 'file'))
+            if (lexist(g, 'file'))
                 g = '';
                 return
             end
         end
         function g = get.ep2d_fqfn(this)
             g = fullfile(this.fslPath, this.studyData_.ep2d_fn(this));
-            if (2 ~= exist(g, 'file'))
+            if (lexist(g, 'file'))
                 g = '';
                 return
             end
         end
         function g = get.gluc_fqfn(this)
             g = fullfile(this.petPath, this.studyData_.gluc_fn(this));
-            if (2 ~= exist(g, 'file'))
+            if (lexist(g, 'file'))
                 g = '';
                 return
             end
         end
         function g = get.ho_fqfn(this)
             g = fullfile(this.petPath, this.studyData_.ho_fn(this, this.suffix));
-            if (2 ~= exist(g, 'file'))
+            if (lexist(g, 'file'))
                 g = '';
                 return
             end
         end
         function g = get.mpr_fqfn(this)
             g = fullfile(this.fslPath, this.studyData_.mpr_fn(this));
-            if (2 ~= exist(g, 'file'))
+            if (lexist(g, 'file'))
                 g = '';
                 return
             end
         end
         function g = get.oc_fqfn(this)
             g = fullfile(this.petPath, this.studyData_.oc_fn(this, this.suffix));
-            if (2 ~= exist(g, 'file'))
+            if (lexist(g, 'file'))
                 g = '';
                 return
             end
@@ -83,28 +85,28 @@ classdef SessionData < mlpipeline.SessionData
         end
         function g = get.petfov_fqfn(this)
             g = fullfile(this.petPath, this.studyData_.petfov_fn(this.suffix));
-            if (2 ~= exist(g, 'file'))
+            if (lexist(g, 'file'))
                 g = '';
                 return
             end
         end
         function g = get.tof_fqfn(this)
             g = fullfile(this.petPath, 'fdg', 'pet_proc', this.studyData_.tof_fn(this.suffix));
-            if (2 ~= exist(g, 'file'))
+            if (lexist(g, 'file'))
                 g = '';
                 return
             end
         end
         function g = get.toffov_fqfn(this)
             g = fullfile(this.petPath, 'fdg', 'pet_proc', this.studyData_.toffov_fn(this.suffix));
-            if (2 ~= exist(g, 'file'))
+            if (lexist(g, 'file'))
                 g = '';
                 return
             end
         end
         function g = get.tr_fqfn(this)
             g = fullfile(this.petPath, this.studyData_.tr_fn(this, this.suffix));
-            if (2 ~= exist(g, 'file'))
+            if (lexist(g, 'file'))
                 g = '';
                 return
             end
@@ -114,6 +116,11 @@ classdef SessionData < mlpipeline.SessionData
         end
         function g = get.wmparc_fqfn(this)
             g = fullfile(this.mriPath, 'wmparc.mgz');
+        end
+        
+        function g = get.petBlur(~)
+            g = mlpet.PETRegistry.instance.petPointSpread;
+            g = mean(g);
         end
     end
 

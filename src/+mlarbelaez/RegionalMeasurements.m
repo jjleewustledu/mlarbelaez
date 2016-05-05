@@ -138,10 +138,8 @@ classdef RegionalMeasurements
             this.region_      = ip.Results.region;
             
             gTx = GluTxlsx;
-            this.gluTxlsxMap_ = gTx.pid_map;
-            
-            this.gluTAlignmentDirector_ = GluTAlignmentDirector.loadTouched(this.sessionPath);
-            
+            this.gluTxlsxMap_ = gTx.pid_map;            
+            this.gluTAlignmentDirector_ = GluTAlignmentDirector.loadTouched(this.sessionPath);            
             this.dta_ = DTA.load(this.dtaFqfn_);
             this.tsc_ = TSC.load( ...
                         this.tscFqfn_, this.glucFqfilename, this.dtaFqfn_, this.maskFqfilenameFor('gluc'));   
@@ -199,7 +197,7 @@ classdef RegionalMeasurements
                                'Mask',    this.maskFqfilenameFor('oc'));
                     this.vFracCached_ = director.vFrac;
                 end
-                v = this.vFracCached_;
+                v = double(this.vFracCached_);
             catch ME
                 disp(ME)
                 struct2str(ME.stack)
@@ -222,14 +220,19 @@ classdef RegionalMeasurements
         function ic = hoImagingContext(this)
             ic = mlfourd.ImagingContext(this.hoFqfilename);
         end
-        function ic = glucImagingContext(this)  
+        function ic = glucImagingContext(this)
             ic = mlfourd.ImagingContext(this.glucFqfilename);
         end
     end 
     
     %% PRIVATE
     
-    properties %(Access = 'private')
+    properties (Hidden)
+        vFracCached_
+        fFracCached_
+    end
+    
+    properties (Access = 'private')
         sessionPath_
         scanIndex_
         region_
@@ -237,15 +240,13 @@ classdef RegionalMeasurements
         gluTxlsxMap_
         dta_
         tsc_
-        vFracCached_
-        fFracCached_
         kinetics4Cached_
         
         gluTAlignmentDirector_
         maskImagingContext_
     end
 
-    methods %(Access = 'private')
+    methods (Access = 'private')
         function f = maskFqfilenameFor(this, tracer)
             switch (lower(tracer))
                 case 'oc'
