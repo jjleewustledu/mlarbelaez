@@ -110,16 +110,18 @@ classdef T4ResolveBuilder < mlfourdfp.T4ResolveBuilder
             this.product_ = [];
             tracers = {'gluc' 'ho'};
             for t = 1:length(tracers)
-                tracerdir = fullfile(petPth, sprintf('%s%i', upper(tracers{t}), snum), '');
-                this.buildVisitor.mkdir(tracerdir);
-                cd(tracerdir);
-                this.buildVisitor.cp(     fullfile(petPth, mprToAtl_t4));
-                this.buildVisitor.cp_4dfp(fullfile(petPth, mpr_fp));
-                this.ensure4dfp(          fullfile(petPth, sprintf('%s%s%i', pnum, tracers{t}, snum)));
-                this.buildVisitor.cp_4dfp(fullfile(petPth, sprintf('%s%s%i', pnum, tracers{t}, snum)));
-                fdfp0 = sprintf('%s%s%i', pnum, tracers{t}, snum);
-                fdfp1 = sprintf('%s%s%i', pnum, tracers{t}, snum);
-                this.t4ResolveIterative(fdfp0, fdfp1, mpr_fp);
+                if (lexist(fullfile(petPth, sprintf('%s%s%i.4dfp.img', pnum, tracers{t}, snum))))
+                    tracerdir = fullfile(petPth, sprintf('%s%i', upper(tracers{t}), snum), '');
+                    this.buildVisitor.mkdir(tracerdir);
+                    cd(tracerdir);
+                    this.buildVisitor.cp(     fullfile(petPth, mprToAtl_t4));
+                    this.buildVisitor.cp_4dfp(fullfile(petPth, mpr_fp));
+                    this.ensure4dfp(          fullfile(petPth, sprintf('%s%s%i', pnum, tracers{t}, snum)));
+                    this.buildVisitor.cp_4dfp(fullfile(petPth, sprintf('%s%s%i', pnum, tracers{t}, snum)));
+                    fdfp0 = sprintf('%s%s%i', pnum, tracers{t}, snum);
+                    fdfp1 = sprintf('%s%s%i', pnum, tracers{t}, snum);
+                    this.t4ResolveIterative(fdfp0, fdfp1, mpr_fp);
+                end
             end
         end
         

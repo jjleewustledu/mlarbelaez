@@ -10,9 +10,9 @@ classdef GluTFigures
  	%  $Id$ 
  	 
 
-	properties 
-        glut_xlsx = '/Users/jjlee/Tmp/loopKinetics4_Kinetics4McmcProblem_20150919T1936.xlsx';
-        %'/Volumes/SeagateBP4/Arbelaez/GluT/loopKinetics4_Kinetics4McmcProblem_20150919T1936/loopKinetics4_Kinetics4McmcProblem_20150919T1936.xlsx'
+	properties
+        glut_xlsx = '/Volumes/SeagateBP4/Arbelaez/GluT/loopKinetics4_Kinetics4McmcProblem_20150919T1936/loopKinetics4_Kinetics4McmcProblem_20150919T1936.xlsx'
+        %'/Users/jjlee/Tmp/loopKinetics4_Kinetics4McmcProblem_20150919T1936.xlsx';
         glut_sheet = 'LoopKinetics4';
         dataRows = [2 37]
         mapKin4
@@ -67,8 +67,7 @@ classdef GluTFigures
         Kd
         flux_met
         E_net
-    end
-    
+    end    
     
 	methods		  
  		function this = GluTFigures(varargin) 
@@ -253,39 +252,26 @@ classdef GluTFigures
             glu   = this.plasma_glu;          
             cftool(glu,y);
         end
-        function figure0 = createScatter(this, yLabel)
-            %% CREATESCATTERSTAIRS2
+        function figure0 = createScatterCTXandCMR(this)
+            %% CREATESCATTERCTXANDCMR
             %  e.g., glutf = GluTFigures;
-            %        f = glutf.createScatterStairs2('CMR_{glu}/arterial plasma glucose')
+            %        f = glutf.createScatterCTXandCMR
 
             %y = 1e3*y/55.507; % converts frac{\mumol}{100 g min} \frac{dL}{mg} to mL/100g/min
             %y = 100*y; % converts \frac{\mumol}{g} \frac{100 g}{mL} to \frac{\mumol}{mL}
             
-            [y, yLabel1, yLabel2, conversionFactor2] = this.yLabelLookup(yLabel);            
+            y1      = this.CTX;
+            y2      = this.CMRglu;
+            yLabel1 = 'CTX_{glu} (\mumol/100 g/min)';
+            yLabel2 = 'CMR_{glu} (\mumol/100 g/min)';
+            conversionFactor2 = 1;         
             [~, xLabel1, xLabel2, conversionFactor1] = this.xLabelLookup('arterial plasma glucose');
-            
-            glu   = this.plasma_glu;            
-            glu95 = glu(1:10);   y95 = y(1:10);
-            glu75 = glu(11:18);  y75 = y(11:18);
-            glu65 = glu(19:28);  y65 = y(19:28);
-            glu45 = glu(29:end); y45 = y(29:end);
-
-            range95 = [min(glu95) max(glu95)];
-            range75 = [min(glu75) max(glu75)];
-            range65 = [min(glu65) max(glu65)];
-            range45 = [min(glu45) max(glu45)];
-
-            x0 = [range45(1) mean([range45(2) range65(1)]) mean([range65(2) range75(1)]) mean([range75(2) range95(1)]) range95(2)];
-            y0 = [mean(y45) mean(y65) mean(y75) mean(y95) mean(y95)];
+            glu   = this.plasma_glu; 
 
             sz1 = 220;
             sz2 = 220;
-            sz3 = 220;
-            sz4 = 220;
-            mark1 = 'o';
-            mark2 = 'o';
-            mark3 = 'o';
-            mark4 = 'o';
+            mark1 = 's';
+            mark2 = 's';
 
             % Create figure
             figure0 = figure;
@@ -295,11 +281,10 @@ classdef GluTFigures
             hold(axes2,'on');
 
             xlabel(axes2, xLabel2, 'FontSize', this.axesLabelFontSize);
-            if (conversionFactor2 ~= 1)
-                ylabel(axes2, yLabel2, 'FontSize', this.axesLabelFontSize); end
+            ylabel(axes2, yLabel2, 'FontSize', this.axesLabelFontSize);
 
             xlim(axes2,this.axesLimX(glu*conversionFactor1)); 
-            ylim(axes2,this.axesLimY(y  *conversionFactor2));
+            ylim(axes2,this.axesLimY(y1 *conversionFactor2));
             set(axes2,'FontSize',this.axesFontSize,'XDir','reverse','XAxisLocation','top','YAxisLocation','right');
 
             % Create axes1
@@ -310,18 +295,13 @@ classdef GluTFigures
             ylabel(axes1, yLabel1, 'FontSize', this.axesLabelFontSize);
 
             xlim(axes1,this.axesLimX(glu));           
-            ylim(axes1,this.axesLimY(y));
+            ylim(axes1,this.axesLimY(y1));
             box(axes1,'on');
-            set(axes1,'FontSize',this.axesFontSize,'XDir','reverse','XAxisLocation','bottom','YAxisLocation','left');
-
-            % Create stairs
-            % stairs(x0,y0,'LineWidth',2,'Color',this.stairsColor);
-
+            set(axes1,'FontSize',this.axesFontSize,'XDir','reverse','XAxisLocation','bottom','YAxisLocation','left');          
+            
             % Create scatter
-            scatter(glu45,y45,sz1,mark1,'MarkerEdgeColor',this.markerEdgeColor,'MarkerFaceColor',this.markerFaceColor75,'LineWidth',this.markerLineWidth);
-            scatter(glu65,y65,sz2,mark2,'MarkerEdgeColor',this.markerEdgeColor,'MarkerFaceColor',this.markerFaceColor95,'LineWidth',this.markerLineWidth);
-            scatter(glu75,y75,sz3,mark3,'MarkerEdgeColor',this.markerEdgeColor,'MarkerFaceColor',this.markerFaceColor75,'LineWidth',this.markerLineWidth);
-            scatter(glu95,y95,sz4,mark4,'MarkerEdgeColor',this.markerEdgeColor,'MarkerFaceColor',this.markerFaceColor95,'LineWidth',this.markerLineWidth);
+            scatter(glu,y1,sz1,mark1,'MarkerEdgeColor',this.markerEdgeColor,'MarkerFaceColor',[1 1 1],'LineWidth',this.markerLineWidth);
+            scatter(glu,y2,sz2,mark2,'MarkerEdgeColor',this.markerEdgeColor,'MarkerFaceColor',[.818 .818 .818],'LineWidth',this.markerLineWidth);
         end
         function figure0 = createBarErr(this, yLabel, varargin)
             %% CREATEBARERR
