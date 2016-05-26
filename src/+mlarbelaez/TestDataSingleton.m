@@ -47,7 +47,7 @@ classdef TestDataSingleton < mlarbelaez.StudyDataSingleton
                 case 'vertebral'
                     this.arbelaezTrunk = '/mnt/hgfs/InnominateHD3/Local/test/Arbelaez';
                 otherwise
-                    error('mlarbelaez:unsupportedSwitchCase', 'TestDataSingleton.ctor.hn->%s is not supported', hn);
+                    warning('mlarbelaez:unsupportedSwitchCase', 'TestDataSingleton.ctor.hn->%s is not supported', hn);
             end
             
             dt = mlsystem.DirTools(this.subjectsDir);

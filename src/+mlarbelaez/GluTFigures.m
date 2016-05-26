@@ -11,7 +11,7 @@ classdef GluTFigures
  	 
 
 	properties
-        glut_xlsx = '/Volumes/SeagateBP4/Arbelaez/GluT/loopKinetics4_Kinetics4McmcProblem_20150919T1936/loopKinetics4_Kinetics4McmcProblem_20150919T1936.xlsx'
+        glut_xlsx = '/Users/jjlee/Documents/WUSTL/Arbelaez/Glucose Threshold manuscript/loopKinetics4_Kinetics4McmcProblem_20150919T1936.xlsx'
         %'/Users/jjlee/Tmp/loopKinetics4_Kinetics4McmcProblem_20150919T1936.xlsx';
         glut_sheet = 'LoopKinetics4';
         dataRows = [2 37]
