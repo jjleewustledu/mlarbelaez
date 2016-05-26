@@ -37,7 +37,7 @@ classdef Test_Glucnoflow < matlab.unittest.TestCase
 	methods 
   		function this = Test_Glucnoflow(varargin) 
  			this = this@matlab.unittest.TestCase(varargin{:});
-            this.pnumPath = '/Volumes/InnominateHD2/Local/test/Arbelaez/GluT/p8047_JJL';
+            this.pnumPath = fullfile(getenv('UNITTESTS'), 'Arbelaez/GluT/p8047_JJL', '');
             this.procPath = fullfile(this.pnumPath, 'jjl_proc', '');
             this.tscFqfilename = fullfile(this.procPath, 'p8047wb1.tsc');
  		end 
