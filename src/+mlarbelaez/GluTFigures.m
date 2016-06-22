@@ -599,7 +599,7 @@ classdef GluTFigures
                 case 'CTX_{glu}'
                     y = this.CTX;
                     yLabel1 = [yLabel ' (\mumol/100 g/min)'];
-                case 'free glucose'
+                case 'Free brain glucose'
                     y = this.free_glu;                   
                     yLabel1 = [yLabel ' (\mumol/g)'];
                 case 'CTX_{glu}/CBV'
@@ -608,7 +608,7 @@ classdef GluTFigures
                 case 'CMR_{glu}/CBV'
                     y = this.CMRglu ./ this.CBV;               
                     yLabel1 = [yLabel ' (\mumol/mL/min)'];
-                case 'free glucose/CBV'   
+                case 'Free brain glucose/CBV'   
                     y = this.free_glu ./ this.CBV;
                     y = 100*y; % converts \frac{\mumol}{g} \frac{100 g}{mL} to \frac{\mumol}{mL} 
                     yLabel1 = [yLabel ' (\mumol/mL)'];
@@ -649,38 +649,38 @@ classdef GluTFigures
                 case 'E_{net}'
                     y = this.E_net;
                     yLabel1 = yLabel;                       
-                case 'insulin'
+                case 'Insulin'
                     y = this.Insulin;
                     yLabel1 = [yLabel ' (\muU/mL)'];
                     yLabel2 =          '(nmol/L)';
                     conversionFactor2 = 6.945e-3;
-                case 'epinephrine'
+                case 'Epinephrine'
                     y = this.Epi;
                     yLabel1 = [yLabel ' (pg/mL)'];
                     yLabel2 =          '(nmol/L)';
                     conversionFactor2 = 5.485e-3;
-                case 'glucagon'
+                case 'Glucagon'
                     y = this.Glucagon;
                     yLabel1 = [yLabel ' (pg/mL)'];
                     yLabel2 =          '(pmol/L)';
                     conversionFactor2 = 0.2871;
-                case 'cortisol'
+                case 'Cortisol'
                     y = this.Cortisol;
                     yLabel1 = [yLabel ' (\mug/dL)'];
                     yLabel2 =          '(pmol/L)';
                     conversionFactor2 = 27.59e-3; 
-                case 'arterial plasma glucose'    
+                case 'Arterial plasma glucose'    
                     y = this.plasma_glu;
                     yLabel1 = [yLabel ' (mg/dL)'];
                     yLabel2 =          '(mmol/L)';
                     conversionFactor2 = 0.0551;
-                case 'total Sx'
+                case 'Total Sx'
                     y = this.NGSx + this.NGPSx;
                     yLabel1 = yLabel;
-                case 'neurogenic symptom score'
+                case 'Neurogenic symptom score'
                     y = this.NGSx;
                     yLabel1 = yLabel;
-                case 'neuroglycopenic symptom score'
+                case 'Neuroglycopenic symptom score'
                     y = this.NGPSx;
                     yLabel1 = yLabel;                    
                 otherwise
