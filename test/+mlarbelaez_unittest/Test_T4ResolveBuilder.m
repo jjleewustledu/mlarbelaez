@@ -15,8 +15,8 @@ classdef Test_T4ResolveBuilder < matlab.unittest.TestCase
 
 	properties
         gluc
-        logFilename = 'p7861gluc1r1_T4ResolveBuilder_frameReg_Logger_20160429T041144.log'
-        %'p7861gluc1r2_T4ResolveBuilder_frameReg_Logger_20160429T063931.log' 
+        logFilename = 'p7861gluc1r1_T4ResolveBuilder_frameReg_20160429T041144.log'
+        %'p7861gluc1r2_T4ResolveBuilder_frameReg_20160429T063931.log' 
  		studyd
         sessd
  		testObj
@@ -56,19 +56,19 @@ classdef Test_T4ResolveBuilder < matlab.unittest.TestCase
         function test_msktgenInitial(this)
             cd(fullfile(this.sessd.sessionPath, 'PET', 'scan1', 'GLUC1', ''));
             this.testObj = this.testObj.msktgenInitial(this.ipresults);
-            [s,r] = mlbash(sprintf('freeview T1.4dfp.img %s_on_T1_g11.4dfp.img', this.ipresults.fdfp1));
+            [s,r] = mlbash(sprintf('freeview T1.4dfp.img %s_on_T1_g11.4dfp.img', this.ipresults.dest));
             this.verifyEqual(s, 0);
             fprintf(r);
         end
         function test_msktgenResolved(this)
         end
-		function test_t4ResolveSubject(this)
+		function test_t4ResolvePET0(this)
             if (this.quick)
                 return
             end
-            fprintf('Test_T4ResolveBuilder.test_t4ResolveSubject:\n'); 
-            fprintf('\trunning t4ResolveSubject which may requires hours of processing time..........\n');
-            this.testObj  = this.testObj.t4ResolveSubject;
+            fprintf('Test_T4ResolveBuilder.test_t4ResolvePET0:\n'); 
+            fprintf('\trunning t4ResolvePET which may requires hours of processing time..........\n');
+            this.testObj  = this.testObj.t4ResolvePET;
             this.verifyTrue(~isempty(this.testObj.product));            
             if (this.view)
                 this.testObj.product.gluc.view;
@@ -90,21 +90,8 @@ classdef Test_T4ResolveBuilder < matlab.unittest.TestCase
         end
         function test_maskBoundaries(this)
             cd(fullfile(this.sessd.petPath, 'GLUC1', ''));
-            msk = this.testObj.maskBoundaries([this.ipresults.fdfp0 '_sumt']);
+            msk = this.testObj.maskBoundaries([this.ipresults.source '_sumt']);
             mlbash(sprintf('freeview %s.4dfp.img', msk));
-        end
-        function test_t4ResolveFinalize(this)
-            cd(fullfile(this.sessd.petPath, 'GLUC1', ''));
-            args = { ...
-                'p7861gluc1r2_frames1to41_resolved', ...
-                'p7861gluc1_resolvedFinal', ...
-                'T1', ...
-                'frame0' 1, ...
-                'frameF' 41, ...
-                'crop'   1, ...
-                'atlas'  'TRIO_Y_NDC', ...
-                'blur'   5.5};
-            this.testObj.t4ResolveFinalize(args{:});
         end
 	end
 
@@ -119,12 +106,12 @@ classdef Test_T4ResolveBuilder < matlab.unittest.TestCase
             cd(fullfile(this.sessd.sessionPath));
             this.testObj_ = T4ResolveBuilder('sessionData', this.sessd);
             this.ipresults = struct( ...
-                'fdfp0',  this.sessd.gluc.fileprefix, ...
-                'fdfp1',  this.sessd.gluc.fileprefix, ...
+                'source',  this.sessd.gluc.fileprefix, ...
+                'dest',  this.sessd.gluc.fileprefix, ...
                 'mprage', 'T1', ...
                 'frame0',  4, ...
                 'frameF',  44, ...
-                'crop',    0, ...
+                'firstCrop',    1, ...
                 'atlas',  'TRIO_Y_NDC', ...
                 'blur',    max(mlpet.PETRegistry.instance.petPointSpread));
             setenv('DEBUG', '');            

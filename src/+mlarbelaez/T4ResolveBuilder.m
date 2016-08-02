@@ -48,7 +48,7 @@ classdef T4ResolveBuilder < mlfourdfp.T4ResolveBuilder
                             sessds{p}.snumber = s;
                             disp(sessds{p});
                             this = mlarbelaez.T4ResolveBuilder('sessionData', sessds{p});
-                            this.t4ResolveSubject;
+                            this.t4ResolvePET;
                         else
                             warning('mlarbelaez:unexpectedTypeclass', ...
                                     'class(T4ResolveBuilder.sessds{%i})->%s', p, class(sessds{p}));
@@ -73,16 +73,13 @@ classdef T4ResolveBuilder < mlfourdfp.T4ResolveBuilder
                     sessds{p}.snumber = s;
                     disp(sessds{p});
                     this = mlarbelaez.T4ResolveBuilder('sessionData', sessds{p});
-                    this.t4ResolveSubject;
+                    this.t4ResolvePET;
                 end
             end
         end
     end
     
 	methods 
-		function this = t4ResolveSubject(this)
-            this = this.t4ResolvePET;
-        end
         function this = t4ResolvePET(this)            
             pnum        = this.sessionData.pnumber;            
             snum        = this.sessionData.snumber;
@@ -97,7 +94,7 @@ classdef T4ResolveBuilder < mlfourdfp.T4ResolveBuilder
             mlbash('cp -f ../T1* .');
             if (~lexist(mpr_4, 'file'))
                 if (~lexist(fullfile(mriPth, mpr_4)))
-                    this.buildVisitor.cp(fullfile(mriPth, mpr_mgz));
+                    copyfile(fullfile(mriPth, mpr_mgz), pwd);
                     this.ensure4dfp(mpr_mgz);
                 else
                     error('mlfourdfp:fileNotFound', 'T4ResolveBuilder.t4ResolvePET:  could not find %s', mpr_4);
@@ -114,10 +111,10 @@ classdef T4ResolveBuilder < mlfourdfp.T4ResolveBuilder
                     tracerdir = fullfile(petPth, sprintf('%s%i', upper(tracers{t}), snum), '');
                     this.buildVisitor.mkdir(tracerdir);
                     cd(tracerdir);
-                    this.buildVisitor.cp(     fullfile(petPth, mprToAtl_t4));
-                    this.buildVisitor.cp_4dfp(fullfile(petPth, mpr_fp));
-                    this.ensure4dfp(          fullfile(petPth, sprintf('%s%s%i', pnum, tracers{t}, snum)));
-                    this.buildVisitor.cp_4dfp(fullfile(petPth, sprintf('%s%s%i', pnum, tracers{t}, snum)));
+                    copyfile(                   fullfile(petPth, mprToAtl_t4), pwd);
+                    this.buildVisitor.copy_4dfp(fullfile(petPth, mpr_fp), pwd);
+                    this.ensure4dfp(            fullfile(petPth, sprintf('%s%s%i', pnum, tracers{t}, snum)));
+                    this.buildVisitor.copy_4dfp(fullfile(petPth, sprintf('%s%s%i', pnum, tracers{t}, snum)), pwd);
                     fdfp0 = sprintf('%s%s%i', pnum, tracers{t}, snum);
                     fdfp1 = sprintf('%s%s%i', pnum, tracers{t}, snum);
                     this.t4ResolveIterative(fdfp0, fdfp1, mpr_fp);

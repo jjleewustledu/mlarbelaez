@@ -312,8 +312,9 @@ classdef GluTFigures
             %y = 100*y; % converts \frac{\mumol}{g} \frac{100 g}{mL} to \frac{\mumol}{mL}
             
             ip = inputParser;
-            addRequired(ip, 'yLabel', @ischar);
-            addOptional(ip, 'limYHard', [], @isnumeric);
+            addRequired( ip, 'yLabel', @ischar);
+            addParameter(ip, 'yInf', 0,  @isnumeric);
+            addParameter(ip, 'ySup', [], @isnumeric);
             parse(ip, yLabel, varargin{:});
             
             [y, yLabel1, yLabel2, conversionFactor2] = this.yLabelLookup(ip.Results.yLabel);   
@@ -331,7 +332,7 @@ classdef GluTFigures
             % Create figure
             figure0 = figure;
 
-            % Create axes2
+            % Create axes2, in back
             axes2 = axes('Parent',figure0);
             hold(axes2,'on');
 
@@ -340,10 +341,12 @@ classdef GluTFigures
                 ylabel(axes2, yLabel2, 'FontSize', this.axesLabelFontSize); end
 
             xlim(axes2,this.axesLimXBar(x*conversionFactor1)); 
-            ylim(axes2,this.axesLimYBar(y*conversionFactor2, ip.Results.limYHard*conversionFactor2));
-            set(axes2,'FontSize',this.axesFontSize,'XDir','reverse','XTick',this.nominalRisingSI,'XAxisLocation','top','YAxisLocation','right');
+            ylim(axes2,this.axesLimYBar(y*conversionFactor2, ip.Results.yInf*conversionFactor2, ip.Results.ySup*conversionFactor2));
+            set(axes2,'FontSize',this.axesFontSize,'XDir','reverse','XTick',this.nominalRisingSI,'XAxisLocation','top','YAxisLocation','right','TickDir','out');
+            axes2Position = axes2.Position;
+            set(axes2,'Position',[axes2Position(1) axes2Position(2) 1.002*axes2Position(3) 1.001*axes2Position(4)]);
 
-            % Create axes1
+            % Create axes1, in front
             axes1 = axes('Parent',figure0);
             hold(axes1,'on');
 
@@ -351,9 +354,8 @@ classdef GluTFigures
             ylabel(axes1, yLabel1, 'FontSize', this.axesLabelFontSize);
 
             xlim(axes1,this.axesLimXBar(x));        
-            ylim(axes1,this.axesLimYBar(y, ip.Results.limYHard));
-            box(axes1,'on');
-            set(axes1,'FontSize',this.axesFontSize,'XDir','reverse','XTick',this.nominalRising,'XAxisLocation','bottom','YAxisLocation','left');
+            ylim(axes1,this.axesLimYBar(y, ip.Results.yInf, ip.Results.ySup));
+            set(axes1,'FontSize',this.axesFontSize,'XDir','reverse','XTick',this.nominalRising,'XAxisLocation','bottom','YAxisLocation','left','Position',axes2Position);
 
             % Create bar
             xb95 = [this.nominalGlu(1) this.nominalGlu(3)];
@@ -552,12 +554,18 @@ classdef GluTFigures
             high  = max(dat) + Delta;
             range = [low high];
         end
-        function range = axesLimYBar(~, dat, limHard)
-            if (isempty(limHard))
-                range = [0 max(dat)+std(dat)];
+        function range = axesLimYBar(~, varargin)
+            ip = inputParser;
+            addRequired(ip, 'dat', @isnumeric);
+            addOptional(ip, 'yInf', 0, @isnumeric);
+            addOptional(ip, 'ySup', max(varargin{2})+std(varargin{2}), @isnumeric);
+            parse(ip, varargin{:});
+            if (isempty(ip.Results.ySup)) % ySup may be given []
+                ySup = max(ip.Results.dat)+std(ip.Results.dat);
             else
-                range = [0 limHard];
+                ySup = ip.Results.ySup;
             end
+            range = [ip.Results.yInf ySup];
         end
         function range = axesLimXBar(~, dat)
             Delta = (max(dat) - min(dat))*0.333;        
@@ -599,7 +607,7 @@ classdef GluTFigures
                 case 'CTX_{glu}'
                     y = this.CTX;
                     yLabel1 = [yLabel ' (\mumol/100 g/min)'];
-                case 'Free brain glucose'
+                case 'Brain free glucose'
                     y = this.free_glu;                   
                     yLabel1 = [yLabel ' (\mumol/g)'];
                 case 'CTX_{glu}/CBV'
@@ -608,7 +616,7 @@ classdef GluTFigures
                 case 'CMR_{glu}/CBV'
                     y = this.CMRglu ./ this.CBV;               
                     yLabel1 = [yLabel ' (\mumol/mL/min)'];
-                case 'Free brain glucose/CBV'   
+                case 'Brain free glucose/CBV'   
                     y = this.free_glu ./ this.CBV;
                     y = 100*y; % converts \frac{\mumol}{g} \frac{100 g}{mL} to \frac{\mumol}{mL} 
                     yLabel1 = [yLabel ' (\mumol/mL)'];
@@ -659,6 +667,11 @@ classdef GluTFigures
                     yLabel1 = [yLabel ' (pg/mL)'];
                     yLabel2 =          '(nmol/L)';
                     conversionFactor2 = 5.485e-3;
+                case 'Norepinephrine'
+                    y = this.Norepi;
+                    yLabel1 = [yLabel ' (pg/mL)'];
+                    yLabel2 =          '(nmol/L)';
+                    conversionFactor2 = 5.911e-3;
                 case 'Glucagon'
                     y = this.Glucagon;
                     yLabel1 = [yLabel ' (pg/mL)'];
@@ -674,7 +687,7 @@ classdef GluTFigures
                     yLabel1 = [yLabel ' (mg/dL)'];
                     yLabel2 =          '(mmol/L)';
                     conversionFactor2 = 0.0551;
-                case 'Total Sx'
+                case 'Total symptom score'
                     y = this.NGSx + this.NGPSx;
                     yLabel1 = yLabel;
                 case 'Neurogenic symptom score'
