@@ -67,6 +67,8 @@ classdef GluTFigures
         Kd
         flux_met
         E_net
+        
+        dx = .1/7;
     end    
     
 	methods		  
@@ -358,7 +360,7 @@ classdef GluTFigures
             parse(ip, yLabel, varargin{:});
             
             [y, yLabel1, yLabel2, conversionFactor2] = this.yLabelLookup(ip.Results.yLabel);   
-            [~, xLabel1, xLabel2, conversionFactor1] = this.xLabelLookup('nominal arterial plasma glucose');
+            [~, xLabel1, xLabel2, conversionFactor1] = this.xLabelLookup('Nominal arterial plasma glucose');
             x = this.plasma_glu;             
 
             % Create figure
@@ -461,18 +463,21 @@ classdef GluTFigures
             addRequired( ip, 'yLabel', @ischar);
             addParameter(ip, 'yInf', 0,  @isnumeric);
             addParameter(ip, 'ySup', [], @isnumeric);
+            addParameter(ip, 'frmtMean', '', @ischar);
+            addParameter(ip, 'frmtSE', '', @ischar);
+            addParameter(ip, 'p', {'p < 0.0001'}, @iscell);
             parse(ip, yLabel, varargin{:});
             
             [y, yLabel1, yLabel2, conversionFactor2] = this.yLabelLookup(ip.Results.yLabel);   
-            [x, xLabel1, xLabel2, conversionFactor1] = this.xLabelLookup('nominal arterial plasma glucose');
+            [x, xLabel1, xLabel2, conversionFactor1] = this.xLabelLookup('Nominal arterial plasma glucose');
             
-            y95 = y(1:10);
+            y90 = y(1:10);
             y75 = y(11:18);
-            y65 = y(19:28);
+            y60 = y(19:28);
             y45 = y(29:end);
-            %x95 = x(1:10);
+            %x90 = x(1:10);
             %x75 = x(11:18);
-            %x65 = x(19:28);
+            %x60 = x(19:28);
             %x45 = x(29:end);
             
             % Create figure
@@ -485,9 +490,10 @@ classdef GluTFigures
             xlabel(axes2, xLabel2, 'FontSize', this.axesLabelFontSize);
             if (conversionFactor2 ~= 1)
                 ylabel(axes2, yLabel2, 'FontSize', this.axesLabelFontSize); end
-
+            
             xlim(axes2,this.axesLimXBar(x*conversionFactor1)); 
             ylim(axes2,this.axesLimYBar(y*conversionFactor2, ip.Results.yInf*conversionFactor2, ip.Results.ySup*conversionFactor2));
+            
             set(axes2,'FontSize',this.axesFontSize,'XDir','reverse','XTick',this.nominalRisingSI,'XAxisLocation','top','YAxisLocation','right','TickDir','out');
             axes2Position = axes2.Position;
             set(axes2,'Position',[axes2Position(1) axes2Position(2) 1.002*axes2Position(3) 1.001*axes2Position(4)]);
@@ -501,80 +507,112 @@ classdef GluTFigures
 
             xlim(axes1,this.axesLimXBar(x));        
             ylim(axes1,this.axesLimYBar(y, ip.Results.yInf, ip.Results.ySup));
+            
             set(axes1,'FontSize',this.axesFontSize,'XDir','reverse','XTick',this.nominalRising,'XAxisLocation','bottom','YAxisLocation','left','Position',axes2Position);
 
             % Create bar
-            xb95 = [this.nominalGlu(1) this.nominalGlu(3)];
+            xb90 = [this.nominalGlu(1) this.nominalGlu(3)];
             xb75 = [this.nominalGlu(2) this.nominalGlu(4)];
-            yb95 = [mean(y95) mean(y65)];
+            yb90 = [mean(y90) mean(y60)];
             yb75 = [mean(y75) mean(y45)];
-            bar(xb95, yb95, this.barWidth, 'FaceColor', [1 1 1]);
+            bar(xb90, yb90, this.barWidth, 'FaceColor', [1 1 1]);
             bar(xb75, yb75, this.barWidth, 'FaceColor', [0.92 0.92 0.92]);
             
             % Create errorbar
             xe = this.nominalGlu;
-            ye = [mean(y95) mean(y75) mean(y65) mean(y45)];
-            ee = [ std(y95)  std(y75)  std(y65)  std(y45)] ./ ...
-                 sqrt([length(y95) length(y75) length(y65) length(y45)]);
-            errorbar(xe,ye,ee,'Parent',axes1,'MarkerFaceColor',[0 0 0],'MarkerEdgeColor',[0 0 0],'LineStyle','none','LineWidth',1.5,...
+            ye = [mean(y90) mean(y75) mean(y60) mean(y45)];
+            se = [ std(y90)  std(y75)  std(y60)  std(y45)] ./ ...
+                 sqrt([length(y90) length(y75) length(y60) length(y45)]);
+            errorbar(xe,ye,se,'Parent',axes1,'MarkerFaceColor',[0 0 0],'MarkerEdgeColor',[0 0 0],'LineStyle','none','LineWidth',1.5,...
                 'Color',[0 0 0]);
 
             % Create textboxes
-            %R   = this.axesLimY(y);
-            %L   = R(1);
-            %D   = R(2) - R(1);
-            %z45 = 0.12 + 0.8*(mean(y45) - L)/D;
-            %z65 = 0.12 + 0.8*(mean(y65) - L)/D;
-            %z75 = 0.12 + 0.8*(mean(y75) - L)/D;
-            %z95 = 0.12 + 0.8*(mean(y95) - L)/D;  
-            zN  = 0.10;
-            zV  = 0.15;
-            annotation(figure0,'textbox',[0.705 zV 0.09 0.07],...
-                'String',{sprintf(this.boxFormat, mean(y45))},...
+            xc    = [.285 .432 .575 .725];
+            xL    = 0.14;
+            xH    = 0.07;
+            zN    = 0.10;
+            zMean = 0.18;
+            zSE   = 0.14;
+            
+            [s,l] = this.boxPrintMean(ye(4), ip.Results.frmtMean);
+            annotation(figure0,'textbox',[xc(4)-l zMean xL xH],...
+                'String',s,...
                 'LineStyle','none',...
                 'FontSize',this.boxFontSize,...
                 'FitBoxToText','off');
-            annotation(figure0,'textbox',[0.555 zV 0.11 0.07],...
-                'String',{sprintf(this.boxFormat, mean(y65))},...
+            [s,l] = this.boxPrintMean(ye(3), ip.Results.frmtMean);
+            annotation(figure0,'textbox',[xc(3)-l zMean xL xH],...
+                'String',s,...
                 'LineStyle','none',...
                 'FontSize',this.boxFontSize,...
                 'FitBoxToText','off');
-            annotation(figure0,'textbox',[0.413 zV 0.09 0.07],...
-                'String',{sprintf(this.boxFormat, mean(y75))},...
+            [s,l] = this.boxPrintMean(ye(2), ip.Results.frmtMean);
+            annotation(figure0,'textbox',[xc(2)-l zMean xL xH],...
+                'String',s,...
                 'LineStyle','none',...
                 'FontSize',this.boxFontSize,...
                 'FitBoxToText','off');
-            annotation(figure0,'textbox',[0.266 zV 0.11 0.07],...
-                'String',{sprintf(this.boxFormat, mean(y95))},...
+            [s,l] = this.boxPrintMean(ye(1), ip.Results.frmtMean);
+            annotation(figure0,'textbox',[xc(1)-l zMean xL xH],...
+                'String',s,...
                 'LineStyle','none',...
                 'FontSize',this.boxFontSize,...
                 'FitBoxToText','off');   
-            annotation(figure0,'textbox',[0.698 zN 0.09 0.07],...
+            
+            [s,l] = this.boxPrintSE(se(4), ip.Results.frmtSE);
+            annotation(figure0,'textbox',[xc(4)-l zSE xL xH],...
+                'String',s,...
+                'LineStyle','none',...
+                'FontSize',this.boxFontSize,...
+                'FitBoxToText','off');
+            [s,l] = this.boxPrintSE(se(3), ip.Results.frmtSE);
+            annotation(figure0,'textbox',[xc(3)-l zSE xL xH],...
+                'String',s,...
+                'LineStyle','none',...
+                'FontSize',this.boxFontSize,...
+                'FitBoxToText','off');
+            [s,l] = this.boxPrintSE(se(2), ip.Results.frmtSE);
+            annotation(figure0,'textbox',[xc(2)-l zSE xL xH],...
+                'String',s,...
+                'LineStyle','none',...
+                'FontSize',this.boxFontSize,...
+                'FitBoxToText','off');
+            [s,l] = this.boxPrintSE(se(1), ip.Results.frmtSE);
+            annotation(figure0,'textbox',[xc(1)-l zSE xL xH],...
+                'String',s,...
+                'LineStyle','none',...
+                'FontSize',this.boxFontSize,...
+                'FitBoxToText','off');   
+            
+            annotation(figure0,'textbox',[0.698 zN xL xH],...
                 'String',{sprintf('N = %i', length(y45))},...
                 'LineStyle','none',...
                 'FontSize',this.boxFontSize,...
                 'FitBoxToText','off');
-            annotation(figure0,'textbox',[0.548 zN 0.11 0.07],...
-                'String',{sprintf('N = %i', length(y65))},...
+            annotation(figure0,'textbox',[0.548 zN xL xH],...
+                'String',{sprintf('N = %i', length(y60))},...
                 'LineStyle','none',...
                 'FontSize',this.boxFontSize,...
                 'FitBoxToText','off');
-            annotation(figure0,'textbox',[0.406 zN 0.09 0.07],...
+            annotation(figure0,'textbox',[0.406 zN xL xH],...
                 'String',{sprintf('N = %i', length(y75))},...
                 'LineStyle','none',...
                 'FontSize',this.boxFontSize,...
                 'FitBoxToText','off');
-            annotation(figure0,'textbox',[0.256 zN 0.11 0.07],...
-                'String',{sprintf('N = %i', length(y95))},...
+            annotation(figure0,'textbox',[0.256 zN xL xH],...
+                'String',{sprintf('N = %i', length(y90))},...
                 'LineStyle','none',...
                 'FontSize',this.boxFontSize,...
                 'FitBoxToText','off');
-            annotation(figure0,'textbox',[0.433 0.790 0.158 0.0739],...
-                'String',{'p = 0.0'},...
-                'LineStyle','none',...
-                'FontSize',14,...
-                'FitBoxToText','off');
-        end        
+            
+            for pidx = 1:length(ip.Results.p)
+                annotation(figure0,'textbox',[xc(pidx) 0.790 xL xH],...
+                    'String',sprintf('%s', ip.Results.p{pidx}),...
+                    'LineStyle','none',...
+                    'FontSize',this.boxFontSize,...
+                    'FitBoxToText','off');
+            end
+        end  
     end 
     
     %% PRIVATE
@@ -584,7 +622,7 @@ classdef GluTFigures
     end
     
     methods (Access = 'private')        
-        function this = xlsRead(this)
+        function this  = xlsRead(this)
             [~,~,kin4_] = xlsread(this.glut_xlsx, this.glut_sheet);
             this.mapKin4 = containers.Map('KeyType', 'uint32', 'ValueType', 'any');
             for idx = this.dataRows(1):this.dataRows(2)
@@ -671,7 +709,7 @@ classdef GluTFigures
             this.NGSx    = this.vectorize(sx_,7);            
             this.TotalSx = this.vectorize(sx_,8);
         end
-        function c = cellulize(this, arr, col)
+        function c     = cellulize(this, arr, col)
             clen = this.dataRows(2) - this.dataRows(1) + 1;
             D = this.dataRows(1) - 1;
             c = cell(1, clen);
@@ -679,7 +717,7 @@ classdef GluTFigures
                 c{ic} = arr{ic+D, col};
             end
         end
-        function v = vectorize(this, arr, col)
+        function v     = vectorize(this, arr, col)
             vlen = this.dataRows(2) - this.dataRows(1) + 1;
             D = this.dataRows(1) - 1;
             v = zeros(vlen, 1);
@@ -718,6 +756,21 @@ classdef GluTFigures
             low   = min(dat) - Delta;
             high  = max(dat) + Delta*0.666;
             range = [low high];
+        end
+        function [s,l] = boxPrintMean(this, m, frmt)
+            if (isempty(frmt))
+                frmt = this.guessFloatFormat(m); end
+            s = sprintf(frmt, m);
+            l = (length(s) - 1)*this.dx/2;
+        end
+        function [s,l] = boxPrintSE(this, se, frmt)
+            if (isempty(frmt))
+                frmt = this.guessFloatFormat(se); end
+            s = sprintf(['\\pm ' frmt], se);
+            l = (length(s) - 2)*this.dx/2;
+        end
+        function frmt  = guessFloatFormat(~, f)
+            frmt = sprintf('%%.%ig',max(ceil(log10(f)), 2));
         end
         function [x,xLabel1,xLabel2,conversionFactor1] = xLabelLookup(this, xLabel)
             x       = this.plasma_glu;  
