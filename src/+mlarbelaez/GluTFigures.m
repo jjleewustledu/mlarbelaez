@@ -282,14 +282,15 @@ classdef GluTFigures
             % Initialize data            
             y_ctx      = this.CTX;
             y_cmr      = this.CMRglu;
-            yLabel1 = 'CTX_{glu} (\mumol/100 g/min)';
-            yLabel2 = 'CMR_{glu} (\mumol/100 g/min)';
+            yLabel2 = 'CTX_{glu} (\mumol/100 g/min)';
+            yLabel1 = 'CMR_{glu} (\mumol/100 g/min)';
             conversionFactor2 = 1;         
-            [~, xLabel1, xLabel2, conversionFactor1] = this.xLabelLookup('arterial plasma glucose');
+            [~, xLabel1, xLabel2, conversionFactor1] = this.xLabelLookup('nominal arterial plasma glucose');
             glu   = this.plasma_glu; 
             
             markSize = 220;
-            markShape = 's';
+            markStyle2 = 'k--';
+            markStyle1 = 'k-.';
             
             %% Fit: 'untitled fit 1'.
             [xDataCmr, yDataCmr] = prepareCurveData( glu, y_cmr );
@@ -299,20 +300,17 @@ classdef GluTFigures
             ft = fittype( 'poly1' );
 
             % Fit model to data.
-            [fitresult{1}, gof(1)] = fit( xDataCmr, yDataCmr, ft );
             [fitresult{2}, gof(2)] = fit( xDataCtx, yDataCtx, ft );
+            [fitresult{1}, gof(1)] = fit( xDataCmr, yDataCmr, ft );
 
             % Plot fit with data.
-            figure0 = figure( 'Name', 'CTX_{glu} and CMR_{glu}' );
+            figure0 = figure( 'Name', 'CTX_{glu} and CMR_{glu}' ); 
 
             % Create axes2, in back
             axes2 = axes('Parent',figure0);
             hold(axes2,'on');
-            
-            
-
             xlim(axes2,this.axesLimXBar(glu*conversionFactor1)); 
-            ylim(axes2,this.axesLimYBar(y_ctx*conversionFactor2, ip.Results.yInf*conversionFactor2, ip.Results.ySup*conversionFactor2));
+            ylim(axes2,this.axesLimYBar(y_ctx*conversionFactor2, ip.Results.yInf*conversionFactor2, ip.Results.ySup*conversionFactor2));            
             set(axes2,'FontSize',this.axesFontSize,'XDir','reverse','XTick',this.nominalRisingSI,'XAxisLocation','top','YAxisLocation','right','TickDir','out');
             axes2Position = axes2.Position;
             set(axes2,'Position',[axes2Position(1) axes2Position(2) 1.002*axes2Position(3) 1.001*axes2Position(4)]);
@@ -320,28 +318,32 @@ classdef GluTFigures
             % Create axes1, in front
             axes1 = axes('Parent',figure0);
             hold(axes1,'on');
-
-            
-
             xlim(axes1,this.axesLimXBar(glu));        
-            ylim(axes1,this.axesLimYBar(y_ctx, ip.Results.yInf, ip.Results.ySup));
+            ylim(axes1,this.axesLimYBar(y_ctx, ip.Results.yInf, ip.Results.ySup));            
             set(axes1,'FontSize',this.axesFontSize,'XDir','reverse','XTick',this.nominalRising,'XAxisLocation','bottom','YAxisLocation','left','Position',axes2Position);
-
-            % Plot everything            
-            plot( fitresult{1}, xDataCmr, yDataCmr, ...
-                markShape); %, 'MarkerSize', markSize,'MarkerEdgeColor',this.markerEdgeColor,'MarkerFaceColor',[1 1 1],'LineWidth',this.markerLineWidth);
+            
+            % Plot everything  
             hold('all');
-            plot( fitresult{2}, xDataCtx, yDataCtx, ...
-                markShape); %, 'MarkerSize', markSize,'MarkerEdgeColor',this.markerEdgeColor,'MarkerFaceColor',[0.818 0.818 0.818],'LineWidth',this.markerLineWidth);
+            pp2 = plot( xDataCtx, yDataCtx, 's', ...
+                        'MarkerSize',14,'MarkerEdgeColor',this.markerEdgeColor,'MarkerFaceColor',[1 1 1],'LineWidth',this.markerLineWidth);
+            pf2 = plot( fitresult{2}, markStyle2);
+            pp1 = plot( xDataCmr, yDataCmr, 's', ...
+                        'MarkerSize',14,'MarkerEdgeColor',this.markerEdgeColor,'MarkerFaceColor',[0.818 0.818 0.818],'LineWidth',this.markerLineWidth);
+            pf1 = plot( fitresult{1}, markStyle1);
             
-            xlabel(axes2, xLabel2, 'FontSize', this.axesLabelFontSize);
-            if (conversionFactor2 ~= 1)
-            ylabel(axes2, yLabel2, 'FontSize', this.axesLabelFontSize); end                        
+            pp2.LineWidth = this.markerLineWidth;
+            pf2.LineWidth = 1.5;
+            pp1.LineWidth = this.markerLineWidth;
+            pf1.LineWidth = 1.5;
+            
+            % Annotate     
+            hold('all');
+            legend( 'CTX_{glu}', 'y = 0.48 x + 2.8', 'CMR_{glu}', 'y = 0.093 x + 15', 'Location', 'NorthEast', 'Box', 'off' );       
+            xlabel(axes2, xLabel2, 'FontSize', this.axesLabelFontSize);            
             xlabel(axes1, xLabel1, 'FontSize', this.axesLabelFontSize);
-            ylabel(axes1, yLabel1, 'FontSize', this.axesLabelFontSize);
+            ylabel(axes2, yLabel1, 'FontSize', this.axesLabelFontSize);
+            ylabel(axes1, yLabel2, 'FontSize', this.axesLabelFontSize); 
             
-            %legend( h, 'y_cmr vs. glu', 'untitled fit 1', 'Location', 'NorthEast' );
-            %legend( h, 'y_ctx vs. glu', 'untitled fit 2', 'Location', 'NorthEast' );
         end
         function [figure0,x,y] = createScatter(this, yLabel, varargin)
             %% CREATESCATTER
@@ -413,7 +415,7 @@ classdef GluTFigures
             yLabel1 = 'CTX_{glu} (\mumol/100 g/min)';
             yLabel2 = 'CMR_{glu} (\mumol/100 g/min)';
             conversionFactor2 = 1;         
-            [~, xLabel1, xLabel2, conversionFactor1] = this.xLabelLookup('arterial plasma glucose');
+            [~, xLabel1, xLabel2, conversionFactor1] = this.xLabelLookup('nominal arterial plasma glucose');
             glu   = this.plasma_glu; 
 
             sz1 = 220;
