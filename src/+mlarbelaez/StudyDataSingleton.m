@@ -9,154 +9,87 @@ classdef StudyDataSingleton < mlpipeline.StudyDataSingleton
  	%% It was developed on Matlab 9.0.0.307022 (R2016a) Prerelease for MACI64.
  	
 
-    properties (SetAccess = protected)
-        arbelaezTrunk = getenv('ARBELAEZ')
-    end
-    
-	properties (Dependent)
-        subjectsDir
-    end
-    
-    methods %% GET
-        function g = get.subjectsDir(this)
-            g = fullfile(this.arbelaezTrunk, 'GluT', '');
-        end
-    end
-
     methods (Static)
-        function this = instance(qualifier)
-            persistent instance_            
-            if (exist('qualifier','var'))
-                assert(ischar(qualifier));
-                if (strcmp(qualifier, 'initialize'))
-                    instance_ = [];
-                end
-            end            
+        function this = instance(varargin)
+            persistent instance_
+            if (~isempty(varargin))
+                instance_ = [];
+            end
             if (isempty(instance_))
-                instance_ = mlarbelaez.StudyDataSingleton();
+                instance_ = mlarbelaez.StudyDataSingleton(varargin{:});
             end
             this = instance_;
         end
-        function        register(varargin)
-            %% REGISTER
-            %  @param []:  if this class' persistent instance
-            %  has not been registered, it will be registered via instance() call to the ctor; if it
-            %  has already been registered, it will not be re-registered.
-            %  @param ['initialize']:  any registrations made by the ctor will be repeated.
-            
-            mlarbelaez.StudyDataSingleton.instance(varargin{:});
+        function d    = subjectsDir
+            d = fullfile(getenv('ARBELAEZ'), 'GluT', '');
         end
     end
     
     methods
-        function loc  = loggingLocation(this, varargin)
+        function        register(this, varargin)
+            %% REGISTER this class' persistent instance with mlpipeline.StudyDataSingletons
+            %  using the latter class' register methods.
+            %  @param key is any registration key stored by mlpipeline.StudyDataSingletons; default 'derdeyn'.
+            
             ip = inputParser;
-            addParameter(ip, 'type', 'path', @(x) this.isLocationType(x));
+            addOptional(ip, 'key', 'arbelaez', @ischar);
             parse(ip, varargin{:});
-            
-            switch (ip.Results.type)
-                case 'folder'
-                    [~,loc] = fileparts(this.arbelaezTrunk);
-                case 'path'
-                    loc = this.arbelaezTrunk;
-                otherwise
-                    error('mlpipeline:insufficientSwitchCases', ...
-                          'StudyDataSingleton.loggingLocation.ip.Results.type->%s not recognized', ip.Results.type);
-            end
-        end    
-        function sess = sessionData(varargin)
+            mlpipeline.StudyDataSingletons.register(ip.Results.key, this);
+        end
+        function this = replaceSessionData(this, varargin)
+            %% REPLACESESSIONDATA
+            %  @param [parameter name,  parameter value, ...] as expected by mlarbelaez.SessionData are optional;
+            %  'studyData' and this are always internally supplied.
+            %  @returns this.
+
+            this.sessionDataComposite_ = mlpatterns.CellComposite({ ...
+                mlarbelaez.SessionData('studyData', this, varargin{:})});
+        end
+        function sess = sessionData(this, varargin)
             %% SESSIONDATA
-            %  @param parameter names and values expected by mlarbelaez.SessionData;
-            %  'studyData' and this are implicitly supplied.
-            %  @returns mlarbelaez.SessionData object
+            %  @param [parameter name,  parameter value, ...] as expected by mlarbelaez.SessionData are optional;
+            %  'studyData' and this are always internally supplied.
+            %  @returns for empty param:  mlpatterns.CellComposite object or it's first element when singleton, 
+            %  which are instances of mlarbelaez.SessionData.
+            %  @returns for non-empty param:  instance of mlarbelaez.SessionData corresponding to supplied params.
             
+            if (isempty(varargin))
+                sess = this.sessionDataComposite_;
+                if (1 == length(sess))
+                    sess = sess.get(1);
+                end
+                return
+            end
             sess = mlarbelaez.SessionData('studyData', this, varargin{:});
+        end  
+        function f    = subjectsDirFqdns(this)
+            dt = mlsystem.DirTools(this.subjectsDir);
+            f = {};
+            for di = 1:length(dt.dns)
+                e = regexp(dt.dns{di}, 'p\d{4}_JJL', 'match');
+                if (~isempty(e))
+                    f = [f dt.fqdns(di)]; %#ok<AGROW>
+                end
+            end
         end 
-        
-        function f = fslFolder(~, ~)
-            f = 'fsl';
-        end
-        function f = hdrinfoFolder(this, sessDat)
-            f = this.petFolder(sessDat);
-        end   
-        function f = mriFolder(~, ~)
-            f = 'freesurfer/mri';
-        end
-        function f = petFolder(~, sessDat)
-            f = sprintf('PET/scan%i', sessDat.snumber);
-        end
-        
-        function fn = gluc_fn(~, sessDat, varargin)            
-            ip = inputParser;
-            addOptional(ip, 'suff', '', @ischar);
-            parse(ip, varargin{:})
-            try
-                fp = sprintf('%sgluc%i', sessDat.pnumber, sessDat.snumber);
-                fn = fullfile([fp ip.Results.suff '.nii.gz']);
-            catch ME
-                handwarning(ME);
-                fn = '';
-            end
-        end
-        function fn = ho_fn(~, sessDat, varargin)            
-            ip = inputParser;
-            addOptional(ip, 'suff', '', @ischar);
-            parse(ip, varargin{:})
-            try
-                fp = sprintf('%sho%i', sessDat.pnumber, sessDat.snumber);
-                fn = fullfile([fp ip.Results.suff '.nii.gz']);
-            catch ME
-                handwarning(ME);
-                fn = '';
-            end
-        end
-        function fn = oc_fn(~, sessDat, varargin)            
-            ip = inputParser;
-            addOptional(ip, 'suff', '', @ischar);
-            parse(ip, varargin{:})
-            try
-                fp = sprintf('%soc%i', sessDat.pnumber, sessDat.snumber);
-                fn = fullfile([fp ip.Results.suff '.nii.gz']);
-            catch ME
-                handwarning(ME);
-                fn = '';
-            end
-        end
-        function fn = tr_fn(~, sessDat, varargin)            
-            ip = inputParser;
-            addOptional(ip, 'suff', '', @ischar);
-            parse(ip, varargin{:})
-            try
-                fp = sprintf('%str%i', sessDat.pnumber, sessDat.snumber);
-                fn = fullfile([fp ip.Results.suff '.nii.gz']);
-            catch ME
-                handwarning(ME);
-                fn = '';
-            end
-        end
     end
     
     %% PROTECTED
     
 	methods (Access = protected) 
  		function this = StudyDataSingleton(varargin)
- 			this = this@mlpipeline.StudyDataSingleton(varargin{:}); 
-            
-            dt = mlsystem.DirTools(this.subjectsDir);
-            fqdns = {};
-            for di = 1:length(dt.dns)
-                if (strcmp(dt.dns{di}(1), 'p') && strcmp(dt.dns{di}(end-3:end), '_JJL'))
-                    fqdns = [fqdns dt.fqdns(di)];
+ 			this = this@mlpipeline.StudyDataSingleton(varargin{:});
+ 		end
+        function this = assignSessionDataCompositeFromPaths(this, varargin)
+            if (isempty(this.sessionDataComposite_))
+                for v = 1:length(varargin)
+                    if (ischar(varargin{v}) && isdir(varargin{v}))                    
+                        this.sessionDataComposite_ = ...
+                            this.sessionDataComposite_.add( ...
+                                mlarbelaez.SessionData('studyData', this, 'sessionPath', varargin{v}));
+                    end
                 end
             end
-            this.sessionDataComposite_ = ...
-                mlpatterns.CellComposite( ...
-                    cellfun(@(x) mlarbelaez.SessionData('studyData', this, 'sessionPath', x), ...
-                    fqdns, 'UniformOutput', false));
-             this.registerThis;
- 		end
-        function registerThis(this)
-            mlpipeline.StudyDataSingletons.register('arbelaez', this);
         end
  	end 
 

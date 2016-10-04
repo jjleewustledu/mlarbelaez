@@ -9,177 +9,117 @@ classdef SessionData < mlpipeline.SessionData
  	%% It was developed on Matlab 9.0.0.307022 (R2016a) Prerelease for MACI64.
  	
 
+    properties 
+        filetypeExt = '.nii.gz'
+    end
+    
 	properties (Dependent)
-        aparcA2009sAseg_fqfn
-        ep2d_fqfn
-        gluc_fqfn
-        ho_fqfn
-        mpr_fqfn
-        oc_fqfn
-        orig_fqfn
-        pet_fqfns
-        petfov_fqfn
-        tof_fqfn
-        toffov_fqfn
-        tr_fqfn
-        T1_fqfn
-        wmparc_fqfn
-        
         petBlur
     end
     
     methods %% GET
-        function g = get.aparcA2009sAseg_fqfn(this)
-            g = fullfile(this.mriPath, 'aparc.a2009s+aseg.mgz');
-%             if (lexist(g, 'file'))
-%                 g = '';
-%                 return
-%             end
-        end
-        function g = get.ep2d_fqfn(this)
-            g = fullfile(this.fslPath, this.studyData_.ep2d_fn(this));
-%             if (lexist(g, 'file'))
-%                 g = '';
-%                 return
-%             end
-        end
-        function g = get.gluc_fqfn(this)
-            g = fullfile(this.petPath, this.studyData_.gluc_fn(this));
-%             if (lexist(g, 'file'))
-%                 g = '';
-%                 return
-%             end
-        end
-        function g = get.ho_fqfn(this)
-            g = fullfile(this.petPath, this.studyData_.ho_fn(this, this.tag));
-%             if (lexist(g, 'file'))
-%                 g = '';
-%                 return
-%             end
-        end
-        function g = get.mpr_fqfn(this)
-            g = fullfile(this.fslPath, this.studyData_.mpr_fn(this));
-%             if (lexist(g, 'file'))
-%                 g = '';
-%                 return
-%             end
-        end
-        function g = get.oc_fqfn(this)
-            g = fullfile(this.petPath, this.studyData_.oc_fn(this, this.tag));
-%             if (lexist(g, 'file'))
-%                 g = '';
-%                 return
-%             end
-        end
-        function g = get.orig_fqfn(this)
-            g = fullfile(this.mriPath, 'orig.mgz');
-        end
-        function g = get.pet_fqfns(this)
-            fqfns = { this.fdg_fqfn this.gluc_fqfn this.ho_fqfn this.oc_fqfn this.oo_fqfn this.tr_fqfn };
-            g = {};
-            for f = 1:length(fqfns)
-                if (2 == exist(fqfns{f}, 'file'))
-                    g = [g fqfns{f}];
-                end
-            end
-        end
-        function g = get.petfov_fqfn(this)
-            g = fullfile(this.petPath, this.studyData_.petfov_fn(this.tag));
-%             if (lexist(g, 'file'))
-%                 g = '';
-%                 return
-%             end
-        end
-        function g = get.tof_fqfn(this)
-            g = fullfile(this.petPath, 'fdg', 'pet_proc', this.studyData_.tof_fn(this.tag));
-%             if (lexist(g, 'file'))
-%                 g = '';
-%                 return
-%             end
-        end
-        function g = get.toffov_fqfn(this)
-            g = fullfile(this.petPath, 'fdg', 'pet_proc', this.studyData_.toffov_fn(this.tag));
-%             if (lexist(g, 'file'))
-%                 g = '';
-%                 return
-%             end
-        end
-        function g = get.tr_fqfn(this)
-            g = fullfile(this.petPath, this.studyData_.tr_fn(this, this.tag));
-%             if (lexist(g, 'file'))
-%                 g = '';
-%                 return
-%             end
-        end
-        function g = get.T1_fqfn(this)
-            g = fullfile(this.mriPath, 'T1.mgz');
-        end
-        function g = get.wmparc_fqfn(this)
-            g = fullfile(this.mriPath, 'wmparc.mgz');
-        end
-        
         function g = get.petBlur(~)
             g = mlpet.PETRegistry.instance.petPointSpread;
             g = mean(g);
         end
     end
 
-	methods 
-        function g = aparcA2009sAseg(this)
-            g = mlmr.MRImagingContext(this.aparcA2009sAseg_fqfn);
-        end
-        function g = ep2d(this)
-            g = mlmr.MRImagingContext(this.ep2d_fqfn);
-        end
-        function g = gluc(this)
-            g = mlpet.PETImagingContext(this.gluc_fqfn);
-        end
-        function g = ho(this)
-            g = mlpet.PETImagingContext(this.ho_fqfn);
-        end
-        function g = mpr(this)
-            g = mlmr.MRImagingContext(this.mpr_fqfn);
-        end
-        function g = oc(this)
-            g = mlpet.PETImagingContext(this.oc_fqfn);
-        end
-        function g = orig(this)
-            g = mlmr.MRImagingContext(this.orig_fqfn);
-        end
-        function g = petAtlas(this)
-            g = mlpet.PETImagingContext(this.pet_fqfns);
-            g = g.atlas;
-        end
-        function g = petfov(this)
-            g = mlfourd.ImagingContext(this.petfov_fqfn);
-        end      
-        function p = petPointSpread(~)
-            p = mlpet.PETRegistry.instance.petPointSpread;
-        end
-        function g = tof(this)
-            g = mlmr.MRImagingContext(this.tof_fqfn);
-        end
-        function g = toffov(this)
-            g = mlfourd.ImagingContext(this.toffov_fqfn);
-        end
-        function g = tr(this)
-            g = mlpet.PETImagingContext(this.tr_fqfn);
-        end
-        function g = T1(this)
-            g = mlmr.MRImagingContext(this.T1_fqfn);
-        end
-        function g = wmparc(this)
-            g = mlmr.MRImagingContext(this.wmparc_fqfn);
-        end
-        		  
+	methods
  		function this = SessionData(varargin)
  			%% SESSIONDATA
- 			%  Usage:  this = SessionData()
+ 			%  @param [param-name, param-value[, ...]]
+            %         'nac'         is logical
+            %         'rnumber'     is numeric
+            %         'sessionPath' is a path to the session data
+            %         'studyData'   is a mlpipeline.StudyDataSingleton
+            %         'snumber'     is numeric
+            %         'tracer'      is char
+            %         'vnumber'     is numeric
+            %         'tag'         is appended to the fileprefix
 
  			this = this@mlpipeline.SessionData(varargin{:});
- 		end
- 	end 
-
+            this.nac_ = false;
+        end
+        
+        %% IMRData
+        
+        function loc = fourdfpLocation(this, varargin)
+            ip = inputParser;
+            addOptional(ip, 'typ', 'path');
+            parse(ip, varargin{:});
+            
+            loc = this.studyData_.locationType(ip.Results.typ, ...
+                fullfile(this.petLocation('path'), '962_4dfp', ''));
+        end        
+        function loc = freesurferLocation(this, varargin)
+            ip = inputParser;
+            addOptional(ip, 'typ', 'path');
+            parse(ip, varargin{:});
+            
+            loc = this.studyData_.locationType(ip.Results.typ, ...
+                fullfile(this.sessionLocation('path'), 'freesurfer', ''));
+        end
+        function loc = fslLocation(this, varargin)
+            ip = inputParser;
+            addOptional(ip, 'typ', 'path');
+            parse(ip, varargin{:});
+            
+            loc = this.studyData_.locationType(ip.Results.typ, ...
+                fullfile(this.sessionLocation('path'), 'fsl', ''));
+        end
+        function loc = mriLocation(this, varargin)
+            ip = inputParser;
+            addOptional(ip, 'typ', 'path');
+            parse(ip, varargin{:});
+            
+            loc = this.studyData_.locationType(ip.Results.typ, ...
+                fullfile(this.freesurferLocation('path'), 'mri', ''));
+        end
+                
+        %% IPETData        	
+        
+        function loc = hdrinfoLocation(this, varargin)
+            loc = this.scanLocation(varargin{:});
+        end
+        function loc = petLocation(this, varargin)
+            ip = inputParser;
+            addOptional(ip, 'typ', 'path');
+            parse(ip, varargin{:});
+            
+            loc = this.studyData_.imagingType(ip.Results.typ, ...
+                fullfile(this.sessionLocation('path'), 'PET', ''));
+        end    
+        function obj = petObject(this, varargin)
+            ip = inputParser;
+            addRequired(ip, 'tracer', @ischar);
+            addParameter(ip, 'suffix', '', @ischar);
+            addOptional(ip, 'typ', 'mlpet.PETImagingContext');
+            parse(ip, varargin{:});
+            
+            obj = this.studyData_.imagingType(ip.Results.typ, ...
+                fullfile(this.scanLocation('path'), ...
+                         sprintf('%s%s%i%s_frames', this.pnumber, ip.Results.tracer, this.snumber, this.nacSuffix), ...
+                         sprintf('%s%s%i%s%s%s', this.pnumber, ip.Results.tracer, this.snumber, this.nacSuffix, ip.Results.suffix, this.filetypeExt)));
+        end    
+        function loc = scanLocation(this, varargin)
+            ip = inputParser;
+            addOptional(ip, 'typ', 'path');
+            parse(ip, varargin{:});
+            
+            loc = this.studyData_.imagingType(ip.Results.typ, ...
+                fullfile(this.petLocation('path'), sprintf('scan%i', this.snumber)));
+        end
+        
+        function obj = petAtlas(this)
+            obj = mlpet.PETImagingContext( ...
+                cellfun(@(x) this.petObject(x, 'fqfn'), {'oc' 'oo' 'ho' 'tr'}));
+            obj = obj.atlas;
+        end      
+        function p   = petPointSpread(~)
+            p = mlpet.PETRegistry.instance.petPointSpread;
+        end
+    end 
+    
 	%  Created with Newcl by John J. Lee after newfcn by Frank Gonzalez-Morphy
  end
 

@@ -40,8 +40,6 @@ classdef TestDataSingleton < mlarbelaez.StudyDataSingleton
  		function this = TestDataSingleton(varargin)
  			this = this@mlarbelaez.StudyDataSingleton(varargin{:});
             
-            this.arbelaezTrunk = fullfile(getenv('UNITTESTS'), 'Arbelaez', '');
-            
             dt = mlsystem.DirTools(this.subjectsDir);
             fqdns = {};
             for di = 1:length(dt.dns)
