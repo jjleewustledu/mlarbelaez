@@ -49,7 +49,7 @@ classdef SessionData < mlpipeline.SessionData
             parse(ip, varargin{:});
             
             loc = this.studyData_.locationType(ip.Results.typ, ...
-                fullfile(this.petLocation('path'), '962_4dfp', ''));
+                fullfile(this.petLocation, '962_4dfp', ''));
         end        
         function loc = freesurferLocation(this, varargin)
             ip = inputParser;
@@ -57,7 +57,7 @@ classdef SessionData < mlpipeline.SessionData
             parse(ip, varargin{:});
             
             loc = this.studyData_.locationType(ip.Results.typ, ...
-                fullfile(this.sessionLocation('path'), 'freesurfer', ''));
+                fullfile(this.sessionLocation, 'freesurfer', ''));
         end
         function loc = fslLocation(this, varargin)
             ip = inputParser;
@@ -65,7 +65,7 @@ classdef SessionData < mlpipeline.SessionData
             parse(ip, varargin{:});
             
             loc = this.studyData_.locationType(ip.Results.typ, ...
-                fullfile(this.sessionLocation('path'), 'fsl', ''));
+                fullfile(this.sessionLocation, 'fsl', ''));
         end
         function loc = mriLocation(this, varargin)
             ip = inputParser;
@@ -73,7 +73,7 @@ classdef SessionData < mlpipeline.SessionData
             parse(ip, varargin{:});
             
             loc = this.studyData_.locationType(ip.Results.typ, ...
-                fullfile(this.freesurferLocation('path'), 'mri', ''));
+                fullfile(this.freesurferLocation, 'mri', ''));
         end
                 
         %% IPETData        	
@@ -87,27 +87,15 @@ classdef SessionData < mlpipeline.SessionData
             parse(ip, varargin{:});
             
             loc = this.studyData_.imagingType(ip.Results.typ, ...
-                fullfile(this.sessionLocation('path'), 'PET', ''));
-        end    
-        function obj = petObject(this, varargin)
-            ip = inputParser;
-            addRequired(ip, 'tracer', @ischar);
-            addParameter(ip, 'suffix', '', @ischar);
-            addOptional(ip, 'typ', 'mlpet.PETImagingContext');
-            parse(ip, varargin{:});
-            
-            obj = this.studyData_.imagingType(ip.Results.typ, ...
-                fullfile(this.scanLocation('path'), ...
-                         sprintf('%s%s%i%s_frames', this.pnumber, ip.Results.tracer, this.snumber, this.nacSuffix), ...
-                         sprintf('%s%s%i%s%s%s', this.pnumber, ip.Results.tracer, this.snumber, this.nacSuffix, ip.Results.suffix, this.filetypeExt)));
-        end    
+                fullfile(this.sessionLocation, 'PET', ''));
+        end
         function loc = scanLocation(this, varargin)
             ip = inputParser;
             addOptional(ip, 'typ', 'path');
             parse(ip, varargin{:});
             
             loc = this.studyData_.imagingType(ip.Results.typ, ...
-                fullfile(this.petLocation('path'), sprintf('scan%i', this.snumber)));
+                fullfile(this.petLocation, sprintf('scan%i', this.snumber)));
         end
         
         function obj = petAtlas(this)
@@ -119,6 +107,21 @@ classdef SessionData < mlpipeline.SessionData
             p = mlpet.PETRegistry.instance.petPointSpread;
         end
     end 
+    
+    methods (Access = protected)        
+        function obj = petObject(this, varargin)
+            ip = inputParser;
+            addRequired(ip, 'tracer', @ischar);
+            addParameter(ip, 'suffix', '', @ischar);
+            addOptional(ip, 'typ', 'mlpet.PETImagingContext');
+            parse(ip, varargin{:});
+            
+            obj = this.studyData_.imagingType(ip.Results.typ, ...
+                fullfile(this.scanLocation, ...
+                         sprintf('%s%s%i%s_frames', this.pnumber, ip.Results.tracer, this.snumber, this.nacSuffix), ...
+                         sprintf('%s%s%i%s%s%s', this.pnumber, ip.Results.tracer, this.snumber, this.nacSuffix, ip.Results.suffix, this.filetypeExt)));
+        end    
+    end
     
 	%  Created with Newcl by John J. Lee after newfcn by Frank Gonzalez-Morphy
  end
