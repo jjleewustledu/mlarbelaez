@@ -35,7 +35,7 @@ classdef Test_GluTAlignmentBuilder < matlab.unittest.TestCase
  		function setupGluTAlignmentBuilder(this)
  			import mlarbelaez.*;
             this.sessionPath = fullfile(getenv('MLUNIT_TEST_PATH'), 'Arbelaez', 'GluT', this.sessionFolder);
- 			this.testObj = GluTAlignmentBuilder;
+ 			this.testObj = GluTAlignmentBuilder('sessionPath', this.sessionPath);
  		end
  	end
 

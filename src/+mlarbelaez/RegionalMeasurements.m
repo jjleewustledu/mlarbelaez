@@ -128,7 +128,7 @@ classdef RegionalMeasurements
             this.registry_ = ArbelaezRegistry.instance;
             
             ip = inputParser;
-            addRequired(ip, 'sessionPath', @(x) lexist(x, 'dir'));
+            addRequired(ip, 'sessionPath', @isdir);
             addRequired(ip, 'scanIndex',   @isnumeric);
             addRequired(ip, 'region',      @(x) lstrfind(x, this.registry_.regionLabels));
             parse(ip, sessionPath, scanIndex, region);
@@ -138,10 +138,8 @@ classdef RegionalMeasurements
             this.region_      = ip.Results.region;
             
             gTx = GluTxlsx;
-            this.gluTxlsxMap_ = gTx.pid_map;
-            
-            this.gluTAlignmentDirector_ = GluTAlignmentDirector.loadTouched(this.sessionPath);
-            
+            this.gluTxlsxMap_ = gTx.pid_map;            
+            this.gluTAlignmentDirector_ = GluTAlignmentDirector.loadTouched(this.sessionPath);            
             this.dta_ = DTA.load(this.dtaFqfn_);
             this.tsc_ = TSC.load( ...
                         this.tscFqfn_, this.glucFqfilename, this.dtaFqfn_, this.maskFqfilenameFor('gluc'));   
@@ -175,8 +173,9 @@ classdef RegionalMeasurements
                     director = AutoradiographyDirector.loadCRVAutoradiography( ...
                                this.maskFqfilenameFor('ho'), ...
                                this.crvFn_, ...
-                               this.hoFqfilename, ...
-                               this.registry_.getGluTShifts(this.scanIndex, this.pnumber));
+                               this.hoFqfilename, ...                               
+                               'crvShift', this.registry_.getGluTShifts(this.scanIndex, this.pnumber), ...
+                               'dcvShift', this.registry_.getGluTShifts(this.scanIndex, this.pnumber));
                     director = director.estimateAll;
                     this.fFracCached_ = director.product.f;
                     this.fFracCached_ = this.registry_.regressFHerscToVideen(this.fFracCached_);
@@ -199,7 +198,7 @@ classdef RegionalMeasurements
                                'Mask',    this.maskFqfilenameFor('oc'));
                     this.vFracCached_ = director.vFrac;
                 end
-                v = this.vFracCached_;
+                v = double(this.vFracCached_);
             catch ME
                 disp(ME)
                 struct2str(ME.stack)
@@ -222,14 +221,19 @@ classdef RegionalMeasurements
         function ic = hoImagingContext(this)
             ic = mlfourd.ImagingContext(this.hoFqfilename);
         end
-        function ic = glucImagingContext(this)  
+        function ic = glucImagingContext(this)
             ic = mlfourd.ImagingContext(this.glucFqfilename);
         end
     end 
     
     %% PRIVATE
     
-    properties %(Access = 'private')
+    properties (Hidden)
+        vFracCached_
+        fFracCached_
+    end
+    
+    properties (Access = 'private')
         sessionPath_
         scanIndex_
         region_
@@ -237,15 +241,13 @@ classdef RegionalMeasurements
         gluTxlsxMap_
         dta_
         tsc_
-        vFracCached_
-        fFracCached_
         kinetics4Cached_
         
         gluTAlignmentDirector_
         maskImagingContext_
     end
 
-    methods %(Access = 'private')
+    methods (Access = 'private')
         function f = maskFqfilenameFor(this, tracer)
             switch (lower(tracer))
                 case 'oc'

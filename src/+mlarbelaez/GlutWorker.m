@@ -54,7 +54,7 @@ classdef GlutWorker
             import mlfourd.*;
             dyn = DynamicNIfTId.load(sprintf('%sgluc%i.nii.gz', pnum, snum));
             dyn = dyn.mcflirtedAfterBlur([16 16 16]);
-            dyn = dyn.revertFrames(NIfTId.load(sprintf('%sgluc%i.nii.gz', pnum, snum)), 1:5);
+            dyn = dyn.withRevertedFrames(NIfTId.load(sprintf('%sgluc%i.nii.gz', pnum, snum)), 1:5);
             dyn.freeview;
             dyn.save;
             
@@ -191,14 +191,14 @@ classdef GlutWorker
             %  Usage:  glutWorker3() 
             
             fsImage        = 'brain_finalsurfs';
-            revertedFrames = [1 5];
+            withRevertedFrames = [1 5];
 
             assert(isnumeric(snum));
             pnum     = str2pnum(pwd);
             aparcMsk = 'aparc_a2009s+aseg_mask';
             reg      = sprintf('%s_on_%sgluc%i', fsImage, pnum, snum);
             aparcReg = sprintf('%s_on_%sgluc%i_mcf', aparcMsk, pnum, snum);
-            sumGluc  = sprintf('%sgluc%i_mcf_revf%ito%i_sumt', pnum, snum, revertedFrames(1), revertedFrames(2));
+            sumGluc  = sprintf('%sgluc%i_mcf_revf%ito%i_sumt', pnum, snum, withRevertedFrames(1), withRevertedFrames(2));
 
             assert(lexist(sprintf('%s.nii.gz', aparcMsk), 'file'));
             assert(lexist(sprintf('%s.nii.gz', sumGluc),  'file'));
@@ -245,7 +245,7 @@ classdef GlutWorker
         function [dt,ks,kmps] = loopKinetics4(varargin)
             
             p = inputParser;
-            addOptional(p, 'figFolder', pwd, @(x) lexist(x, 'dir'));
+            addOptional(p, 'figFolder', pwd, @isdir);
             parse(p, varargin{:}); 
             
             import mlarbelaez.*;
@@ -285,7 +285,7 @@ classdef GlutWorker
         function [dt,ks,kmps] = loopKinetics4_scan1(varargin)
             
             p = inputParser;
-            addOptional(p, 'figFolder', pwd, @(x) lexist(x, 'dir'));
+            addOptional(p, 'figFolder', pwd, @isdir);
             parse(p, varargin{:}); 
             
             import mlarbelaez.*;
@@ -325,7 +325,7 @@ classdef GlutWorker
         function [dt,ks,kmps] = loopKinetics4_scan2(varargin)
             
             p = inputParser;
-            addOptional(p, 'figFolder', pwd, @(x) lexist(x, 'dir'));
+            addOptional(p, 'figFolder', pwd, @isdir);
             parse(p, varargin{:}); 
             
             import mlarbelaez.*;
@@ -367,7 +367,7 @@ classdef GlutWorker
             regions = {'amygdala' 'hippocampus' 'hypothalamus' 'large-hypothalamus' 'thalamus'};
             
             p = inputParser;
-            addOptional(p, 'figFolder', pwd, @(x) lexist(x, 'dir'));
+            addOptional(p, 'figFolder', pwd, @isdir);
             parse(p, varargin{:}); 
             
             import mlarbelaez.*;

@@ -1,5 +1,6 @@
 classdef BetadcvCatheterResponse < mlaif.AbstractAifProblem & mlarbelaez.AbstractCatheterAnalysis 
-	%% CATHETERRESPONSE   
+	%% CATHETERRESPONSE estimates parameters of the betadcv kernel (ak1, e) by fitting 
+    %  crv data with a Heaviside input and betadcv model for the catheter impulse response.
 
 	%  $Revision$ 
  	%  was created $Date$ 
@@ -41,20 +42,10 @@ classdef BetadcvCatheterResponse < mlaif.AbstractAifProblem & mlarbelaez.Abstrac
             dccrv = this.estimateDccrvFast( ...
                 this.finalParams('ak1'), this.finalParams('e'), this.finalParams('ncnt'), this.finalParams('t0'));
         end  
-        function dccrv = estimateKernel(this)
-            dccrv = this.estimateKernelFast( ...
+        function k = estimateKernel(this)
+            k = this.estimateKernelFast( ...
                 this.finalParams('ak1'), this.finalParams('e'), this.finalParams('t0'));
-        end        
-        function R  = estimateResponseByDiff(this, counts)
-            %% ESTIMATERESPONSEBYDIFF is valid for Heaviside inflow of tracer into a cathether that leads to the blood-sucker detector
-            %  f(t)  = [g  * R](t); g is Heaviside
-            %  f'(t) = [g' * R](t)
-            %  f'(t) = \int ds \delta(s) R(t - s) = R(t)
-
-            tmp = diff(this.ensureRowVector(counts));
-            R   = tmp(1)*ones(1, length(counts));
-            R(2:end) = tmp;
-        end    
+        end 
         
   		function this  = BetadcvCatheterResponse(amatest_crv)
  			%% CATHETERRESPONSE 

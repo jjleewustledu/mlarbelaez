@@ -63,6 +63,22 @@ classdef GluTRegionFigures
         E_net
     end
     
+    methods (Static)
+        function this = createBarErrs
+            this = mlarbelaez.GluTRegionFigures;
+            labels  = {'CMR_{glu}' 'CTX_{glu}' 'E_{net}' 'free glucose' 'CBF' 'CBV' 'MTT' };
+            regions = {'amygdala' 'hippocampus' 'hypothalamus' 'mpfc' 'thalamus'};
+            for l = 1:length(labels)
+                for r = 1:length(regions)
+                    this.createBarErr(labels{l}, regions{r});
+                    aFig = get(0, 'children');
+                    saveas(aFig, sprintf('%s_%s.fig', regions{r}, labels{l}));
+                    saveas(aFig, sprintf('%s_%s.png', regions{r}, labels{l}));
+                    close(aFig);
+                end
+            end
+        end
+    end
     
 	methods		  
  		function this = GluTRegionFigures(varargin) 
@@ -145,6 +161,7 @@ classdef GluTRegionFigures
 
             xlim(axes2,this.axesLimX(glu*conversionFactor1)); 
             ylim(axes2,this.axesLimY(y  *conversionFactor2));
+            box(axes2,'on');
             set(axes2,'FontSize',this.axesFontSize,'XDir','reverse','XAxisLocation','top','YAxisLocation','right');
 
             % Create axes1
@@ -156,7 +173,6 @@ classdef GluTRegionFigures
 
             xlim(axes1,this.axesLimX(glu));           
             ylim(axes1,this.axesLimY(y));
-            box(axes1,'on');
             set(axes1,'FontSize',this.axesFontSize,'XDir','reverse','XAxisLocation','bottom','YAxisLocation','left');
 
             % Create stairs
@@ -195,19 +211,18 @@ classdef GluTRegionFigures
             figure0 = figure;
 
             % Create axes2
-            axes2 = axes('Parent',figure0);
-            hold(axes2,'on');
-
+            axes2 = axes('Parent',figure0,'FontSize',this.axesFontSize,'XDir','reverse','XTick',this.nominalRisingSI,'TickLength',[0 0],'XAxisLocation','top','YAxisLocation','right');
+            
             xlabel(axes2, xLabel2);
             if (conversionFactor2 ~= 1)
                 ylabel(axes2, yLabel2); end
 
-            xlim(axes2,this.axesLimXBar(x*conversionFactor1)); 
+            xlim(axes2,this.axesLimXBar(x*conversionFactor1));
             ylim(axes2,this.axesLimYBar(y*conversionFactor2, ip.Results.limYHard*conversionFactor2));
-            set(axes2,'FontSize',this.axesFontSize,'XDir','reverse','XTick',this.nominalRisingSI,'XAxisLocation','top','YAxisLocation','right');
 
             % Create axes1
-            axes1 = axes('Parent',figure0);
+            axes1 = axes('Position',axes2.Position,'FontSize',this.axesFontSize,'XDir','reverse','XTick',this.nominalRising,'XAxisLocation','bottom','YAxisLocation','left');
+            box(axes1,'on');
             hold(axes1,'on');
 
             xlabel(axes1, xLabel1);
@@ -215,16 +230,14 @@ classdef GluTRegionFigures
 
             xlim(axes1,this.axesLimXBar(x));
             ylim(axes1,this.axesLimYBar(y, ip.Results.limYHard));
-            box(axes1,'on');
-            set(axes1,'FontSize',this.axesFontSize,'XDir','reverse','XTick',this.nominalRising,'XAxisLocation','bottom','YAxisLocation','left');
 
             % Create bar
             xb95 = [this.nominalGlu(1) this.nominalGlu(3)];
             xb75 = [this.nominalGlu(2) this.nominalGlu(4)];
             yb95 = [mean(y95) mean(y65)];
             yb75 = [mean(y75) mean(y45)];
-            bar(xb95, yb95, this.barWidth, 'FaceColor', [1 1 1]);
-            bar(xb75, yb75, this.barWidth, 'FaceColor', [0.92 0.92 0.92]);
+            bar(xb95, yb95, this.barWidth,'Parent',axes1,'FaceColor',[1 1 1]);
+            bar(xb75, yb75, this.barWidth,'Parent',axes1,'FaceColor',[0.92 0.92 0.92]);
             
             % Create errorbar
             xe = this.nominalGlu;
@@ -234,7 +247,8 @@ classdef GluTRegionFigures
             errorbar(xe,ye,ee,'Parent',axes1,'MarkerFaceColor',[0 0 0],'MarkerEdgeColor',[0 0 0],'LineStyle','none','LineWidth',1.5,...
                 'Color',[0 0 0]);
 
-            % Create textboxes
+            %% Create textboxes
+            
             %R   = this.axesLimY(y);
             %L   = R(1);
             %D   = R(2) - R(1);
@@ -284,7 +298,24 @@ classdef GluTRegionFigures
 %                 'LineStyle','none',...
 %                 'FontSize',this.boxFontSize,...
 %                 'FitBoxToText','off');            
-        end        
+        end             
+        function saveFigures(varargin)
+            ip = inputParser;
+            addOptional(ip, 'location', pwd, @isdir);
+            parse(ip, varargin{:});
+
+            cd(ip.Results.location);
+            theFigs = get(0, 'children');
+            N = numel(theFigs);
+            assert(N < 1000, 'saveFigures only supports up to 999 open figures');
+            for f = 1:N
+                aFig = theFigs(f);
+                figure(aFig);
+                saveas(aFig, sprintf('%03d.fig', N-f+1));
+                saveas(aFig, sprintf('%03d.png', N-f+1));
+                close(aFig);
+            end
+        end
     end 
     
     %% PRIVATE
