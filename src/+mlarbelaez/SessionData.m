@@ -28,7 +28,7 @@ classdef SessionData < mlpipeline.SessionData
  		function this = SessionData(varargin)
  			%% SESSIONDATA
  			%  @param [param-name, param-value[, ...]]
-            %         'nac'         is logical
+            %         'ac'          is logical
             %         'rnumber'     is numeric
             %         'sessionPath' is a path to the session data
             %         'studyData'   is a mlpipeline.StudyDataSingleton
@@ -38,7 +38,7 @@ classdef SessionData < mlpipeline.SessionData
             %         'tag'         is appended to the fileprefix
 
  			this = this@mlpipeline.SessionData(varargin{:});
-            this.nac_ = false;
+            this.ac_ = true;
         end
         
         %% IMRData
@@ -118,8 +118,8 @@ classdef SessionData < mlpipeline.SessionData
             
             obj = this.studyData_.imagingType(ip.Results.typ, ...
                 fullfile(this.scanLocation, ...
-                         sprintf('%s%s%i%s_frames', this.pnumber, ip.Results.tracer, this.snumber, this.nacSuffix), ...
-                         sprintf('%s%s%i%s%s%s', this.pnumber, ip.Results.tracer, this.snumber, this.nacSuffix, ip.Results.suffix, this.filetypeExt)));
+                         sprintf('%s%s%i_frames', this.pnumber, ip.Results.tracer, this.snumber), ...
+                         sprintf('%s%s%i%s%s', this.pnumber, ip.Results.tracer, this.snumber, ip.Results.suffix, this.filetypeExt)));
         end    
     end
     
