@@ -53,13 +53,6 @@ classdef Test_T4ResolveBuilder < matlab.unittest.TestCase
             %r.pcolor('z(curves)', t4r);
         end
         
-        function test_msktgenInitial(this)
-            cd(fullfile(this.sessd.sessionPath, 'PET', 'scan1', 'GLUC1', ''));
-            this.testObj = this.testObj.msktgenInitial(this.ipresults);
-            [s,r] = mlbash(sprintf('freeview T1.4dfp.img %s_on_T1_g11.4dfp.img', this.ipresults.dest));
-            this.verifyEqual(s, 0);
-            fprintf(r);
-        end
         function test_msktgenResolved(this)
         end
 		function test_t4ResolvePET0(this)
