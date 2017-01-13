@@ -48,7 +48,7 @@ classdef SessionData < mlpipeline.SessionData
             addOptional(ip, 'typ', 'path');
             parse(ip, varargin{:});
             
-            loc = this.studyData_.locationType(ip.Results.typ, ...
+            loc = locationType(ip.Results.typ, ...
                 fullfile(this.petLocation, '962_4dfp', ''));
         end        
         function loc = freesurferLocation(this, varargin)
@@ -56,7 +56,7 @@ classdef SessionData < mlpipeline.SessionData
             addOptional(ip, 'typ', 'path');
             parse(ip, varargin{:});
             
-            loc = this.studyData_.locationType(ip.Results.typ, ...
+            loc = locationType(ip.Results.typ, ...
                 fullfile(this.sessionLocation, 'freesurfer', ''));
         end
         function loc = fslLocation(this, varargin)
@@ -64,7 +64,7 @@ classdef SessionData < mlpipeline.SessionData
             addOptional(ip, 'typ', 'path');
             parse(ip, varargin{:});
             
-            loc = this.studyData_.locationType(ip.Results.typ, ...
+            loc = locationType(ip.Results.typ, ...
                 fullfile(this.sessionLocation, 'fsl', ''));
         end
         function loc = mriLocation(this, varargin)
@@ -72,7 +72,7 @@ classdef SessionData < mlpipeline.SessionData
             addOptional(ip, 'typ', 'path');
             parse(ip, varargin{:});
             
-            loc = this.studyData_.locationType(ip.Results.typ, ...
+            loc = locationType(ip.Results.typ, ...
                 fullfile(this.freesurferLocation, 'mri', ''));
         end
                 
@@ -86,7 +86,7 @@ classdef SessionData < mlpipeline.SessionData
             addOptional(ip, 'typ', 'path');
             parse(ip, varargin{:});
             
-            loc = this.studyData_.imagingType(ip.Results.typ, ...
+            loc = imagingType(ip.Results.typ, ...
                 fullfile(this.sessionLocation, 'PET', ''));
         end
         function loc = scanLocation(this, varargin)
@@ -94,7 +94,7 @@ classdef SessionData < mlpipeline.SessionData
             addOptional(ip, 'typ', 'path');
             parse(ip, varargin{:});
             
-            loc = this.studyData_.imagingType(ip.Results.typ, ...
+            loc = imagingType(ip.Results.typ, ...
                 fullfile(this.petLocation, sprintf('scan%i', this.snumber)));
         end
         
@@ -116,7 +116,7 @@ classdef SessionData < mlpipeline.SessionData
             addOptional(ip, 'typ', 'mlpet.PETImagingContext');
             parse(ip, varargin{:});
             
-            obj = this.studyData_.imagingType(ip.Results.typ, ...
+            obj = imagingType(ip.Results.typ, ...
                 fullfile(this.scanLocation, ...
                          sprintf('%s%s%i_frames', this.pnumber, ip.Results.tracer, this.snumber), ...
                          sprintf('%s%s%i%s%s', this.pnumber, ip.Results.tracer, this.snumber, ip.Results.suffix, this.filetypeExt)));
