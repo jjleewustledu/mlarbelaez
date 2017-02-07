@@ -11,7 +11,7 @@ classdef GluTFigures
  	 
 
 	properties
-        glut_xlsx = '/Users/jjlee/Documents/WUSTL/Arbelaez/Glucose Threshold manuscript/loopKinetics4_Kinetics4McmcProblem_20150919T1936.xlsx'
+        glut_xlsx = '/Users/jjlee/Box Sync/Arbelaez/Glucose Threshold manuscript/loopKinetics4_Kinetics4McmcProblem_20150919T1936.xlsx'
         %'/Users/jjlee/Tmp/loopKinetics4_Kinetics4McmcProblem_20150919T1936.xlsx';
         glut_sheet = 'LoopKinetics4';
         dataRows = [2 37]
@@ -35,7 +35,7 @@ classdef GluTFigures
         
         nominalGlu      = [90 75 60 45]
         nominalRising   = [45 60 75 90]
-        nominalRisingSI = [2.5 3.3 4.1 5.0]
+        nominalRisingSI = [2.5 3.3 4.2 5.0]
         p
         scan
         nominal_glu
@@ -418,10 +418,10 @@ classdef GluTFigures
             [~, xLabel1, xLabel2, conversionFactor1] = this.xLabelLookup('nominal arterial plasma glucose');
             glu   = this.plasma_glu; 
 
-            sz1 = 220;
-            sz2 = 220;
-            mark1 = 's';
-            mark2 = 's';
+            sz1 = 200;
+            sz2 = 200;
+            mark1 = 'o';
+            mark2 = '+';
 
             % Create figure
             figure0 = figure;
@@ -433,10 +433,11 @@ classdef GluTFigures
             xlabel(axes2, xLabel2, 'FontSize', this.axesLabelFontSize);
             ylabel(axes2, yLabel2, 'FontSize', this.axesLabelFontSize);
 
-            xlim(axes2,this.axesLimX(glu*conversionFactor1)); 
+            xlim(axes2,[35 105]*conversionFactor1);
             ylim(axes2,this.axesLimY(y1 *conversionFactor2));
             set(axes2,'FontSize',this.axesFontSize,'XDir','reverse','XAxisLocation','top','YAxisLocation','right');
-
+            xticks(axes2, [2.2 2.8 3.3 3.9 4.4 5.0 5.5]);
+            
             % Create axes1
             axes1 = axes('Parent',figure0);
             hold(axes1,'on');
@@ -444,14 +445,16 @@ classdef GluTFigures
             xlabel(axes1, xLabel1, 'FontSize', this.axesLabelFontSize);
             ylabel(axes1, yLabel1, 'FontSize', this.axesLabelFontSize);
 
-            xlim(axes1,this.axesLimX(glu));           
+            xlim(axes1,[35 105]);           
             ylim(axes1,this.axesLimY(y1));
             box(axes1,'on');
             set(axes1,'FontSize',this.axesFontSize,'XDir','reverse','XAxisLocation','bottom','YAxisLocation','left');          
+            %xticks(axes2, 40:10:100);
             
             % Create scatter
-            scatter(glu,y1,sz1,mark1,'MarkerEdgeColor',this.markerEdgeColor,'MarkerFaceColor',[1 1 1],'LineWidth',this.markerLineWidth);
-            scatter(glu,y2,sz2,mark2,'MarkerEdgeColor',this.markerEdgeColor,'MarkerFaceColor',[.818 .818 .818],'LineWidth',this.markerLineWidth);
+            scatter(glu,y1,sz1,mark1,'MarkerEdgeColor',[0.5 0.5 0.5],'MarkerFaceColor',[1 1 1],'LineWidth',this.markerLineWidth);
+            scatter(glu,y2,sz2,mark2,'MarkerEdgeColor',[0 0 0],'MarkerFaceColor',[0 0 0],'LineWidth',this.markerLineWidth);
+            legend( 'CTX_{glu}', 'CMR_{glu}', 'Location', 'NorthEast', 'Box', 'on' );  
         end
         function figure0 = createBarErr(this, yLabel, varargin)
             %% CREATEBARERR
@@ -496,7 +499,7 @@ classdef GluTFigures
             xlim(axes2,this.axesLimXBar(x*conversionFactor1)); 
             ylim(axes2,this.axesLimYBar(y*conversionFactor2, ip.Results.yInf*conversionFactor2, ip.Results.ySup*conversionFactor2));
             
-            set(axes2,'FontSize',this.axesFontSize,'XDir','reverse','XTick',this.nominalRisingSI,'XAxisLocation','top','YAxisLocation','right','TickDir','out');
+            set(axes2,'FontSize',this.axesFontSize,'XDir','reverse','XTick',this.nominalRisingSI,'XAxisLocation','top','YAxisLocation','right','TickDir','out');          
             axes2Position = axes2.Position;
             set(axes2,'Position',[axes2Position(1) axes2Position(2) 1.002*axes2Position(3) 1.001*axes2Position(4)]);
 
@@ -778,7 +781,7 @@ classdef GluTFigures
             x       = this.plasma_glu;  
             xLabel1 = [xLabel ' (mg/dL)'];
             xLabel2 =          '(mmol/L)';
-            conversionFactor1 = 0.0551;
+            conversionFactor1 = 0.05551;
         end
         function [y,yLabel1,yLabel2,conversionFactor2] = yLabelLookup(this, yLabel)
             conversionFactor2 = 1;
@@ -887,7 +890,7 @@ classdef GluTFigures
                     y = this.plasma_glu;
                     yLabel1 = [yLabel ' (mg/dL)'];
                     yLabel2 =          '(mmol/L)';
-                    conversionFactor2 = 0.0551;
+                    conversionFactor2 = 0.05551;
                 case 'Total symptom score'
                     y = this.NGSx + this.NGPSx;
                     yLabel1 = yLabel;

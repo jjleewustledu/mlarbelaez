@@ -379,7 +379,7 @@ classdef GluTRegionGroupedFigures
             x       = this.nominal_glu;  
             xLabel1 = [xLabel ' (mg/dL)'];
             xLabel2 =          '(mmol/L)';
-            conversionFactor1 = 0.0551;
+            conversionFactor1 = 0.05551;
         end
         function [y,yLabel1,yLabel2,conversionFactor2] = yLabelLookup(this, yLabel)
             conversionFactor2 = 1;
@@ -468,7 +468,7 @@ classdef GluTRegionGroupedFigures
                     y = this.plasma_glu;
                     yLabel1 = [yLabel ' (mg/dL)'];
                     yLabel2 =          '(mmol/L)';
-                    conversionFactor2 = 0.0551;
+                    conversionFactor2 = 0.05551;
                 case 'total Sx'
                     y = this.NGSx + this.NGPSx;
                     yLabel1 = yLabel;
