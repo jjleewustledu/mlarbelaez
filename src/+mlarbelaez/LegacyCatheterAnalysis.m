@@ -132,7 +132,7 @@ classdef LegacyCatheterAnalysis < mlarbelaez.AbstractCatheterAnalysis
             time      = 0:99;
             tau       = 10;
             response0 = exp(-time/tau);
-            [time,response0] = mlsystem.VectorTools.shiftVector(time, response0, 10);
+            [time,response0] = shiftVector(time, response0, 10);
             f         = exp(-time.^2/(2*tau^2)); 
             fR        = conv(f, response0); fR = fR(1:100);
             response  = this.responseByFFT(fR, f);
