@@ -20,7 +20,6 @@ classdef SessionData < mlpipeline.SessionData
     methods %% GET
         function g = get.petBlur(~)
             g = mlpet.PETRegistry.instance.petPointSpread;
-            g = mean(g);
         end
     end
 
@@ -108,7 +107,7 @@ classdef SessionData < mlpipeline.SessionData
         end
     end 
     
-    methods (Access = protected)        
+    methods (Access = protected)
         function obj = petObject(this, varargin)
             ip = inputParser;
             addRequired(ip, 'tracer', @ischar);
