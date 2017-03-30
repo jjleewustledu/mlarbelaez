@@ -7,8 +7,8 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
  	%  by $Author$,  
  	%  last modified $LastChangedDate$ 
  	%  and checked into repository $URL$,  
- 	%  developed on Matlab 8.3.0.532 (R2014a) 
- 	%  $Id$ 
+ 	%  developed on Matlab 8.3.0.532 (R2014a).  Copyright 2014 John Joowon Lee. 
+ 	%% $Id$ 
     
     properties
         k04 = nan
