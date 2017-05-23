@@ -11,7 +11,7 @@ classdef GluTFigures
  	 
 
 	properties
-        glut_xlsx = '/Users/jjlee/Box Sync/Arbelaez/Glucose Threshold manuscript/loopKinetics4_Kinetics4McmcProblem_20150919T1936.xlsx'
+        glut_xlsx = '/Users/jjlee/Box Sync/Arbelaez/Diabetes presubmission/loopKinetics4_Kinetics4McmcProblem_20150919T1936.xlsx'
         %'/Users/jjlee/Tmp/loopKinetics4_Kinetics4McmcProblem_20150919T1936.xlsx';
         glut_sheet = 'LoopKinetics4';
         dataRows = [2 37]
@@ -41,7 +41,7 @@ classdef GluTFigures
         nominal_glu
         plasma_glu
         CBV
-        CMRglu
+        CMRglc
         CTX
         free_glu
         MTT
@@ -88,7 +88,7 @@ classdef GluTFigures
         function figure0 = createScatterStairs(this, yLabel)
             %% CREATESCATTERSTAIRS
             %  e.g., glutf = GluTFigures;
-            %        f = glutf.createScatterStairs('CMR_{glu}/CBV')
+            %        f = glutf.createScatterStairs('CMR_{glc}/CBV')
 
             %y = 1e3*y/55.507; % converts frac{\mumol}{100 g min} \frac{dL}{mg} to mL/100g/min
             %y = 100*y; % converts \frac{\mumol}{g} \frac{100 g}{mL} to \frac{\mumol}{mL}
@@ -180,7 +180,7 @@ classdef GluTFigures
         function figure0 = createScatterStairs2(this, yLabel)
             %% CREATESCATTERSTAIRS2
             %  e.g., glutf = GluTFigures;
-            %        f = glutf.createScatterStairs2('CMR_{glu}/arterial plasma glucose')
+            %        f = glutf.createScatterStairs2('CMR_{glc}/arterial plasma glucose')
 
             %y = 1e3*y/55.507; % converts frac{\mumol}{100 g min} \frac{dL}{mg} to mL/100g/min
             %y = 100*y; % converts \frac{\mumol}{g} \frac{100 g}{mL} to \frac{\mumol}{mL}
@@ -281,9 +281,9 @@ classdef GluTFigures
 
             % Initialize data            
             y_ctx      = this.CTX;
-            y_cmr      = this.CMRglu;
-            yLabel2 = 'CTX_{glu} (\mumol/100 g/min)';
-            yLabel1 = 'CMR_{glu} (\mumol/100 g/min)';
+            y_cmr      = this.CMRglc;
+            yLabel2 = 'CTX_{glc} (\mumol/100 g/min)';
+            yLabel1 = 'CMR_{glc} (\mumol/100 g/min)';
             conversionFactor2 = 1;         
             [~, xLabel1, xLabel2, conversionFactor1] = this.xLabelLookup('nominal arterial plasma glucose');
             glu   = this.plasma_glu; 
@@ -304,7 +304,7 @@ classdef GluTFigures
             [fitresult{1}, gof(1)] = fit( xDataCmr, yDataCmr, ft );
 
             % Plot fit with data.
-            figure0 = figure( 'Name', 'CTX_{glu} and CMR_{glu}' ); 
+            figure0 = figure( 'Name', 'CTX_{glc} and CMR_{glc}' ); 
 
             % Create axes2, in back
             axes2 = axes('Parent',figure0);
@@ -338,7 +338,7 @@ classdef GluTFigures
             
             % Annotate     
             hold('all');
-            legend( 'CTX_{glu}', 'y = 0.48 x + 2.8', 'CMR_{glu}', 'y = 0.093 x + 15', 'Location', 'NorthEast', 'Box', 'off' );       
+            legend( 'CTX_{glc}', 'y = 0.48 x + 2.8', 'CMR_{glc}', 'y = 0.093 x + 15', 'Location', 'NorthEast', 'Box', 'off' );       
             xlabel(axes2, xLabel2, 'FontSize', this.axesLabelFontSize);            
             xlabel(axes1, xLabel1, 'FontSize', this.axesLabelFontSize);
             ylabel(axes2, yLabel1, 'FontSize', this.axesLabelFontSize);
@@ -411,9 +411,9 @@ classdef GluTFigures
             %y = 100*y; % converts \frac{\mumol}{g} \frac{100 g}{mL} to \frac{\mumol}{mL}
             
             y1      = this.CTX;
-            y2      = this.CMRglu;
-            yLabel1 = 'CTX_{glu} (\mumol/100 g/min)';
-            yLabel2 = 'CMR_{glu} (\mumol/100 g/min)';
+            y2      = this.CMRglc;
+            yLabel1 = 'CTX_{glc} (\mumol/100 g/min)';
+            yLabel2 = 'CMR_{glc} (\mumol/100 g/min)';
             conversionFactor2 = 1;         
             [~, xLabel1, xLabel2, conversionFactor1] = this.xLabelLookup('nominal arterial plasma glucose');
             glu   = this.plasma_glu; 
@@ -454,12 +454,12 @@ classdef GluTFigures
             % Create scatter
             scatter(glu,y1,sz1,mark1,'MarkerEdgeColor',[0.5 0.5 0.5],'MarkerFaceColor',[1 1 1],'LineWidth',this.markerLineWidth);
             scatter(glu,y2,sz2,mark2,'MarkerEdgeColor',[0 0 0],'MarkerFaceColor',[0 0 0],'LineWidth',this.markerLineWidth);
-            legend( 'CTX_{glu}', 'CMR_{glu}', 'Location', 'NorthEast', 'Box', 'on' );  
+            legend( 'CTX_{glc}', 'CMR_{glc}', 'Location', 'NorthEast', 'Box', 'on' );  
         end
         function figure0 = createBarErr(this, yLabel, varargin)
             %% CREATEBARERR
             %  e.g., glutf = GluTFigures;
-            %        f = glutf.createBarErr('CMR_{glu}/CBV')
+            %        f = glutf.createBarErr('CMR_{glc}/CBV')
 
             %y = 1e3*y/55.507; % converts frac{\mumol}{100 g min} \frac{dL}{mg} to mL/100g/min
             %y = 100*y; % converts \frac{\mumol}{g} \frac{100 g}{mL} to \frac{\mumol}{mL}
@@ -646,7 +646,7 @@ classdef GluTFigures
                         'k43',         kin4_{idx,13}, ...
                         't0',          kin4_{idx,14}, ...
                         'UtilFrac',    kin4_{idx,15}, ...
-                        'CMRglu',      kin4_{idx,16}, ...
+                        'CMRglc',      kin4_{idx,16}, ...
                         'chi',         kin4_{idx,17}, ...
                         'Kd',          kin4_{idx,18}, ...
                         'CTX',         kin4_{idx,19}, ...
@@ -669,7 +669,7 @@ classdef GluTFigures
             this.k43         = this.vectorize(kin4_,13);
             this.t0          = this.vectorize(kin4_,14);
             this.UtilFrac    = this.vectorize(kin4_,15);
-            this.CMRglu      = this.vectorize(kin4_,16);
+            this.CMRglc      = this.vectorize(kin4_,16);
             this.chi         = this.vectorize(kin4_,17);
             this.Kd          = this.vectorize(kin4_,18);
             this.CTX         = this.vectorize(kin4_,19);
@@ -787,38 +787,38 @@ classdef GluTFigures
             conversionFactor2 = 1;
             yLabel2 = '';
             switch (yLabel)
-                case 'CTX_{glu} - \langle CMR_{glu}(>45 mg/dL) \rangle'
-                    y = this.CTX - mean(this.CMRglu(1:28));
+                case 'CTX_{glc} - \langle CMR_{glc}(>45 mg/dL) \rangle'
+                    y = this.CTX - mean(this.CMRglc(1:28));
                     yLabel1 = [yLabel ''];
-                case 'CTX_{glu} - CMR_{glu}(92 mg/dL)'
+                case 'CTX_{glc} - CMR_{glc}(92 mg/dL)'
                     y = this.CTX - 23.6;
                     yLabel1 = [yLabel ''];
-                case 'CTX_{glu}/CMR_{glu}'
-                    y = this.CTX ./ this.CMRglu;
+                case 'CTX_{glc}/CMR_{glc}'
+                    y = this.CTX ./ this.CMRglc;
                     yLabel1 = [yLabel ''];
-                case 'CMR_{glu}/CTX_{glu}'
-                    y = this.CMRglu ./ this.CTX;
+                case 'CMR_{glc}/CTX_{glc}'
+                    y = this.CMRglc ./ this.CTX;
                     yLabel1 = [yLabel ''];
-                case '(CTX_{glu} - CMR_{glu})/CBV'
-                    y = (this.CTX - this.CMRglu) ./ this.CBV;
+                case '(CTX_{glc} - CMR_{glc})/CBV'
+                    y = (this.CTX - this.CMRglc) ./ this.CBV;
                     yLabel1 = [yLabel ' (\mumol/mL/min)'];
-                case 'CTX_{glu} - CMR_{glu}'
-                    y = this.CTX - this.CMRglu;
+                case 'CTX_{glc} - CMR_{glc}'
+                    y = this.CTX - this.CMRglc;
                     yLabel1 = [yLabel ' (\mumol/100 g/min)'];
-                case 'CMR_{glu}'
-                    y = this.CMRglu;
+                case 'CMR_{glc}'
+                    y = this.CMRglc;
                     yLabel1 = [yLabel ' (\mumol/100 g/min)'];
-                case 'CTX_{glu}'
+                case 'CTX_{glc}'
                     y = this.CTX;
                     yLabel1 = [yLabel ' (\mumol/100 g/min)'];
                 case 'Brain free glucose'
                     y = this.free_glu;                   
                     yLabel1 = [yLabel ' (\mumol/g)'];
-                case 'CTX_{glu}/CBV'
+                case 'CTX_{glc}/CBV'
                     y = this.CTX ./ this.CBV;
                     yLabel1 = [yLabel ' (\mumol/mL/min)'];
-                case 'CMR_{glu}/CBV'
-                    y = this.CMRglu ./ this.CBV;               
+                case 'CMR_{glc}/CBV'
+                    y = this.CMRglc ./ this.CBV;               
                     yLabel1 = [yLabel ' (\mumol/mL/min)'];
                 case 'Brain free glucose/CBV'   
                     y = this.free_glu ./ this.CBV;
