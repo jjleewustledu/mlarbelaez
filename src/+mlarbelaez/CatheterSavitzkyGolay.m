@@ -29,7 +29,7 @@ classdef CatheterSavitzkyGolay
         dccrv
         times
         kernelBest
-        kernelBestintervalKernel = 1:102 
+        kernelBestintervalKernel = 1:120 %102 
     end 
     
     properties (Dependent)
@@ -224,7 +224,7 @@ classdef CatheterSavitzkyGolay
     %% PRIVATE
     
     properties (Access = 'private')        
-        degree_ = 9
+        degree_ = 4 % 9
         span_ = 33
     end
     
