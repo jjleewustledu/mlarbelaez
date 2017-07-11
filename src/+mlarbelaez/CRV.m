@@ -8,7 +8,7 @@ classdef CRV < mlpet.CRV
 
     
     properties (Constant)
-        EMBEDDING_INDICES = 13:46
+        EMBEDDING_INDICES = 1:128
     end
     
     properties (Dependent)
@@ -16,22 +16,30 @@ classdef CRV < mlpet.CRV
     end
     
 	properties
-        bump = 0.1
+        bump = 0.05
         kernelBestFqfn
  		kernelBest
         tHalf = 122.24 % sec, for [15O]
  	end
 
     methods (Static)
+        function k = addTail(k)
+            [AMax,idxMax] = max(k);
+            t = idxMax:length(k);
+            tail = zeros(size(k));
+            tail(idxMax:end) = 1e-3*AMax*(1 - exp(-t/idxMax));
+            k = k + tail;
+        end
         function k = fittedKernel(t)
-            a1 = 7.163;
-            b1 = 0.6001;
-            t01 = 0; %8.834;
-            a2 = 8.424;
-            b2 = 0.9980;
-            t02 = 14.41; %22.83;
-            weight1 = 0.8717;
+            a1 = 3.31;
+            b1 = 0.149;
+            t01 = 7.43;
+            a2 = 20.2;
+            b2 = 0.700;
+            t02 = 0.130;
+            weight1 = 0.521;
             k = mlbayesian.GeneralizedGammaTerms.gammaSeries(a1, b1, t01, a2, b2, t02, weight1, t);
+            k = mlarbelaez.CRV.addTail(k);
             k = k/sum(k);
         end
         function this = load(fileLoc)
@@ -52,7 +60,7 @@ classdef CRV < mlpet.CRV
             c = this.counts .* 2.^((this.times - this.times(1))/this.tHalf);
         end        
         function c = decayCorrectedCountInterpolants(this)
-            c = this.countInterpolants .* exp((this.timeInterpolants - this.timeInterpolants(1))/this.tHalf);
+            c = this.countInterpolants .* 2.^((this.timeInterpolants - this.timeInterpolants(1))/this.tHalf);
         end
         function dcv = deconvMeasuredKernel(this)
                         
@@ -63,12 +71,14 @@ classdef CRV < mlpet.CRV
             domega = 2*pi/(timeInterp2(end) - this.times(1));
             freqInterp2 = domega0:domega:(domega0+(Ninterp-1)*domega);
             
-            kernelEmbedded = zeros(1,len);
-            kernelEmbedded(this.EMBEDDING_INDICES) = this.kernelBest(this.EMBEDDING_INDICES);  
-            kernelEmbedded = mlbayesian.AbstractMcmcStrategy.slide( ...
-                kernelEmbedded, this.times, -this.times(this.EMBEDDING_INDICES(1)));
-            
-            kernelPchip = pchip(this.times, kernelEmbedded, this.timeInterpolants);
+            lenKern = length(this.kernelBest);
+            if (lenKern > len)
+                kernelBest_ = this.kernelBest(1:len);
+            else
+                kernelBest_(1:lenKern) = this.kernelBest;
+            end
+            kernelBest_ = this.addTail(kernelBest_);
+            kernelPchip = pchip(this.times, kernelBest_, this.timeInterpolants);
             kernelPchip = [kernelPchip kernelPchip(end)*ones(size(kernelPchip))]; % 2x length
             kernelPchip = kernelPchip/sum(kernelPchip);
             fftKernelPchip = fft(kernelPchip);
@@ -77,7 +87,6 @@ classdef CRV < mlpet.CRV
                 pchip(this.times, this.decayCorrectedCounts, this.timeInterpolants));
             fftResponsePchip = fft(smooth(responsePchip, 2*this.Nt)'); 
             dcv = abs(ifft(fftResponsePchip./fftKernelPchip));
-            dcv = mlbayesian.AbstractMcmcStrategy.slide(dcv, timeInterp2, -timeInterp2(this.EMBEDDING_INDICES(13)));
             
             figure; plot(timeInterp2, responsePchip, timeInterp2, kernelPchip);
             xlabel('t');
@@ -102,7 +111,6 @@ classdef CRV < mlpet.CRV
             fftResponsePchip = fft(smooth(responsePchip, 2*this.Nt)'); 
             dcv = abs(ifft(fftResponsePchip./fftKernelPchip));
             dcv = smooth(dcv, varargin{:});
-            dcv = mlbayesian.AbstractMcmcStrategy.slide(dcv, timeInterp2, -8.834);
             
             figure;
             plot(timeInterp2, responsePchip, timeInterp2, dcv);

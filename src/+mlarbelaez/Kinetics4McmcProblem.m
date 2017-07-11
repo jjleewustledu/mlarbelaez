@@ -33,6 +33,7 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
         detailedTitle
         gluTxlsxFilename
         gluTxlsxInfo
+        k12
         map
         VB
         FB
@@ -62,7 +63,10 @@ classdef Kinetics4McmcProblem < mlbayesian.AbstractMcmcProblem
                 otherwise
                     error('mlarbelaez:failedSwitch', 'Kinetics4McmcProblem.get.gluTxlsxInfo');
             end
-        end        
+        end    
+        function k   = get.k12(this)
+            k = this.k12frac*this.k21;
+        end
         function m   = get.map(this)
             m = containers.Map;
             fL = 1; fH = 1;
