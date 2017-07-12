@@ -50,13 +50,14 @@ classdef GluTxlsx < mlarbelaez.IGluTxlsx
 	methods 		
  		function this = GluTxlsx(varargin)            
             ip = inputParser;
-            addParameter(ip, 'Mode',     'WholeBrain',         @ischar);
+            addParameter(ip, 'Mode',     '',                   @ischar);
             addParameter(ip, 'Filename', this.defaultFilename, @(x) lexist(x, 'file'));
             parse(ip, varargin{:});
             
             this.xlsx_filename = ip.Results.Filename;
             this.mode = ip.Results.Mode;
             switch (this.mode)
+                case ''
                 case 'WholeBrain'
                     this = this.loadWholeBrain;
                 case 'AlexsRois'
