@@ -45,6 +45,51 @@ classdef C11GlucoseKinetics < mlkinetics.AbstractC11GlucoseKinetics
             t2 = toc(t0);
             studyDat.diaryOff;
         end
+        function [dt, ks,kmps] = regionalKinetics4(varargin)
+            
+            regions = {'amygdala' 'hippocampus' 'hypothalamus' 'large-hypothalamus' 'thalamus'};
+            
+            p = inputParser;
+            addOptional(p, 'figFolder', pwd, @isdir);
+            parse(p, varargin{:}); 
+            
+            import mlarbelaez.*;
+            pwd0 = pwd;            
+            subjectsPth = '/Volumes/InnominateHD2/Arbelaez/GluT';
+            
+            cd(subjectsPth);
+            dt = mlsystem.DirTool('p*_JJL');
+            assert(~isempty(dt.dns));
+            ks   = cell(length(dt.dns),2,length(regions));
+            kmps = cell(length(dt.dns),2,length(regions));
+            
+            cd(subjectsPth);
+            logFn = fullfile(subjectsPth, sprintf('Kinetics4McmcProblems.regionalKinetics4_%s.log', datestr(now, 30)));
+            diary(logFn);
+            for d = 11:11 % 1:length(dt.dns)
+                for s = 1:2
+                    for r = 1:length(regions)
+                        try
+                            pth = fullfile(subjectsPth, dt.dns{d}, '');
+                            cd(pth);
+                            fprintf('-------------------------------------------------------------------------------------------------------------------------------\n');
+                            fprintf('GlutWorker.regionalKinetics4:  working in %s, region %s\n', pth, regions{r});
+                            [ks{d,s,r},kmps{d,s,r}] = Kinetics4McmcProblem.runRegion( ...
+                                                      pth, s, sprintf('%s_on_gluc%i', regions{r}, s));
+                        catch ME
+                            handwarning(ME)
+                        end
+                    end
+                end                
+            end
+            cd(subjectsPth);
+            save(sprintf('Kinetics4McmcProblems.regionalKinetics4_%s.mat', datestr(now,30)));
+            cd(p.Results.figFolder);
+            save(sprintf('Kinetics4McmcProblems.regionalKinetics4_%s.mat', datestr(now,30)));
+            mlpet.AutoradiographyTester.saveFigs;
+            cd(pwd0);
+            diary off
+        end
  	end 
 
 	methods 

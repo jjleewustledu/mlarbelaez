@@ -12,11 +12,11 @@ classdef Kinetics4McmcProblem2 < mlbayesian.AbstractMcmcProblem
     
     properties
         k04 = nan
-        k12frac = 0.0842
-        k21 = 0.0579
-        k32 = 0.0469
-        k43 = 0.000309
-        t0  = 44.1
+        k12frac = 0.235563
+        k21 = 0.046545
+        k32 = 0.008314
+        k43 = 0.000263
+        t0  = -52.286431
         
         pnumber
         scanIndex
@@ -152,6 +152,38 @@ classdef Kinetics4McmcProblem2 < mlbayesian.AbstractMcmcProblem
             %kmp.plotProduct;
             k   = [kmp.finalParams('k04'), kmp.finalParams('k12frac'), kmp.finalParams('k21'), ...
                    kmp.finalParams('k32'), kmp.finalParams('k43'), kmp.finalParams('t0')]; 
+        end
+        function [k,kmp] = runPlot(pth, snum, varargin)
+
+            ip = inputParser;
+            addRequired(ip, 'pth', @isdir);
+            addRequired(ip, 'snum', @isnumeric);
+            addOptional(ip, 'region', '001-true-hypothalamus_on_p8047gluc1', @ischar);
+            parse(ip, pth, snum, varargin{:});
+            
+            import mlpet.* mlarbelaez.*;            
+            tscf = GluTFiles2('pnumPath', pth, 'scanIndex', snum, 'region', ip.Results.region);                        
+            dta_ = DTA.load(tscf.dtaFqfilename);
+            tsc_ = TSC.loadGluTFiles(tscf);
+            len  = min(length(dta_.timeInterpolants), length(tsc_.timeInterpolants));
+            kmp  = mlarbelaez.Kinetics4McmcProblem2( ...
+                tsc_.timeInterpolants(1:len), ...
+                tsc_.becquerelInterpolants(1:len), ...
+                dta_, ...
+                str2pnum(pth), snum, 'Region', ip.Results.region);
+            kmp.tsc_ = tsc_;
+            
+            fprintf('Kinetics4McmcProblem2.runRegions.pth  -> %s\n', pth);
+            fprintf('Kinetics4McmcProblem2.runRegions.snum -> %i\n', snum);
+            fprintf('Kinetics4McmcProblem2.runRegions.region -> %s\n', ip.Results.region);
+            disp(dta_)
+            disp(kmp.tsc_)
+            disp(kmp)
+            
+            %kmp = kmp.estimateParameters(kmp.map);
+            kmp.plotProduct;
+            %k   = [kmp.finalParams('k04'), kmp.finalParams('k12frac'), kmp.finalParams('k21'), ...
+            %       kmp.finalParams('k32'), kmp.finalParams('k43'), kmp.finalParams('t0')]; 
         end 
         function [k,kmp] = runRegion(pth, snum, varargin)
 
@@ -164,12 +196,12 @@ classdef Kinetics4McmcProblem2 < mlbayesian.AbstractMcmcProblem
             import mlpet.* mlarbelaez.*;            
             tscf = GluTFiles2('pnumPath', pth, 'scanIndex', snum, 'region', ip.Results.region);                        
             dta_ = DTA.load(tscf.dtaFqfilename);
-            tsc_ = TSC.loadGluTFiles(tscf);
+            this.tsc_ = TSC.loadGluTFiles(tscf);
             len  = min(length(dta_.timeInterpolants), length(tsc_.timeInterpolants));           
             %figure; plot(timeInterp, Ca_, timeInterp, Q_)
             kmp  = mlarbelaez.Kinetics4McmcProblem2( ...
-                tsc_.timeInterpolants(1:len), ...
-                tsc_.becquerelInterpolants(1:len), ...
+                this.tsc_.timeInterpolants(1:len), ...
+                this.tsc_.becquerelInterpolants(1:len), ...
                 dta_, ...
                 str2pnum(pth), snum, 'Region', ip.Results.region);
             
@@ -177,7 +209,7 @@ classdef Kinetics4McmcProblem2 < mlbayesian.AbstractMcmcProblem
             fprintf('Kinetics4McmcProblem2.runRegions.snum -> %i\n', snum);
             fprintf('Kinetics4McmcProblem2.runRegions.region -> %s\n', ip.Results.region);
             disp(dta_)
-            disp(tsc_)
+            disp(this.tsc_)
             disp(kmp)
             
             kmp = kmp.estimateParameters(kmp.map);
@@ -278,11 +310,10 @@ classdef Kinetics4McmcProblem2 < mlbayesian.AbstractMcmcProblem
                 max_aif  = max(this.dta.wellCounts);
 
                 hold on;
-                plot(this.times,     this.itsConcentrationQ / max_ecat);
-                plot(this.times,     this.dependentData     / max_ecat, 'Marker','s','LineStyle','none');
-                plot(this.dta.times, this.dta.wellCounts    / max_aif,  'Marker','o','LineStyle',':');
-                legend('concentration_{ecat}', 'data_{ecat}', ...
-                       'concentration_{art}'); 
+                plot(this.times,      this.itsConcentrationQ / max_ecat);
+                plot(this.tsc_.times, this.tsc_.becquerels   / max_ecat, 'Marker','s','LineStyle','none');
+                plot(this.dta.times,  this.dta.wellCounts    / max_aif,  'Marker','o','LineStyle',':');
+                legend('Bayes_{ecat}', 'data_{ecat}',  'data_{art}'); 
                 title(this.detailedTitle, 'Interpreter', 'none');
                 xlabel(this.xLabel);
                 ylabel(sprintf('arbitrary:  ECAT norm %g, AIF norm %g', max_ecat, max_aif));
@@ -322,6 +353,7 @@ classdef Kinetics4McmcProblem2 < mlbayesian.AbstractMcmcProblem
 
     properties (Access = 'private')
         gluTxlsx_
+        tsc_
     end
     
     methods (Access = 'private')
