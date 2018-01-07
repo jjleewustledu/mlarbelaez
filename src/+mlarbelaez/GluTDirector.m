@@ -11,7 +11,7 @@ classdef GluTDirector
     end
     
     methods (Static)
-        function prod = constructKinetics
+        function prod = instanceConstructKinetics
             gb = mlarbelaez.GluTBuilder;
             gb = gb.buildSessionData('sessionID', 'p8047_JJL', 'intervention', 1);
             gb = gb.buildClampingCondition;

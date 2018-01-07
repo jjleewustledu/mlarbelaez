@@ -1,4 +1,4 @@
-classdef GluTBuilder < mlpipeline.AbstractDataBuilder
+classdef GluTBuilder
     
 	%% GLUTBUILDER 
 
@@ -111,6 +111,7 @@ classdef GluTBuilder < mlpipeline.AbstractDataBuilder
     %% PRIVATE
     
     properties (Access = private)
+        product_
         registry_
         studyData_
         sessionData_

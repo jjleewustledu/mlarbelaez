@@ -41,7 +41,7 @@ classdef Test_RegionalMeasurements < matlab.unittest.TestCase
             this.verifyEqual(this.testObj.dta.counts(1:10), ...
                 [6 7 9 6 10 11 270 7738 24830 39461]);
             this.verifyEqual(this.testObj.dta.wellCounts, this.testObj.dta.counts);
-            this.verifyEqual(this.testObj.dta.becquerels, this.testObj.dta.counts);
+            this.verifyEqual(this.testObj.dta.activity, this.testObj.dta.counts);
         end
         function test_tsc(this)
             this.verifyEqual(this.testObj.tsc.times(1:10), ...
@@ -59,7 +59,7 @@ classdef Test_RegionalMeasurements < matlab.unittest.TestCase
                 97132.0090286335], 'RelTol', 1e-10);
             this.verifyEqual(this.testObj.tsc.wellCounts, ...
                 this.testObj.tsc.counts, 'RelTol', 1e-10);
-            this.verifyEqual(this.testObj.tsc.becquerels, ...
+            this.verifyEqual(this.testObj.tsc.activity, ...
                 this.testObj.tsc.wellCounts ./ this.testObj.tsc.taus, 'RelTol', 1e-10)
         end
         function test_vFrac(this)

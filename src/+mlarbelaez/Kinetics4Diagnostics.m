@@ -37,7 +37,7 @@ classdef Kinetics4Diagnostics
             pnum = str2pnum(pth);   
             tsc = mlpet.TSC.import( ...
                   fullfile(pth, 'jjl_proc', sprintf('%swb%i.tsc',  pnum, snum)));
-            mlarbelaez.Kinetics4Diagnostics.plot(tsc, tsc.becquerels, tsc.becquerelInterpolants, 'Bq');
+            mlarbelaez.Kinetics4Diagnostics.plot(tsc, tsc.activity, tsc.activityInterpolants, 'Bq');
         end 
         function plotSemilogx(petObj, c, ci, yl)
             f1 = figure;             

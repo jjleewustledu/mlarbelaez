@@ -125,7 +125,7 @@ classdef RegionalKinetics4 < mlbayesian.AbstractMcmcProblem
     
     methods
         function this = RegionalKinetics4(meas)
-            this = this@mlbayesian.AbstractMcmcProblem(meas.tsc.times, meas.tsc.becquerels);
+            this = this@mlbayesian.AbstractMcmcProblem(meas.tsc.times, meas.tsc.activity);
             
             ip = inputParser;
             addRequired(ip, 'measurements', @(x) isa(x, 'mlarbelaez.RegionalMeasurements'));

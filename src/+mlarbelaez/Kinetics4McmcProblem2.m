@@ -112,7 +112,7 @@ classdef Kinetics4McmcProblem2 < mlbayesian.AbstractMcmcProblem
             dta_ = DTA.load(dtaFqfn);
             tsc_ = TSC.import(tscFqfn);          
             %figure; plot(timeInterp, Ca_, timeInterp, Q_)            
-            kmp = mlarbelaez.Kinetics4McmcProblem2(tsc_.times, tsc_.becquerels, dta_, pnum, snum);
+            kmp = mlarbelaez.Kinetics4McmcProblem2(tsc_.times, tsc_.activity, dta_, pnum, snum);
             
             fprintf('Kinetics4McmcProblem2.run.pth -> %s\n', pth);
             fprintf('Kinetics4McmcProblem2.run.snum -> %i\n', snum);
@@ -140,8 +140,8 @@ classdef Kinetics4McmcProblem2 < mlbayesian.AbstractMcmcProblem
             else
                 tsc_ = TSC.import(tscFqfn, 2);
             end                
-            %figure; plot(dta_.timeInterpolants, dta_.wellCountInterpolants, tsc_.times, tsc_.becquerels);
-            kmp  = Kinetics4McmcProblem2(tsc_.times, tsc_.becquerels, dta_, mnum, 1, 'Region', region, 'GluTxlsx', GluTxlsxMacaque);
+            %figure; plot(dta_.timeInterpolants, dta_.wellCountInterpolants, tsc_.times, tsc_.activity);
+            kmp  = Kinetics4McmcProblem2(tsc_.times, tsc_.activity, dta_, mnum, 1, 'Region', region, 'GluTxlsx', GluTxlsxMacaque);
             
             fprintf('Kinetics4McmcProblem2.runMacaque.pth -> %s\n', pth);
             disp(dta_)
@@ -168,7 +168,7 @@ classdef Kinetics4McmcProblem2 < mlbayesian.AbstractMcmcProblem
             len  = min(length(dta_.timeInterpolants), length(tsc_.timeInterpolants));
             kmp  = mlarbelaez.Kinetics4McmcProblem2( ...
                 tsc_.timeInterpolants(1:len), ...
-                tsc_.becquerelInterpolants(1:len), ...
+                tsc_.activityInterpolants(1:len), ...
                 dta_, ...
                 str2pnum(pth), snum, 'Region', ip.Results.region);
             kmp.tsc_ = tsc_;
@@ -200,7 +200,7 @@ classdef Kinetics4McmcProblem2 < mlbayesian.AbstractMcmcProblem
             len  = min(length(dta_.timeInterpolants), length(tsc_.timeInterpolants));
             kmp  = mlarbelaez.Kinetics4McmcProblem2( ...
                 tsc_.timeInterpolants(1:len), ...
-                tsc_.becquerelInterpolants(1:len), ...
+                tsc_.activityInterpolants(1:len), ...
                 dta_, ...
                 str2pnum(pth), snum, 'Region', ip.Results.region);
             kmp.tsc_ = tsc_;
@@ -311,7 +311,7 @@ classdef Kinetics4McmcProblem2 < mlbayesian.AbstractMcmcProblem
 
                 hold on;
                 plot(this.times,      this.itsConcentrationQ / max_ecat);
-                plot(this.tsc_.times, this.tsc_.becquerels   / max_ecat, 'Marker','s','LineStyle','none');
+                plot(this.tsc_.times, this.tsc_.activity     / max_ecat, 'Marker','s','LineStyle','none');
                 plot(this.dta.times,  this.dta.wellCounts    / max_aif,  'Marker','o','LineStyle',':');
                 legend('Bayes_{ecat}', 'data_{ecat}',  'data_{art}'); 
                 title(this.detailedTitle, 'Interpreter', 'none');
