@@ -11,7 +11,7 @@ classdef GluTFigures
  	 
 
 	properties
-        glut_xlsx = '/Users/jjlee/Box Sync/Arbelaez/Diabetes presubmission/loopKinetics4_Kinetics4McmcProblem_20150919T1936.xlsx'
+        glut_xlsx = '/Users/jjlee/Desktop/Diabetes presubmission/loopKinetics4_Kinetics4McmcProblem_20150919T1936.xlsx'
         %'/Users/jjlee/Tmp/loopKinetics4_Kinetics4McmcProblem_20150919T1936.xlsx';
         glut_sheet = 'LoopKinetics4';
         dataRows = [2 37]
@@ -402,6 +402,64 @@ classdef GluTFigures
             % Create scatter
             figure0 = scatter(x,y,markSize,markShape,'MarkerEdgeColor',this.markerEdgeColor,'MarkerFaceColor',ip.Results.markerFaceColor,'LineWidth',this.markerLineWidth);
         end
+        function figure0 = createScatterEpiAndCMR(this)
+            %% CREATESCATTEREPIANDCMR
+            %  e.g., glutf = GluTFigures;
+            %        f = glutf.createScatterEpiAndCMR
+
+            %y = 1e3*y/55.507; % converts frac{\mumol}{100 g min} \frac{dL}{mg} to mL/100g/min
+            %y = 100*y; % converts \frac{\mumol}{g} \frac{100 g}{mL} to \frac{\mumol}{mL}
+            
+            y1      = this.Epi;
+            y2      = this.CMRglc;
+            yLabel1 = 'Epinephrine (pg/mL)';
+            yLabel2 = 'CMR_{glc} (\mumol/100 g/min)';       
+            [~, xLabel1, xLabel2, conversionFactor1] = this.xLabelLookup('arterial plasma glucose');
+            glu   = this.plasma_glu; 
+
+            sz1 = 200;
+            sz2 = 200;
+            mark1 = 's';
+            mark2 = '+';
+
+            % Create figure
+            figure0 = figure;
+
+            % Create axes2
+            axes2 = axes('Parent',figure0);
+            hold(axes2,'on');
+
+            xlabel(axes2, xLabel2, 'FontSize', this.axesLabelFontSize);
+            ylabel(axes2, yLabel2, 'FontSize', this.axesLabelFontSize);
+
+            xlim(axes2,[35 105]*conversionFactor1);
+            ylim(axes2,[0 30]);
+            set(axes2,'FontSize',this.axesFontSize,'XDir','reverse','XAxisLocation','top','YAxisLocation','right');
+            xticks(axes2, [2.2 2.8 3.3 3.9 4.4 5.0 5.5]);
+            
+            
+            % Create axes1
+            axes1 = axes('Parent',figure0);
+            hold(axes1,'on');
+
+            xlabel(axes1, xLabel1, 'FontSize', this.axesLabelFontSize);
+            ylabel(axes1, yLabel1, 'FontSize', this.axesLabelFontSize);
+
+            xlim(axes1,[35 105]);           
+            ylim(axes1,[0 1200]);
+            box(axes1,'on');
+            set(axes1,'FontSize',this.axesFontSize,'XDir','reverse','XAxisLocation','bottom','YAxisLocation','left');          
+            %xticks(axes2, 40:10:100);
+            
+            % Create scatter
+            scatter(glu,mapCMRtoEpi(y2),sz2,mark2,'MarkerEdgeColor',[0 0 0],'LineWidth',this.markerLineWidth);
+            scatter(glu,y1,sz1,mark1,'MarkerEdgeColor',[0.5 0.5 0.5],'LineWidth',this.markerLineWidth);
+            legend( 'CMR_{glc}', 'Epinephrine', 'Location', 'NorthEast', 'Box', 'on' );  
+            
+            function y = mapCMRtoEpi(y0)
+                y = 1200*y0/30;
+            end
+        end
         function figure0 = createScatterCTXandCMR(this)
             %% CREATESCATTERCTXANDCMR
             %  e.g., glutf = GluTFigures;
@@ -415,7 +473,7 @@ classdef GluTFigures
             yLabel1 = 'CTX_{glc} (\mumol/100 g/min)';
             yLabel2 = 'CMR_{glc} (\mumol/100 g/min)';
             conversionFactor2 = 1;         
-            [~, xLabel1, xLabel2, conversionFactor1] = this.xLabelLookup('nominal arterial plasma glucose');
+            [~, xLabel1, xLabel2, conversionFactor1] = this.xLabelLookup('arterial plasma glucose');
             glu   = this.plasma_glu; 
 
             sz1 = 200;
@@ -434,7 +492,7 @@ classdef GluTFigures
             ylabel(axes2, yLabel2, 'FontSize', this.axesLabelFontSize);
 
             xlim(axes2,[35 105]*conversionFactor1);
-            ylim(axes2,this.axesLimY(y1 *conversionFactor2));
+            ylim(axes2,[0 85]);
             set(axes2,'FontSize',this.axesFontSize,'XDir','reverse','XAxisLocation','top','YAxisLocation','right');
             xticks(axes2, [2.2 2.8 3.3 3.9 4.4 5.0 5.5]);
             
@@ -446,7 +504,7 @@ classdef GluTFigures
             ylabel(axes1, yLabel1, 'FontSize', this.axesLabelFontSize);
 
             xlim(axes1,[35 105]);           
-            ylim(axes1,this.axesLimY(y1));
+            ylim(axes1,[0 85]);
             box(axes1,'on');
             set(axes1,'FontSize',this.axesFontSize,'XDir','reverse','XAxisLocation','bottom','YAxisLocation','left');          
             %xticks(axes2, 40:10:100);

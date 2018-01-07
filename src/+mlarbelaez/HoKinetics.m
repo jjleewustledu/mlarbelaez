@@ -8,7 +8,7 @@ classdef HoKinetics < mlkinetics.AbstractHoKinetics
  	
 	properties
  		
- 	end
+    end
 
 	methods 
 		  

@@ -196,24 +196,24 @@ classdef Kinetics4McmcProblem2 < mlbayesian.AbstractMcmcProblem
             import mlpet.* mlarbelaez.*;            
             tscf = GluTFiles2('pnumPath', pth, 'scanIndex', snum, 'region', ip.Results.region);                        
             dta_ = DTA.load(tscf.dtaFqfilename);
-            this.tsc_ = TSC.loadGluTFiles(tscf);
-            len  = min(length(dta_.timeInterpolants), length(tsc_.timeInterpolants));           
-            %figure; plot(timeInterp, Ca_, timeInterp, Q_)
+            tsc_ = TSC.loadGluTFiles(tscf);
+            len  = min(length(dta_.timeInterpolants), length(tsc_.timeInterpolants));
             kmp  = mlarbelaez.Kinetics4McmcProblem2( ...
-                this.tsc_.timeInterpolants(1:len), ...
-                this.tsc_.becquerelInterpolants(1:len), ...
+                tsc_.timeInterpolants(1:len), ...
+                tsc_.becquerelInterpolants(1:len), ...
                 dta_, ...
                 str2pnum(pth), snum, 'Region', ip.Results.region);
+            kmp.tsc_ = tsc_;
             
             fprintf('Kinetics4McmcProblem2.runRegions.pth  -> %s\n', pth);
             fprintf('Kinetics4McmcProblem2.runRegions.snum -> %i\n', snum);
             fprintf('Kinetics4McmcProblem2.runRegions.region -> %s\n', ip.Results.region);
             disp(dta_)
-            disp(this.tsc_)
+            disp(kmp.tsc_)
             disp(kmp)
             
             kmp = kmp.estimateParameters(kmp.map);
-            %kmp.plotProduct;
+            kmp.plotProduct;
             k   = [kmp.finalParams('k04'), kmp.finalParams('k12frac'), kmp.finalParams('k21'), ...
                    kmp.finalParams('k32'), kmp.finalParams('k43'), kmp.finalParams('t0')]; 
         end 

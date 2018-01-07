@@ -38,6 +38,9 @@ classdef SessionData < mlpipeline.SessionData
 
  			this = this@mlpipeline.SessionData(varargin{:});
             this.ac_ = true;
+            assert(isnumeric(this.intervention_));
+            this.vnumber_ = this.intervention_;
+            this.snumber_ = this.intervention_;
         end
         
         %% IMRData
@@ -88,6 +91,9 @@ classdef SessionData < mlpipeline.SessionData
             loc = imagingType(ip.Results.typ, ...
                 fullfile(this.sessionLocation, 'PET', ''));
         end
+        function loc = roiLocation(this, varargin)
+            loc = this.scanLocation(varargin{:});
+        end
         function loc = scanLocation(this, varargin)
             ip = inputParser;
             addOptional(ip, 'typ', 'path');
@@ -107,6 +113,8 @@ classdef SessionData < mlpipeline.SessionData
         end
     end 
     
+    %% PROTECTED
+    
     methods (Access = protected)
         function obj = petObject(this, varargin)
             ip = inputParser;
@@ -119,7 +127,13 @@ classdef SessionData < mlpipeline.SessionData
                 fullfile(this.scanLocation, ...
                          sprintf('%s%s%i_frames', this.pnumber, ip.Results.tracer, this.snumber), ...
                          sprintf('%s%s%i%s%s', this.pnumber, ip.Results.tracer, this.snumber, ip.Results.suffix, this.filetypeExt)));
-        end    
+        end        
+    end
+    
+    %% HIDDEN
+    
+    properties (Hidden)
+        plasmaGlucose
     end
     
 	%  Created with Newcl by John J. Lee after newfcn by Frank Gonzalez-Morphy
