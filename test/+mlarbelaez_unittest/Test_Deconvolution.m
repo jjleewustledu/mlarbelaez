@@ -24,7 +24,7 @@ classdef Test_Deconvolution < matlab.unittest.TestCase
         kernel5
         kernel6
         
-        HOME = '/Users/jjlee/Local/src/mlcvl/mlarbelaez'
+        HOME = '/Users/jjlee/MATLAB-Drive/mlarbelaez'
  	end 
 
 	methods (Test)

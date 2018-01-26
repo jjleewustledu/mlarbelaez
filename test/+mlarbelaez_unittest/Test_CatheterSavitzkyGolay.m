@@ -15,7 +15,7 @@ classdef Test_CatheterSavitzkyGolay < matlab.unittest.TestCase
 
 	properties 
  		testObj 
-        workDir = '/Users/jjlee/Local/src/mlcvl/mlarbelaez/test/+mlarbelaez_unittest'
+        workDir = '/Users/jjlee/MATLAB-Drive/mlarbelaez/test/+mlarbelaez_unittest'
  	end 
 
 	methods (Test) 

@@ -258,7 +258,7 @@ classdef Betadcv3
             
             crvObj = mlpet.CRV.load(this.crvName);
             this.wellFactor = crvObj.wellFactor;
-            %load('/Users/jjlee/Local/src/mlcvl/mlarbelaez/src/+mlarbelaez/respMean240.mat');
+            %load('/Users/jjlee/MATLAB-Drive/mlarbelaez/src/+mlarbelaez/respMean240.mat');
             %this.respMean240_ = respMean240;
  		end 
     end 
@@ -305,7 +305,7 @@ classdef Betadcv3
                 fileprefix = 'AMAtest6'; % Hct = 38% 
             end
             pwd0 = pwd;
-            cd('/Users/jjlee/Local/src/mlcvl/mlarbelaez/src/+mlarbelaez');            
+            cd('/Users/jjlee/MATLAB-Drive/mlarbelaez/src/+mlarbelaez');            
             this = mlarbelaez.Betadcv2(fileprefix);                
             
             crv  = this.normalizeCurve(this.crv_);

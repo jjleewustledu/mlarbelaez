@@ -17,8 +17,7 @@ classdef ADA2018
         viewer      = 'fsleyes'
  	end
 
-	methods 
-        
+	methods         
         function ic = dCBF(this, id, v, gly)
             ic = mlfourd.ImagingContext( ...
                 [this.fqfileprefixAaron(id, v, gly, this.cbfKind('dCBF')) '.4dfp.ifh']);

@@ -18,7 +18,7 @@ classdef LegacyCatheterAnalysis < mlarbelaez.AbstractCatheterAnalysis
     end
     
     properties
-        pwdSrc = '/Users/jjlee/Local/src/mlcvl/mlarbelaez/src/+mlarbelaez'
+        pwdSrc = '/Users/jjlee/MATLAB-Drive/mlarbelaez/src/+mlarbelaez'
         pwdAmaTests = '/Volumes/PassportStudio2/Arbelaez/deconvolution/data 2014jul17'
         pwdLegacyPET = '/Volumes/PassportStudio2/cvl/np755/mm01-021_p7413_2009apr24/ECAT_EXACT/pet' %% mild disease
         modeledResponseMat = 'modeledResponse.mat';
