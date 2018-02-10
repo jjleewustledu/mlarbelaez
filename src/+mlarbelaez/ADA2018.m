@@ -15,7 +15,20 @@ classdef ADA2018
         muCbfs
         verboseView = false
         viewer      = 'fsleyes'
- 	end
+        locality    = 'Local'
+        viewAll     = false
+    end
+    
+    methods (Static)
+        function factory()
+            clear('ada');
+            ada = mlarbelaez.ADA2018;
+            ada.prepareRandomized1STT(ada.t1dmGly4Ids, 1, 4, 't1dm')
+            for g = 1:3; ada.prepareRandomized1STT(ada.t1dmIds,      1, g, 't1dm'); end
+            for g = 1:4; ada.prepareRandomized1STT(ada.controlsIds, 1, g, 'controls'); end
+            for g = 1:4; ada.prepareRandomized1STT(ada.controlsIds, 2, g, 'controls'); end
+        end
+    end
 
 	methods         
         function ic = dCBF(this, id, v, gly)
@@ -141,14 +154,22 @@ classdef ADA2018
                 this.inputData1STT(ids, v, gly, label), ...
                 outputRootname1STT));
             [atl,corrp] = this.flirt2atlas111(outputRootname1STT);
-            mlbash(sprintf('%s %s.nii.gz %s.nii.gz', this.viewer, atl, corrp));
+            if (this.viewAll)
+                mlbash(sprintf('%s %s.nii.gz %s.nii.gz', this.viewer, atl, corrp));
+            end
         end
-        function nn   = prepareBaseline(this)
+        function nn   = prepareBaseline(this, varargin)
+            ip = inputParser;
+            addParameter(ip, 'cohort', 'controls', @ischar);
+            addParameter(ip, 'visit', 1, @isnumeric);
+            addParameter(ip, 'glycemia', 1, @isnumeric);
+            parse(ip, varargin{:});
+            
             import mlfourd.*;
             nn = NumericalNIfTId.load( ...
-                [this.fqfileprefixGroupMean('controls', 1, 1, this.cbfKind('dCBF')) '.4dfp.ifh']);
+                [this.fqfileprefixGroupMean(ip.Results.cohort, ip.Results.visit, ip.Results.glycemia, this.cbfKind('dCBF')) '.4dfp.ifh']);
             nn.fqfileprefix = ...
-                this.fqfileprefixBaseline;
+                this.fqfileprefixBaseline('cohort', ip.Results.cohort, 'visit', ip.Results.visit);
             nn.view;
             nn.save;
         end
@@ -180,9 +201,15 @@ classdef ADA2018
             fp = fullfile( ...
                 sprintf('BOLD-%s_v%i_PC_asl_Gr%i_xr3d_1_atl_%s', id, v, gly, kind));
         end
-        function fp   = fileprefixBaseline(this)
+        function fp   = fileprefixBaseline(this, varargin)
+            ip = inputParser;
+            ip.KeepUnmatched = true;
+            addParameter(ip, 'cohort', 'controls', @ischar);
+            addParameter(ip, 'visit', 1, @isnumeric);
+            parse(ip, varargin{:});
+            
             fp = fullfile( ...
-                sprintf('BASELINE_%s', this.cbfKind('dCBF')));
+                sprintf('BASELINE_%s_%s_%i', this.cbfKind('dCBF'), ip.Results.cohort, ip.Results.visit));
         end
         function fp   = fileprefixGroupMean(~, label, v, gly, kind)
             assert(ischar(label));
@@ -219,10 +246,10 @@ classdef ADA2018
                 this.cbfPath(id, v), ...
                 this.fileprefixAaron(id, v, gly, kind));
         end
-        function fqfp = fqfileprefixBaseline(this)
+        function fqfp = fqfileprefixBaseline(this, varargin)
             fqfp = fullfile( ...
                 this.subjectsDir, ...
-                this.fileprefixBaseline);
+                this.fileprefixBaseline(varargin{:}));
         end
         function fqfp = fqfileprefixGroupMean(this, label, v, gly, kind)
             fqfp = fullfile( ...
@@ -394,7 +421,7 @@ classdef ADA2018
             end
             
             nn.filepath = this.groupPath(v, gly, label);
-            nn.fileprefix = sprintf('inputData1STT-%s_v%i_Gr%i_dCBFlt%g', label, v, gly, this.maxCbf);
+            nn.fileprefix = sprintf('inputData1STT%s-%s_v%i_Gr%i_dCBFlt%g', this.locality, label, v, gly, this.maxCbf);
             nn.filesuffix = '.nii.gz';
             nn.save;
             fqfn = nn.fqfilename;
@@ -407,7 +434,7 @@ classdef ADA2018
         function fqfp = outputRootname1STT(this, v, gly, label)
             fqfp = fullfile( ...
                 this.groupPath(v, gly, label), ...
-                sprintf('oneSampleTTest-%s_v%i_Gr%i_dCBFlt%g', label, v, gly, this.maxCbf));
+                sprintf('oneSampleTTest%s-%s_v%i_Gr%i_dCBFlt%g', this.locality, label, v, gly, this.maxCbf));
         end
         function designFqfn = designMat(this, ids, v, gly, label)
             Nsubj = length(ids);
