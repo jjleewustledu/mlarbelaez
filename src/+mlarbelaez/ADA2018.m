@@ -16,17 +16,28 @@ classdef ADA2018
         verboseView = false
         viewer      = 'fsleyes'
         locality    = 'Local'
-        viewAll     = false
+        viewRandomize = true
     end
     
     methods (Static)
-        function factory()
+        function makeAll()
+            clear('ada');
+            ada = mlarbelaez.ADA2018;
+            ada.prepareDeltaDeltas;
+            ada.prepareBaseline('cohort', 't1dm',     'visit', 1);
+            ada.prepareBaseline('cohort', 'controls', 'visit', 1);
+            ada.prepareBaseline('cohort', 'controls', 'visit', 2);
+            ada.makeRandomized1STT
+        end
+        function makeRandomized1STT()
             clear('ada');
             ada = mlarbelaez.ADA2018;
             ada.prepareRandomized1STT(ada.t1dmGly4Ids, 1, 4, 't1dm')
-            for g = 1:3; ada.prepareRandomized1STT(ada.t1dmIds,      1, g, 't1dm'); end
-            for g = 1:4; ada.prepareRandomized1STT(ada.controlsIds, 1, g, 'controls'); end
-            for g = 1:4; ada.prepareRandomized1STT(ada.controlsIds, 2, g, 'controls'); end
+            for g = 3:-1:1; ada.prepareRandomized1STT(ada.t1dmIds,     1, g, 't1dm'); end
+            for g = 4:-1:1; ada.prepareRandomized1STT(ada.controlsIds, 1, g, 'controls'); end
+            for g = 4:-1:1; ada.prepareRandomized1STT(ada.controlsIds, 2, g, 'controls'); end
+            
+            for g = 4:-1:1; ada.prepareRandomizedDVisit1STT(ada.controlsIds, g, 'controls'); end
         end
     end
 
@@ -37,11 +48,11 @@ classdef ADA2018
         end
         function ic = wCBFavg(this, id, v, gly)
             ic = mlfourd.ImagingContext( ...
-                [this.fqfileprefixAaron(id, v, gly, 'wCBFavg') '.4dfp.ifh']);
+                [this.fqfileprefixAaron(id, v, gly, 'wCBFavg_on_fn_711-2B_3mm') '.4dfp.ifh']);
         end
         function ic = dfnd(this, id, v, gly)
             ic = mlfourd.ImagingContext( ...
-                [this.fqfileprefixAaron(id, v, gly, 'dfnd') '.4dfp.ifh']);
+                [this.fqfileprefixAaron(id, v, gly, 'dfnd_on_fn_711-2B_3mm') '.4dfp.ifh']);
         end
         function ic = dfndm2(this, id, v, gly)
             ic = mlfourd.ImagingContext( ...
@@ -51,58 +62,6 @@ classdef ADA2018
             ic = mlfourd.ImagingContext( ...
                 fullfile(getenv('HOME'), 'Local', 'atlas', 'TRIO_Y_NDC_333_mskt.4dfp.ifh'));
         end
-        function [ic,nn] = prepareBrainMask(this, id, v, gly)
-            pwd0 = pushd(this.cbfPath(id, v));
-            
-            m = this.mskt;
-            d = this.dfnd(id, v, gly);
-            nn = d.numericalNiftid .* m.numericalNiftid;              
-            assert(~isempty(nn.img));
-            nn = nn.binarized;
-            nn.filepath = this.cbfPath(id, v);
-            nn.fileprefix = this.fileprefixAaron(id, v, gly, 'dfndm2');
-            nn.filesuffix = '.4dfp.ifh';
-            ic = mlfourd.ImagingContext(nn);
-            
-            popd(pwd0);
-        end
-        function [ic,nn,bmsknn,this] = prepareCBF(this, id, v, gly, varargin)
-            ip = inputParser;
-            addParameter(ip, 'kind', 'wCBF', @ischar);
-            parse(ip, varargin{:});
-            pwd0 = pushd(this.cbfPath(id, v));
-            
-            fprintf('prepareCBF.id->%s, kind->%s\n', id, ip.Results.kind);
-            bmsk = this.prepareBrainMask(id, v, gly);
-            bmsknn = bmsk.numericalNiftid;
-            nn   = this.wCBFavg(id, v, gly);
-            nn = nn.numericalNiftid .* bmsknn;
-            nn.img = nn.img .* (nn.img > 0) .* (abs(nn.img) < this.maxCbf);
-            assert(~isempty(nn.img));
-            nn.fileprefix = this.fileprefixAaron(id, v, gly, this.cbfKind(ip.Results.kind));
-            nn.filesuffix = '.4dfp.ifh';
-            ic = mlfourd.ImagingContext(nn);
-            
-            popd(pwd0);
-        end
-        function this = prepareControls(this, varargin)
-            %% PREPARECONTROLS
-            %  @param named 'doDiff' is logical and creates analyses subtracting out mean CBF
-            
-            for v = 1:2
-                for gly = 1:4
-                    this = this.prepareGroup(this.controlsIds, v, gly, 'controls', varargin{:});
-                end
-            end
-        end
-        function this = prepareT1DM(this, varargin)
-            %% PREPARET1DM
-            %  @param named 'doDiff' is logical and creates analyses subtracting out mean CBF
-            
-            for gly = 1:4
-                this = this.prepareGroup(this.t1dmIds, 1, gly, 't1dm', varargin{:});
-            end
-        end
         function this = prepareDeltaDeltas(this)
             this = this.prepareT1DM('doDiff', true);
             this.prepareDeltaDelta('t1dm', 1);
@@ -111,21 +70,18 @@ classdef ADA2018
             this.prepareDeltaDelta('controls', 1);
             this.prepareDeltaDelta('controls', 2);
         end
-        function nn   = prepareDeltaDelta(this, label, v)
-            assert(ischar(label));
+        function nn   = prepareBaseline(this, varargin)
+            ip = inputParser;
+            addParameter(ip, 'cohort', 'controls', @ischar);
+            addParameter(ip, 'visit', 1, @isnumeric);
+            addParameter(ip, 'glycemia', 1, @isnumeric);
+            parse(ip, varargin{:});
             
             import mlfourd.*;
             nn = NumericalNIfTId.load( ...
-                [this.fqfileprefixGroupMean(label, v, 1, this.cbfKind('dCBF')) '.4dfp.ifh']);
-            nn.fileprefix = ...
-                this.fileprefixGroupMean(label, v, 1:4, this.cbfKind('ddCBF'));
-            img__ = nn.img;
-            for gly = 2:4
-                nn__ = NumericalNIfTId.load( ...
-                    [this.fqfileprefixGroupMean(label, v, gly, this.cbfKind('dCBF')) '.4dfp.ifh']);
-                img__(:,:,:,gly) = nn__.img - img__(:,:,:,1);
-            end
-            nn.img = img__;
+                [this.fqfileprefixGroupMean(ip.Results.cohort, ip.Results.visit, ip.Results.glycemia, this.cbfKind('dCBF')) '.4dfp.ifh']);
+            nn.fqfileprefix = ...
+                this.fqfileprefixBaseline('cohort', ip.Results.cohort, 'visit', ip.Results.visit);
             nn.view;
             nn.save;
         end
@@ -154,24 +110,26 @@ classdef ADA2018
                 this.inputData1STT(ids, v, gly, label), ...
                 outputRootname1STT));
             [atl,corrp] = this.flirt2atlas111(outputRootname1STT);
-            if (this.viewAll)
+            if (this.viewRandomize)
                 mlbash(sprintf('%s %s.nii.gz %s.nii.gz', this.viewer, atl, corrp));
             end
         end
-        function nn   = prepareBaseline(this, varargin)
-            ip = inputParser;
-            addParameter(ip, 'cohort', 'controls', @ischar);
-            addParameter(ip, 'visit', 1, @isnumeric);
-            addParameter(ip, 'glycemia', 1, @isnumeric);
-            parse(ip, varargin{:});
+        function this = prepareRandomizedDVisit1STT(this, ids, gly, label)
+            %% PREPARERANDOMIZEDDVISIT1STT (1-Sample T-Test)
+            %  See also:  https://fsl.fmrib.ox.ac.uk/fsl/fslwiki/Randomise/UserGuide#One-Sample_T-test
+            %  @param ids   is a cell-array of char identifiers such as this.controlsIds.
+            %  @param gly   is the numeric glycemia identifier
+            %  @param label is char, e.g., 'controls' or 't1dm'.
             
-            import mlfourd.*;
-            nn = NumericalNIfTId.load( ...
-                [this.fqfileprefixGroupMean(ip.Results.cohort, ip.Results.visit, ip.Results.glycemia, this.cbfKind('dCBF')) '.4dfp.ifh']);
-            nn.fqfileprefix = ...
-                this.fqfileprefixBaseline('cohort', ip.Results.cohort, 'visit', ip.Results.visit);
-            nn.view;
-            nn.save;
+            outputRootnameDVisit1STT = this.outputRootnameDVisit1STT(gly, label);
+            mlbash(sprintf( ...
+                'randomise -i %s -o %s -1 -v 5 -T', ...
+                this.inputDataDVisit1STT(ids, gly, label), ...
+                outputRootnameDVisit1STT));
+            [atl,corrp] = this.flirt2atlas111(outputRootnameDVisit1STT);
+            if (this.viewRandomize)
+                mlbash(sprintf('%s %s.nii.gz %s.nii.gz', this.viewer, atl, corrp));
+            end
         end
 		  
  		function this = ADA2018(varargin)
@@ -222,25 +180,6 @@ classdef ADA2018
             end            
             fp = sprintf('BOLD-%s_v%i_Gr%ito%i_%s', label, v, gly(1), gly(end), kind);
         end
-        function [ic,groupNN] = finalizeGroupImage(this, groupNN, label, v, gly, varargin)
-            ip = inputParser;
-            addParameter(ip, 'kind', 'wCBF', @ischar);
-            parse(ip, varargin{:});
-            
-            pwd1 = this.groupPath(v, gly, label);            
-            groupNN.filepath = pwd1;
-            groupNN.fileprefix = this.fileprefixGroupMean(label, v, gly, this.cbfKind(ip.Results.kind));
-            groupNN.filesuffix = '.4dfp.ifh';
-            if (this.verboseView)
-                groupNN.view;
-            end
-            this.hist(groupNN, ip.Results.kind, 100);
-            groupNN.save;
-            ic = mlfourd.ImagingContext(groupNN);
-            fldr = fullfile(pwd1, sprintf('saveFigures_%s', this.cbfKind(ip.Results.kind)), '');
-            ensuredir(fldr);
-            saveFigures(fldr);
-        end
         function fqfp = fqfileprefixAaron(this, id, v, gly, kind)
             fqfp = fullfile( ...
                 this.cbfPath(id, v), ...
@@ -256,7 +195,7 @@ classdef ADA2018
                 this.groupPath(v, gly, label), ...
                 this.fileprefixGroupMean(label, v, gly, kind));
         end
-        function p1   = groupPath(this, v, gly, label)            
+        function p1   = groupPath(this, v, gly, label)
             if (isscalar(gly))
                 p1 = fullfile(this.subjectsDir, sprintf('%s_v%i_Gr%i', label, v, gly), '');
                 ensuredir(p1);
@@ -265,6 +204,7 @@ classdef ADA2018
             p1 = fullfile(this.subjectsDir, sprintf('%s_v%i_Gr%ito%i', label, v, gly(1), gly(end)), '');
             ensuredir(p1);
         end
+        
         function hist(~, obj, kind, varargin)
             if (isa(obj, 'mlfourd.ImagingContext'))
                 obj = obj.niftid;
@@ -282,6 +222,61 @@ classdef ADA2018
             title(obj.fileprefix, 'Interpreter', 'none');
             ylabel('voxels');
             xlabel([kind ' / (mL/hg/min)']);
+        end
+        function this = prepareT1DM(this, varargin)
+            %% PREPARET1DM
+            %  @param named 'doDiff' is logical and creates analyses subtracting out mean CBF
+            
+            for v = 1:1
+                for gly = 1:4
+                    fprintf('ADA2018.prepareT1DM: v->%i, gly->%i\n', v, gly);
+                    this = this.prepareGroup(this.t1dmIds, v, gly, 't1dm', varargin{:});
+                end
+            end
+        end
+        function this = prepareControls(this, varargin)
+            %% PREPARECONTROLS
+            %  @param named 'doDiff' is logical and creates analyses subtracting out mean CBF
+            
+            for v = 1:2
+                for gly = 1:4
+                    fprintf('ADA2018.prepareControls: v->%i, gly->%i\n', v, gly);
+                    this = this.prepareGroup(this.controlsIds, v, gly, 'controls', varargin{:});
+                end
+            end
+        end
+        function nn   = prepareDeltaDelta(this, label, v)
+            assert(ischar(label));
+            
+            import mlfourd.*;
+            nn = NumericalNIfTId.load( ...
+                [this.fqfileprefixGroupMean(label, v, 1, this.cbfKind('dCBF')) '.4dfp.ifh']);
+            nn.fileprefix = ...
+                this.fileprefixGroupMean(label, v, 1:4, this.cbfKind('ddCBF'));
+            img__ = nn.img;
+            for gly = 2:4
+                nn__ = NumericalNIfTId.load( ...
+                    [this.fqfileprefixGroupMean(label, v, gly, this.cbfKind('dCBF')) '.4dfp.ifh']);
+                img__(:,:,:,gly) = nn__.img - img__(:,:,:,1);
+            end
+            nn.img = img__;
+            nn.view;
+            nn.save;
+        end
+        function [ic,nn] = prepareBrainMask(this, id, v, gly)
+            pwd0 = pushd(this.cbfPath(id, v));
+            
+            m = this.mskt;
+            d = this.dfnd(id, v, gly);
+            nn = d.numericalNiftid .* m.numericalNiftid;              
+            assert(~isempty(nn.img));
+            nn = nn.binarized;
+            nn.filepath = this.cbfPath(id, v);
+            nn.fileprefix = this.fileprefixAaron(id, v, gly, 'dfndm2');
+            nn.filesuffix = '.4dfp.ifh';
+            ic = mlfourd.ImagingContext(nn);
+            
+            popd(pwd0);
         end
         function [this,ic,nn] = prepareGroup(this, ids, v, gly, label, varargin)
             ip = inputParser;
@@ -369,6 +364,44 @@ classdef ADA2018
                 this.muCbfs(idx) = mean(dcbf.img(logical(bmsk.img)));
             end
         end
+        function [ic,nn,bmsknn,this] = prepareCBF(this, id, v, gly, varargin)
+            ip = inputParser;
+            addParameter(ip, 'kind', 'wCBF', @ischar);
+            parse(ip, varargin{:});
+            pwd0 = pushd(this.cbfPath(id, v));
+            
+            fprintf('prepareCBF.id->%s, v->%i, gly->%i, kind->%s\n', id, v, gly, ip.Results.kind);
+            bmsk = this.prepareBrainMask(id, v, gly);
+            bmsknn = bmsk.numericalNiftid;
+            nn   = this.wCBFavg(id, v, gly);
+            nn = nn.numericalNiftid .* bmsknn;
+            nn.img = nn.img .* (nn.img > 0) .* (abs(nn.img) < this.maxCbf);
+            assert(~isempty(nn.img));
+            nn.fileprefix = this.fileprefixAaron(id, v, gly, this.cbfKind(ip.Results.kind));
+            nn.filesuffix = '.4dfp.ifh';
+            ic = mlfourd.ImagingContext(nn);
+            
+            popd(pwd0);
+        end
+        function [ic,groupNN] = finalizeGroupImage(this, groupNN, label, v, gly, varargin)
+            ip = inputParser;
+            addParameter(ip, 'kind', 'wCBF', @ischar);
+            parse(ip, varargin{:});
+            
+            pwd1 = this.groupPath(v, gly, label);            
+            groupNN.filepath = pwd1;
+            groupNN.fileprefix = this.fileprefixGroupMean(label, v, gly, this.cbfKind(ip.Results.kind));
+            groupNN.filesuffix = '.4dfp.ifh';
+            if (this.verboseView)
+                groupNN.view;
+            end
+            this.hist(groupNN, ip.Results.kind, 100);
+            groupNN.save;
+            ic = mlfourd.ImagingContext(groupNN);
+            fldr = fullfile(pwd1, sprintf('saveFigures_%s', this.cbfKind(ip.Results.kind)), '');
+            ensuredir(fldr);
+            saveFigures(fldr);
+        end
         
         %% For use with FSL randomise
              
@@ -426,6 +459,40 @@ classdef ADA2018
             nn.save;
             fqfn = nn.fqfilename;
         end
+        function fqfn = inputDataDVisit1STT(this, ids, gly, label)
+            %% INPUTDATADVISIT1STT
+            %  @return fqfn, as char, of NIfTI for CBF_j - E_{x \in j}[CBF_j] - E_k[CBF_{k,v1,g1} - E_{y \in k}[CBF_{k,v1,g1}]],
+            %          with voxels x, y,  
+            %          for subjects j \in \{ids\} and subjects k \in \{controls\}_{v1,g1}, the baseline condition.
+            
+            import mlfourd.*;
+            blic = this.dCBF(ids{1}, 1, gly);
+            bl   = blic.numericalNiftid;
+            nnic = this.dCBF(ids{1}, 2, gly);
+            nn   = nnic.numericalNiftid;
+            nn   = nn - bl;
+            idx1 = 1;
+            idx2 = 2;
+            while idx1 < length(ids)
+                idx1 = idx1 + 1;
+                try
+                    blic__ = this.dCBF(ids{idx1}, 1, gly);
+                    bl__   = blic__.numericalNiftid;
+                    nnic__ = this.dCBF(ids{idx1}, 2, gly);
+                    nn__   = nnic__.numericalNiftid;
+                    nn.img(:,:,:,idx2) = nn__.img - bl__.img;
+                    idx2 = idx2 + 1;
+                catch ME
+                    handwarning(ME);
+                end
+            end
+            
+            nn.filepath = this.groupPath(2, gly, label);
+            nn.fileprefix = sprintf('inputData1STT%s-%s_v2-v1_Gr%i_dCBFlt%g', this.locality, label, gly, this.maxCbf);
+            nn.filesuffix = '.nii.gz';
+            nn.save;
+            fqfn = nn.fqfilename;
+        end
         function fqfp = outputRootname(this, v, gly, label)
             fqfp = fullfile( ...
                 this.groupPath(v, gly, label), ...
@@ -435,6 +502,11 @@ classdef ADA2018
             fqfp = fullfile( ...
                 this.groupPath(v, gly, label), ...
                 sprintf('oneSampleTTest%s-%s_v%i_Gr%i_dCBFlt%g', this.locality, label, v, gly, this.maxCbf));
+        end
+        function fqfp = outputRootnameDVisit1STT(this, gly, label)
+            fqfp = fullfile( ...
+                this.groupPath(2, gly, label), ...
+                sprintf('oneSampleTTest%s-%s_v2-v1_Gr%i_dCBFlt%g', this.locality, label, gly, this.maxCbf));
         end
         function designFqfn = designMat(this, ids, v, gly, label)
             Nsubj = length(ids);
