@@ -204,8 +204,8 @@ classdef ADA2018
         function fp   = fileprefixBaseline(this, varargin)
             ip = inputParser;
             ip.KeepUnmatched = true;
-            addParameter(ip, 'cohort', 'controls', @ischar);
-            addParameter(ip, 'visit', 1, @isnumeric);
+            addParameter(ip, 'cohort', @ischar);
+            addParameter(ip, 'visit', @isnumeric);
             parse(ip, varargin{:});
             
             fp = fullfile( ...
@@ -402,7 +402,7 @@ classdef ADA2018
             %          for subjects j \in \{ids\} and subjects k \in \{controls\}_{v1,g1}, the baseline condition.
             
             import mlfourd.*;
-            bl = NumericalNIfTId.load([this.fqfileprefixBaseline '.nii.gz']);
+            bl = NumericalNIfTId.load([this.fqfileprefixBaseline('cohort', label, 'visit', v) '.nii.gz']);
             ic = this.dCBF(ids{1}, v, gly);
             nn = ic.numericalNiftid;
             nn = nn - bl;
