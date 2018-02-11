@@ -17,25 +17,17 @@ classdef ADA2018
         viewer      = 'fsleyes'
         locality    = 'Local'
         viewRandomize = true
+        baselineGly = 1
     end
     
     methods (Static)
-        function makeAll()
-            clear('ada');
-            ada = mlarbelaez.ADA2018;
-            ada.prepareDeltaDeltas;
-            ada.prepareBaseline('cohort', 't1dm',     'visit', 1);
-            ada.prepareBaseline('cohort', 'controls', 'visit', 1);
-            ada.prepareBaseline('cohort', 'controls', 'visit', 2);
-            ada.makeRandomized1STT
-        end
         function makeRandomized1STT()
             clear('ada');
             ada = mlarbelaez.ADA2018;
             ada.prepareRandomized1STT(ada.t1dmGly4Ids, 1, 4, 't1dm')
-            for g = 3:-1:1; ada.prepareRandomized1STT(ada.t1dmIds,     1, g, 't1dm'); end
-            for g = 4:-1:1; ada.prepareRandomized1STT(ada.controlsIds, 1, g, 'controls'); end
-            for g = 4:-1:1; ada.prepareRandomized1STT(ada.controlsIds, 2, g, 'controls'); end
+            for g = 3:-1:2; ada.prepareRandomized1STT(ada.t1dmIds,     1, g, 't1dm'); end
+            for g = 4:-1:2; ada.prepareRandomized1STT(ada.controlsIds, 2, g, 'controls'); end
+            for g = 4:-1:2; ada.prepareRandomized1STT(ada.controlsIds, 1, g, 'controls'); end
             
             for g = 4:-1:1; ada.prepareRandomizedDVisit1STT(ada.controlsIds, g, 'controls'); end
         end
@@ -62,29 +54,6 @@ classdef ADA2018
             ic = mlfourd.ImagingContext( ...
                 fullfile(getenv('HOME'), 'Local', 'atlas', 'TRIO_Y_NDC_333_mskt.4dfp.ifh'));
         end
-        function this = prepareDeltaDeltas(this)
-            this = this.prepareT1DM('doDiff', true);
-            this.prepareDeltaDelta('t1dm', 1);
-            
-            this = this.prepareControls('doDiff', true);
-            this.prepareDeltaDelta('controls', 1);
-            this.prepareDeltaDelta('controls', 2);
-        end
-        function nn   = prepareBaseline(this, varargin)
-            ip = inputParser;
-            addParameter(ip, 'cohort', 'controls', @ischar);
-            addParameter(ip, 'visit', 1, @isnumeric);
-            addParameter(ip, 'glycemia', 1, @isnumeric);
-            parse(ip, varargin{:});
-            
-            import mlfourd.*;
-            nn = NumericalNIfTId.load( ...
-                [this.fqfileprefixGroupMean(ip.Results.cohort, ip.Results.visit, ip.Results.glycemia, this.cbfKind('dCBF')) '.4dfp.ifh']);
-            nn.fqfileprefix = ...
-                this.fqfileprefixBaseline('cohort', ip.Results.cohort, 'visit', ip.Results.visit);
-            nn.view;
-            nn.save;
-        end
         function this = prepareRandomised(this, ids, v, gly, label)
             outputRootname = this.outputRootname(v, gly, label);
             mlbash(sprintf( ...
@@ -103,6 +72,10 @@ classdef ADA2018
             %  @param v     is the numeric visit.
             %  @param gly   is the numeric glycemia identifier
             %  @param label is char, e.g., 'controls' or 't1dm'.
+            
+            if (gly == this.baselineGly)
+                return
+            end
             
             outputRootname1STT = this.outputRootname1STT(v, gly, label);
             mlbash(sprintf( ...
@@ -223,46 +196,6 @@ classdef ADA2018
             ylabel('voxels');
             xlabel([kind ' / (mL/hg/min)']);
         end
-        function this = prepareT1DM(this, varargin)
-            %% PREPARET1DM
-            %  @param named 'doDiff' is logical and creates analyses subtracting out mean CBF
-            
-            for v = 1:1
-                for gly = 1:4
-                    fprintf('ADA2018.prepareT1DM: v->%i, gly->%i\n', v, gly);
-                    this = this.prepareGroup(this.t1dmIds, v, gly, 't1dm', varargin{:});
-                end
-            end
-        end
-        function this = prepareControls(this, varargin)
-            %% PREPARECONTROLS
-            %  @param named 'doDiff' is logical and creates analyses subtracting out mean CBF
-            
-            for v = 1:2
-                for gly = 1:4
-                    fprintf('ADA2018.prepareControls: v->%i, gly->%i\n', v, gly);
-                    this = this.prepareGroup(this.controlsIds, v, gly, 'controls', varargin{:});
-                end
-            end
-        end
-        function nn   = prepareDeltaDelta(this, label, v)
-            assert(ischar(label));
-            
-            import mlfourd.*;
-            nn = NumericalNIfTId.load( ...
-                [this.fqfileprefixGroupMean(label, v, 1, this.cbfKind('dCBF')) '.4dfp.ifh']);
-            nn.fileprefix = ...
-                this.fileprefixGroupMean(label, v, 1:4, this.cbfKind('ddCBF'));
-            img__ = nn.img;
-            for gly = 2:4
-                nn__ = NumericalNIfTId.load( ...
-                    [this.fqfileprefixGroupMean(label, v, gly, this.cbfKind('dCBF')) '.4dfp.ifh']);
-                img__(:,:,:,gly) = nn__.img - img__(:,:,:,1);
-            end
-            nn.img = img__;
-            nn.view;
-            nn.save;
-        end
         function [ic,nn] = prepareBrainMask(this, id, v, gly)
             pwd0 = pushd(this.cbfPath(id, v));
             
@@ -321,6 +254,9 @@ classdef ADA2018
             popd(pwd0);
         end
         function [this,ic,nn] = prepareDiffGroup(this, ids, v, gly, label)
+            %  @return ic := E\qty[this.prepareCBF - E\qty[this.prepareCBF]]; ic.fqfp := this.fqfileprefixGroupMean.
+            %  @return nn := ic.numericalNiftid.
+            
             kind = 'dCBF';
             pwd1 = this.groupPath(v, gly, label);
             pwd0 = pushd(pwd1);   
@@ -387,10 +323,8 @@ classdef ADA2018
             ip = inputParser;
             addParameter(ip, 'kind', 'wCBF', @ischar);
             parse(ip, varargin{:});
-            
-            pwd1 = this.groupPath(v, gly, label);            
-            groupNN.filepath = pwd1;
-            groupNN.fileprefix = this.fileprefixGroupMean(label, v, gly, this.cbfKind(ip.Results.kind));
+                     
+            groupNN.fqfileprefix = this.fqfileprefixGroupMean(label, v, gly, this.cbfKind(ip.Results.kind));
             groupNN.filesuffix = '.4dfp.ifh';
             if (this.verboseView)
                 groupNN.view;
@@ -398,7 +332,8 @@ classdef ADA2018
             this.hist(groupNN, ip.Results.kind, 100);
             groupNN.save;
             ic = mlfourd.ImagingContext(groupNN);
-            fldr = fullfile(pwd1, sprintf('saveFigures_%s', this.cbfKind(ip.Results.kind)), '');
+            fldr = fullfile(this.groupPath(v, gly, label), ...
+                sprintf('saveFigures_%s', this.cbfKind(ip.Results.kind)), '');
             ensuredir(fldr);
             saveFigures(fldr);
         end
@@ -434,19 +369,24 @@ classdef ADA2018
             %          with voxels x, y,  
             %          for subjects j \in \{ids\} and subjects k \in \{controls\}_{v1,g1}, the baseline condition.
             
+            assert(gly > this.baselineGly);
+            
             import mlfourd.*;
-            bl = NumericalNIfTId.load([this.fqfileprefixBaseline('cohort', label, 'visit', v) '.nii.gz']);
-            ic = this.dCBF(ids{1}, v, gly);
-            nn = ic.numericalNiftid;
-            nn = nn - bl;
+            blic = this.dCBF(ids{1}, v, this.baselineGly);
+            bl   = blic.numericalNiftid;
+            nnic = this.dCBF(ids{1}, v, gly);
+            nn   = nnic.numericalNiftid;
+            nn   = nn - bl;
             idx1 = 1;
             idx2 = 2;
             while idx1 < length(ids)
                 idx1 = idx1 + 1;
                 try
-                    ic__ = this.dCBF(ids{idx1}, v, gly);
-                    nn__ = ic__.numericalNiftid;
-                    nn.img(:,:,:,idx2) = nn__.img - bl.img;
+                    blic__ = this.dCBF(ids{idx1}, v, this.baselineGly);
+                    bl__   = blic__.numericalNiftid;
+                    nnic__ = this.dCBF(ids{idx1}, v, gly);
+                    nn__   = nnic__.numericalNiftid;
+                    nn.img(:,:,:,idx2) = nn__.img - bl__.img;
                     idx2 = idx2 + 1;
                 catch ME
                     handwarning(ME);
@@ -568,6 +508,89 @@ classdef ADA2018
         end
     end
 
+    %% HIDDEN
+    %  @deprecated
+    
+    methods (Static, Hidden)
+        function makeIntragroupBaselines()
+            clear('ada');
+            ada = mlarbelaez.ADA2018;
+            ada.prepareDeltaDeltas;
+            ada.prepareBaseline('cohort', 't1dm',     'visit', 1);
+            ada.prepareBaseline('cohort', 'controls', 'visit', 1);
+            ada.prepareBaseline('cohort', 'controls', 'visit', 2);
+        end
+    end
+    
+    methods (Hidden)    
+        function this = prepareDeltaDeltas(this)
+            this = this.prepareT1DM('doDiff', true);
+            this.prepareDeltaDelta('t1dm', 1);
+            
+            this = this.prepareControls('doDiff', true);
+            this.prepareDeltaDelta('controls', 1);
+            this.prepareDeltaDelta('controls', 2);
+        end    
+        function this = prepareT1DM(this, varargin)
+            %% PREPARET1DM
+            %  @param named 'doDiff' is logical and creates analyses subtracting out mean CBF
+            
+            for v = 1:1
+                for gly = 1:4
+                    fprintf('ADA2018.prepareT1DM: v->%i, gly->%i\n', v, gly);
+                    this = this.prepareGroup(this.t1dmIds, v, gly, 't1dm', varargin{:});
+                end
+            end
+        end
+        function this = prepareControls(this, varargin)
+            %% PREPARECONTROLS
+            %  @param named 'doDiff' is logical and creates analyses subtracting out mean CBF
+            
+            for v = 1:2
+                for gly = 1:4
+                    fprintf('ADA2018.prepareControls: v->%i, gly->%i\n', v, gly);
+                    this = this.prepareGroup(this.controlsIds, v, gly, 'controls', varargin{:});
+                end
+            end
+        end
+        function nn   = prepareDeltaDelta(this, label, v)
+            %  @return nn := nn_\qty(gly) - nn_\qty(1)
+            %  nn_ := E_{\text{all subj}}\qty[this.prepareCBF - E_{\text{a subj}}\qty[this.prepareCBF]]; nn_.fqfp := this.fqfileprefixGroupMean.
+            
+            assert(ischar(label));
+            
+            import mlfourd.*;
+            nn = NumericalNIfTId.load( ...
+                [this.fqfileprefixGroupMean(label, v, 1, this.cbfKind('dCBF')) '.4dfp.ifh']);
+            nn.fqfileprefix = ...
+                this.fqfileprefixGroupMean(label, v, 1:4, this.cbfKind('ddCBF'));
+            img__ = nn.img;
+            for gly = 2:4
+                nn__ = NumericalNIfTId.load( ...
+                    [this.fqfileprefixGroupMean(label, v, gly, this.cbfKind('dCBF')) '.4dfp.ifh']);
+                img__(:,:,:,gly) = nn__.img - img__(:,:,:,1);
+            end
+            nn.img = img__;
+            nn.view;
+            nn.save;
+        end
+        function nn   = prepareBaseline(this, varargin)
+            ip = inputParser;
+            addParameter(ip, 'cohort', 'controls', @ischar);
+            addParameter(ip, 'visit', 1, @isnumeric);
+            addParameter(ip, 'glycemia', 1, @isnumeric);
+            parse(ip, varargin{:});
+            
+            import mlfourd.*;
+            nn = NumericalNIfTId.load( ...
+                [this.fqfileprefixGroupMean(ip.Results.cohort, ip.Results.visit, ip.Results.glycemia, this.cbfKind('dCBF')) '.4dfp.ifh']);
+            nn.fqfileprefix = ...
+                this.fqfileprefixBaseline('cohort', ip.Results.cohort, 'visit', ip.Results.visit);
+            nn.view;
+            nn.save;
+        end
+    end
+    
 	%  Created with Newcl by John J. Lee after newfcn by Frank Gonzalez-Morphy
  end
 
