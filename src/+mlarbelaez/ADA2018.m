@@ -36,7 +36,7 @@ classdef ADA2018
 	methods         
         function ic = dCBF(this, id, v, gly)
             ic = mlfourd.ImagingContext( ...
-                [this.fqfileprefixAaron(id, v, gly, this.cbfKind('dCBF')) '.4dfp.ifh']);
+                [this.fqfileprefixAaron(id, v, gly, this.cbfLabel('dCBF')) '.4dfp.ifh']);
         end
         function ic = wCBFavg(this, id, v, gly)
             ic = mlfourd.ImagingContext( ...
@@ -117,7 +117,7 @@ classdef ADA2018
     %% PROTECTED
     
     methods (Access = protected)
-        function c    = cbfKind(this, kind)
+        function c    = cbfLabel(this, kind)
             assert(ischar(kind));
             c = sprintf('%slt%g', kind, this.maxCbf);
         end
@@ -131,16 +131,6 @@ classdef ADA2018
             assert(ischar(kind));
             fp = fullfile( ...
                 sprintf('BOLD-%s_v%i_PC_asl_Gr%i_xr3d_1_atl_%s', id, v, gly, kind));
-        end
-        function fp   = fileprefixBaseline(this, varargin)
-            ip = inputParser;
-            ip.KeepUnmatched = true;
-            addParameter(ip, 'cohort', @ischar);
-            addParameter(ip, 'visit', @isnumeric);
-            parse(ip, varargin{:});
-            
-            fp = fullfile( ...
-                sprintf('BASELINE_%s_%s_%i', this.cbfKind('dCBF'), ip.Results.cohort, ip.Results.visit));
         end
         function fp   = fileprefixGroupMean(~, label, v, gly, kind)
             assert(ischar(label));
@@ -157,11 +147,6 @@ classdef ADA2018
             fqfp = fullfile( ...
                 this.cbfPath(id, v), ...
                 this.fileprefixAaron(id, v, gly, kind));
-        end
-        function fqfp = fqfileprefixBaseline(this, varargin)
-            fqfp = fullfile( ...
-                this.subjectsDir, ...
-                this.fileprefixBaseline(varargin{:}));
         end
         function fqfp = fqfileprefixGroupMean(this, label, v, gly, kind)
             fqfp = fullfile( ...
@@ -313,7 +298,7 @@ classdef ADA2018
             nn = nn.numericalNiftid .* bmsknn;
             nn.img = nn.img .* (nn.img > 0) .* (abs(nn.img) < this.maxCbf);
             assert(~isempty(nn.img));
-            nn.fileprefix = this.fileprefixAaron(id, v, gly, this.cbfKind(ip.Results.kind));
+            nn.fileprefix = this.fileprefixAaron(id, v, gly, this.cbfLabel(ip.Results.kind));
             nn.filesuffix = '.4dfp.ifh';
             ic = mlfourd.ImagingContext(nn);
             
@@ -324,7 +309,7 @@ classdef ADA2018
             addParameter(ip, 'kind', 'wCBF', @ischar);
             parse(ip, varargin{:});
                      
-            groupNN.fqfileprefix = this.fqfileprefixGroupMean(label, v, gly, this.cbfKind(ip.Results.kind));
+            groupNN.fqfileprefix = this.fqfileprefixGroupMean(label, v, gly, this.cbfLabel(ip.Results.kind));
             groupNN.filesuffix = '.4dfp.ifh';
             if (this.verboseView)
                 groupNN.view;
@@ -333,7 +318,7 @@ classdef ADA2018
             groupNN.save;
             ic = mlfourd.ImagingContext(groupNN);
             fldr = fullfile(this.groupPath(v, gly, label), ...
-                sprintf('saveFigures_%s', this.cbfKind(ip.Results.kind)), '');
+                sprintf('saveFigures_%s', this.cbfLabel(ip.Results.kind)), '');
             ensuredir(fldr);
             saveFigures(fldr);
         end
@@ -491,7 +476,7 @@ classdef ADA2018
         end
         function fqfn = maskImage(this, v, gly, label)
             nn = mlfourd.NumericalNIfTId.load( ...
-                [this.fqfileprefixGroupMean(label, v, gly, this.cbfKind('dCBF')) '.4dfp.ifh']);
+                [this.fqfileprefixGroupMean(label, v, gly, this.cbfLabel('dCBF')) '.4dfp.ifh']);
             nn.filesuffix = '.nii.gz';
             nn = nn.binarized;
             nn.save;
@@ -561,13 +546,13 @@ classdef ADA2018
             
             import mlfourd.*;
             nn = NumericalNIfTId.load( ...
-                [this.fqfileprefixGroupMean(label, v, 1, this.cbfKind('dCBF')) '.4dfp.ifh']);
+                [this.fqfileprefixGroupMean(label, v, 1, this.cbfLabel('dCBF')) '.4dfp.ifh']);
             nn.fqfileprefix = ...
-                this.fqfileprefixGroupMean(label, v, 1:4, this.cbfKind('ddCBF'));
+                this.fqfileprefixGroupMean(label, v, 1:4, this.cbfLabel('ddCBF'));
             img__ = nn.img;
             for gly = 2:4
                 nn__ = NumericalNIfTId.load( ...
-                    [this.fqfileprefixGroupMean(label, v, gly, this.cbfKind('dCBF')) '.4dfp.ifh']);
+                    [this.fqfileprefixGroupMean(label, v, gly, this.cbfLabel('dCBF')) '.4dfp.ifh']);
                 img__(:,:,:,gly) = nn__.img - img__(:,:,:,1);
             end
             nn.img = img__;
@@ -583,11 +568,26 @@ classdef ADA2018
             
             import mlfourd.*;
             nn = NumericalNIfTId.load( ...
-                [this.fqfileprefixGroupMean(ip.Results.cohort, ip.Results.visit, ip.Results.glycemia, this.cbfKind('dCBF')) '.4dfp.ifh']);
+                [this.fqfileprefixGroupMean(ip.Results.cohort, ip.Results.visit, ip.Results.glycemia, this.cbfLabel('dCBF')) '.4dfp.ifh']);
             nn.fqfileprefix = ...
                 this.fqfileprefixBaseline('cohort', ip.Results.cohort, 'visit', ip.Results.visit);
             nn.view;
             nn.save;
+        end
+        function fp   = fileprefixBaseline(this, varargin)
+            ip = inputParser;
+            ip.KeepUnmatched = true;
+            addParameter(ip, 'cohort', @ischar);
+            addParameter(ip, 'visit', @isnumeric);
+            parse(ip, varargin{:});
+            
+            fp = fullfile( ...
+                sprintf('BASELINE_%s_%s_%i', this.cbfLabel('dCBF'), ip.Results.cohort, ip.Results.visit));
+        end
+        function fqfp = fqfileprefixBaseline(this, varargin)
+            fqfp = fullfile( ...
+                this.subjectsDir, ...
+                this.fileprefixBaseline(varargin{:}));
         end
     end
     

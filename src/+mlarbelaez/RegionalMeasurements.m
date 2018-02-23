@@ -160,9 +160,7 @@ classdef RegionalMeasurements
                 end
                 k = this.kinetics4Cached_;
             catch ME
-                disp(ME)
-                struct2str(ME.stack)
-                handwarning(ME);
+                dispwarning(ME);
                 k = nan;
             end
         end
@@ -182,9 +180,7 @@ classdef RegionalMeasurements
                 end
                 f = this.fFracCached_;
             catch ME
-                disp(ME)
-                struct2str(ME.stack)
-                handwarning(ME);
+                dispwarning(ME);
                 f = nan;
             end
         end
@@ -200,9 +196,7 @@ classdef RegionalMeasurements
                 end
                 v = double(this.vFracCached_);
             catch ME
-                disp(ME)
-                struct2str(ME.stack)
-                handwarning(ME);
+                dispwarning(ME);
                 v = nan;
             end
         end
