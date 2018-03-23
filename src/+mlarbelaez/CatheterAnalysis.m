@@ -11,7 +11,7 @@ classdef CatheterAnalysis < mlarbelaez.AbstractCatheterAnalysis
  	%  $Id$ 
     
     properties (Constant)
-        pwdSrc = '/Users/jjlee/MATLAB-Drive/mlarbelaez/src/+mlarbelaez'
+        pwdSrc = fullfile(getenv('HOME'), 'MATLAB-Drive/mlarbelaez/src/+mlarbelaez')
         pwdAmaTests = '/Volumes/PassportStudio2/Arbelaez/deconvolution/data 2014jul17'
         timeInterpolants = 0:119;
     end

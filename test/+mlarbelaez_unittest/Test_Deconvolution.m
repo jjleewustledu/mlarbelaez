@@ -24,7 +24,7 @@ classdef Test_Deconvolution < matlab.unittest.TestCase
         kernel5
         kernel6
         
-        HOME = '/Users/jjlee/MATLAB-Drive/mlarbelaez'
+        HOME = fullfile(getenv('HOME'), 'MATLAB-Drive/mlarbelaez')
  	end 
 
 	methods (Test)

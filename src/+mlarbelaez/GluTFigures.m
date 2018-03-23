@@ -11,7 +11,7 @@ classdef GluTFigures
  	 
 
 	properties
-        glut_xlsx = '/Users/jjlee/Desktop/Diabetes presubmission/loopKinetics4_Kinetics4McmcProblem_20150919T1936.xlsx'
+        glut_xlsx = fullfile(getenv('HOME'), 'Desktop/Diabetes presubmission/loopKinetics4_Kinetics4McmcProblem_20150919T1936.xlsx')
         %'/Users/jjlee/Tmp/loopKinetics4_Kinetics4McmcProblem_20150919T1936.xlsx';
         glut_sheet = 'LoopKinetics4';
         dataRows = [2 37]
