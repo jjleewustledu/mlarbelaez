@@ -55,32 +55,6 @@ classdef Test_T4ResolveBuilder < matlab.unittest.TestCase
         
         function test_msktgenResolved(this)
         end
-		function test_t4ResolvePET0(this)
-            if (this.quick)
-                return
-            end
-            fprintf('Test_T4ResolveBuilder.test_t4ResolvePET0:\n'); 
-            fprintf('\trunning t4ResolvePET which may requires hours of processing time..........\n');
-            this.testObj  = this.testObj.t4ResolvePET;
-            this.verifyTrue(~isempty(this.testObj.product));            
-            if (this.view)
-                this.testObj.product.gluc.view;
-            end
-        end
-        function test_t4ResolvePET(this)
-            this.testObj = this.testObj.t4ResolvePET;
-            this.verifyTrue(~isempty(this.testObj.product));            
-            if (this.view)
-                for p = 1:length(this.testObj.product)
-                    try
-                        [s,r] = mlbash(sprintf('freeview %s', this.testObj.product{p}));
-                    catch ME
-                        fprintf('s->%i; r->%s\n', s, r)
-                        handwarning(ME);
-                    end
-                end
-            end
-        end
         function test_maskBoundaries(this)
             cd(fullfile(this.sessd.petPath, 'GLUC1', ''));
             msk = this.testObj.maskBoundaries([this.ipresults.source '_sumt']);
