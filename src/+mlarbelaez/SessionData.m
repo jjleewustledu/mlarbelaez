@@ -123,14 +123,14 @@ classdef SessionData < mlpipeline.SessionData
         function obj = petObject(this, varargin)
             ip = inputParser;
             addRequired(ip, 'tracer', @ischar);
-            addParameter(ip, 'suffix', '', @ischar);
+            addParameter(ip, 'tag', '', @ischar);
             addOptional(ip, 'typ', 'mlpet.PETImagingContext');
             parse(ip, varargin{:});
             
             obj = imagingType(ip.Results.typ, ...
                 fullfile(this.scanLocation, ...
                          sprintf('%s%s%i_frames', this.pnumber, ip.Results.tracer, this.snumber), ...
-                         sprintf('%s%s%i%s%s', this.pnumber, ip.Results.tracer, this.snumber, ip.Results.suffix, this.filetypeExt)));
+                         sprintf('%s%s%i%s%s', this.pnumber, ip.Results.tracer, this.snumber, ip.Results.tag, this.filetypeExt)));
         end        
     end
     
