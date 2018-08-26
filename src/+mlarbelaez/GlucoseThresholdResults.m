@@ -75,8 +75,10 @@ classdef GlucoseThresholdResults < mlglucose.AbstractSolvedResults
             glc    = C11GlucoseModel( ...
                 'scannerBuilder', scanb, 'aifBuilder', wellb, 'blindedData', blindd);
             solver.model = glc;
-            this.glucoseDirector_ = GlucoseKineticsDirector( ...
-                C11GlucoseKineticsBuilder('solver', solver), 'model', glc);
+            
+            
+            
+            this.glucoseDirector_ = GlucoseKineticsDirector([]);
  		end
     end 
 

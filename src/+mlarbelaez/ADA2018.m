@@ -36,23 +36,23 @@ classdef ADA2018
 	methods         
         function ic = dCBF(this, id, v, gly)
             ic = mlfourd.ImagingContext( ...
-                [this.fqfileprefixAaron(id, v, gly, this.cbfLabel('dCBF')) '.4dfp.ifh']);
+                [this.fqfileprefixAaron(id, v, gly, this.cbfLabel('dCBF')) '.4dfp.hdr']);
         end
         function ic = wCBFavg(this, id, v, gly)
             ic = mlfourd.ImagingContext( ...
-                [this.fqfileprefixAaron(id, v, gly, 'wCBFavg_on_fn_711-2B_3mm') '.4dfp.ifh']);
+                [this.fqfileprefixAaron(id, v, gly, 'wCBFavg_on_fn_711-2B_3mm') '.4dfp.hdr']);
         end
         function ic = dfnd(this, id, v, gly)
             ic = mlfourd.ImagingContext( ...
-                [this.fqfileprefixAaron(id, v, gly, 'dfnd_on_fn_711-2B_3mm') '.4dfp.ifh']);
+                [this.fqfileprefixAaron(id, v, gly, 'dfnd_on_fn_711-2B_3mm') '.4dfp.hdr']);
         end
         function ic = dfndm2(this, id, v, gly)
             ic = mlfourd.ImagingContext( ...
-                [this.fqfileprefixAaron(id, v, gly, 'dfndm2') '.4dfp.ifh']);
+                [this.fqfileprefixAaron(id, v, gly, 'dfndm2') '.4dfp.hdr']);
         end
         function ic = mskt(~)
             ic = mlfourd.ImagingContext( ...
-                fullfile(getenv('HOME'), 'Local', 'atlas', 'TRIO_Y_NDC_333_mskt.4dfp.ifh'));
+                fullfile(getenv('HOME'), 'Local', 'atlas', 'TRIO_Y_NDC_333_mskt.4dfp.hdr'));
         end
         function this = prepareRandomised(this, ids, v, gly, label)
             outputRootname = this.outputRootname(v, gly, label);
@@ -191,7 +191,7 @@ classdef ADA2018
             nn = nn.binarized;
             nn.filepath = this.cbfPath(id, v);
             nn.fileprefix = this.fileprefixAaron(id, v, gly, 'dfndm2');
-            nn.filesuffix = '.4dfp.ifh';
+            nn.filesuffix = '.4dfp.hdr';
             ic = mlfourd.ImagingContext(nn);
             
             popd(pwd0);
@@ -299,7 +299,7 @@ classdef ADA2018
             nn.img = nn.img .* (nn.img > 0) .* (abs(nn.img) < this.maxCbf);
             assert(~isempty(nn.img));
             nn.fileprefix = this.fileprefixAaron(id, v, gly, this.cbfLabel(ip.Results.kind));
-            nn.filesuffix = '.4dfp.ifh';
+            nn.filesuffix = '.4dfp.hdr';
             ic = mlfourd.ImagingContext(nn);
             
             popd(pwd0);
@@ -310,7 +310,7 @@ classdef ADA2018
             parse(ip, varargin{:});
                      
             groupNN.fqfileprefix = this.fqfileprefixGroupMean(label, v, gly, this.cbfLabel(ip.Results.kind));
-            groupNN.filesuffix = '.4dfp.ifh';
+            groupNN.filesuffix = '.4dfp.hdr';
             if (this.verboseView)
                 groupNN.view;
             end
@@ -476,7 +476,7 @@ classdef ADA2018
         end
         function fqfn = maskImage(this, v, gly, label)
             nn = mlfourd.NumericalNIfTId.load( ...
-                [this.fqfileprefixGroupMean(label, v, gly, this.cbfLabel('dCBF')) '.4dfp.ifh']);
+                [this.fqfileprefixGroupMean(label, v, gly, this.cbfLabel('dCBF')) '.4dfp.hdr']);
             nn.filesuffix = '.nii.gz';
             nn = nn.binarized;
             nn.save;
@@ -546,13 +546,13 @@ classdef ADA2018
             
             import mlfourd.*;
             nn = NumericalNIfTId.load( ...
-                [this.fqfileprefixGroupMean(label, v, 1, this.cbfLabel('dCBF')) '.4dfp.ifh']);
+                [this.fqfileprefixGroupMean(label, v, 1, this.cbfLabel('dCBF')) '.4dfp.hdr']);
             nn.fqfileprefix = ...
                 this.fqfileprefixGroupMean(label, v, 1:4, this.cbfLabel('ddCBF'));
             img__ = nn.img;
             for gly = 2:4
                 nn__ = NumericalNIfTId.load( ...
-                    [this.fqfileprefixGroupMean(label, v, gly, this.cbfLabel('dCBF')) '.4dfp.ifh']);
+                    [this.fqfileprefixGroupMean(label, v, gly, this.cbfLabel('dCBF')) '.4dfp.hdr']);
                 img__(:,:,:,gly) = nn__.img - img__(:,:,:,1);
             end
             nn.img = img__;
@@ -568,7 +568,7 @@ classdef ADA2018
             
             import mlfourd.*;
             nn = NumericalNIfTId.load( ...
-                [this.fqfileprefixGroupMean(ip.Results.cohort, ip.Results.visit, ip.Results.glycemia, this.cbfLabel('dCBF')) '.4dfp.ifh']);
+                [this.fqfileprefixGroupMean(ip.Results.cohort, ip.Results.visit, ip.Results.glycemia, this.cbfLabel('dCBF')) '.4dfp.hdr']);
             nn.fqfileprefix = ...
                 this.fqfileprefixBaseline('cohort', ip.Results.cohort, 'visit', ip.Results.visit);
             nn.view;
