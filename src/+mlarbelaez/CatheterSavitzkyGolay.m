@@ -26,21 +26,23 @@ classdef CatheterSavitzkyGolay
  	%  $Id
 
 	properties
-        dccrv
-        times
+        theDcv
         kernelBest
-        kernelBestintervalKernel = 1:120 %102 
     end 
     
     properties (Dependent)
         counts
         degree
         span
+        times
     end
     
-    methods %% GET/SET
+    methods 
+        
+        %% GET/SET
+        
         function c = get.counts(this)
-            c = this.dccrv.counts(this.times);
+            c = this.theDcv.counts(this.times);
         end
         function d = get.degree(this)
             d = this.degree_;
@@ -56,9 +58,19 @@ classdef CatheterSavitzkyGolay
             this.span_ = s;
             assert(1 == mod(s,2)); % must be odd  
         end
-    end
-
-	methods 
+        function g = get.times(this)
+            if (~isempty(this.times_))
+                g = this.times_;
+                return
+            end
+        end
+        function this = set.times(this, s)
+            assert(isnumeric(s));
+            this.times_ = s;
+        end
+        
+        %%
+        
         function [xss, xsk] = explore(this, spans, degrees)
             xss = this.exploreSmoothed(spans, degrees);
             xsk = this.exploreKernels( spans, degrees);
@@ -189,29 +201,29 @@ classdef CatheterSavitzkyGolay
         function d = wienerDeconv(this)
         end
 		  
- 		function this = CatheterSavitzkyGolay(dcc, varargin) 
+ 		function this = CatheterSavitzkyGolay(aCrv, varargin) 
  			%% CATHETERSAVITZKYGOLAY 
  			%  Usage:  this = CatheterSavitzkyGolay(DecayCorrectedCRV, ['span', 37, 'degree', 4]) 
             %                                       ^ filename, CRV, or DecayCorrectedCRV for ex vivo sampling of
             %                                         Heaviside inputs
 
             import mlpet.*;
-            switch (class(dcc))
+            switch (class(aCrv))
                 case 'char'
-                    this.dccrv = DecayCorrectedCRV.load(dcc);
-                case 'mlpet.CRV'
-                    this.dccrv = DecayCorrectedCRV(dcc);
+                    [~,~,ext] = fileparts(aCrv);
+                    assert(strcmp(ext, '.crv'));
+                    this.theDcv = DecayCorrectedCRV.load(aCrv);
                 case 'mlpet.DecayCorrectedCRV'
-                    this.dccrv = dcc;
+                    this.theDcv = aCrv;
                 otherwise
                     error('mlpet:unsupportTypeclass', ...
-                          'CatheterSavitzkyGolay.ctor.dcc is from unsupported class %s', class(dcc));
+                          'CatheterSavitzkyGolay.ctor.dcc is from unsupported class %s', class(aCrv));
             end
             
             ip = inputParser;
-            addParameter(ip, 'span',   this.span_,       @(x) isinteger(x) && 1 == mod(x,2));
-            addParameter(ip, 'degree', this.degree_,     @isinteger);
-            addParameter(ip, 'times',  this.dccrv.times, @isnumeric);
+            addParameter(ip, 'span',   this.span_,       @(x) isnumeric(x) && 1 == mod(x,2));
+            addParameter(ip, 'degree', this.degree_,     @isnumeric);
+            addParameter(ip, 'times',  this.theDcv.times, @isnumeric);
             parse(ip, varargin{:});
             this.span   = ip.Results.span;
             this.degree = ip.Results.degree;
@@ -226,6 +238,7 @@ classdef CatheterSavitzkyGolay
     properties (Access = 'private')        
         degree_ = 4 % 9
         span_ = 33
+        times_
     end
     
     methods (Access = 'private')

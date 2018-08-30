@@ -40,6 +40,22 @@ classdef Test_CatheterSavitzkyGolay < matlab.unittest.TestCase
         function test_exploreKernels(this)
             this.testObj.exploreKernels([15 23 33 43 53 63], [5 9 13]);
         end
+        function test_previous(this)            
+            testobj = this.testObj;
+            dcv     = testobj.theDcv;
+            K       = testobj.kernel;
+            t       = 0:length(K)-1; 
+            
+            H      = ones(1, length(testobj.kernel));
+            recDcv    = conv(K, H);
+            recDcv    = recDcv(1:length(K));
+            recDcv    = recDcv * max(dcv.counts) / max(recDcv);
+            figure;
+            plot(t, K * max(dcv.counts) / max(K), ...
+                 t, H * max(dcv.counts) / max(H), ...
+                 dcv.times, dcv.counts, ...
+                 t, recDcv);
+        end
  	end 
 
  	methods (TestClassSetup) 
