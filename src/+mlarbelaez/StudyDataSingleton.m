@@ -1,4 +1,4 @@
-classdef StudyDataSingleton < mlpipeline.StudyDataSingleton
+classdef StudyDataSingleton < handle & mlpipeline.StudyDataSingleton
 	%% StudyDataSingleton  
 
 	%  $Revision$
@@ -45,23 +45,6 @@ classdef StudyDataSingleton < mlpipeline.StudyDataSingleton
             this.sessionDataComposite_ = mlpatterns.CellComposite({ ...
                 mlarbelaez.SessionData('studyData', this, varargin{:})});
         end
-        function sess = sessionData(this, varargin)
-            %% SESSIONDATA
-            %  @param [parameter name,  parameter value, ...] as expected by mlarbelaez.SessionData are optional;
-            %  'studyData' and this are always internally supplied.
-            %  @returns for empty param:  mlpatterns.CellComposite object or it's first element when singleton, 
-            %  which are instances of mlarbelaez.SessionData.
-            %  @returns for non-empty param:  instance of mlarbelaez.SessionData corresponding to supplied params.
-            
-            if (isempty(varargin))
-                sess = this.sessionDataComposite_;
-                if (1 == length(sess))
-                    sess = sess.get(1);
-                end
-                return
-            end
-            sess = mlarbelaez.SessionData('studyData', this, varargin{:});
-        end  
         function f    = subjectsDirFqdns(this)
             dt = mlsystem.DirTools(this.subjectsDir);
             f = {};
