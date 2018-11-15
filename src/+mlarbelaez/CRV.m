@@ -148,7 +148,7 @@ classdef CRV < mlpet.CRV
             %          this = CRV('p1234ho1')
 
  			this = this@mlpet.CRV(varargin{:});
-            this.kernelBestFqfn = '~/Tmp/kernel6_span33_deg4.mat'; %fullfile(getenv('ARBELAEZ'), 'jjlee', 'GluT', 'kernel6_span33_deg4.mat');
+            this.kernelBestFqfn = '~/MATLAB-Drive/mlarbelaez/data/kernel6_span33_deg4.mat'; %fullfile(getenv('ARBELAEZ'), 'jjlee', 'GluT', 'kernel6_span33_deg4.mat');
             load(this.kernelBestFqfn);
             this.kernelBest = kernel;
             this.dt = 0.1;

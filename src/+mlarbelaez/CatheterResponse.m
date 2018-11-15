@@ -74,7 +74,7 @@ classdef CatheterResponse < mlaif.AbstractAifProblem & mlarbelaez.AbstractCathet
         function c  = smoothPeristalsis(this, c)
             %% SMOOTHPERISTALSIS attempts to remove fluctuations associated with peristaltic pumps 
             
-            c = this.ensureRowVector(smooth(c));
+            c = this.ensureRowVector(c);
         end
         function R  = normalizeResponse(~, R)
             R = R / sum(R);
