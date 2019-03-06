@@ -7,24 +7,22 @@ classdef HypoglycemiaDirector < mlarbelaez.StudyDirector
  	%% It was developed on Matlab 9.3.0.713579 (R2017b) for MACI64.  Copyright 2018 John Joowon Lee.
  	
     methods (Static)
-        function sessd = constructSessionData(pth, v, s)
+        function sessd = constructSessionData(pth, ~, s)
             import mlarbelaez.*;
             sessd = HypoglycemiaSessionData( ...
                 'studyData', HypoglycemiaStudy, ...
                 'sessionPath', pth, ...
-                'vnumber', v, ...
                 'snumber', s);
         end
-        function this  = sortDownloads(downloadPath, sessionFolder, v, varargin)
+        function this  = sortDownloads(downloadPath, sessionFolder, ~, varargin)
             %% SORTDOWNLOADS installs data from rawdata into HypoglycemiaStudy.subjectsDir; 
             %  start here after downloading rawdata.  
             
             ip = inputParser;
             addRequired(ip, 'downloadPath', @isdir);
             addRequired(ip, 'sessionFolder', @ischar);
-            addRequired(ip, 'v', @isnumeric);
             addOptional(ip, 'kind', '', @ischar);
-            parse(ip, downloadPath, sessionFolder, v, varargin{:});
+            parse(ip, downloadPath, sessionFolder, varargin{:});
 
             import mlarbelaez.*;
             pth = fullfile(HypoglycemiaStudy.subjectsDir, sessionFolder, '');
@@ -34,7 +32,7 @@ classdef HypoglycemiaDirector < mlarbelaez.StudyDirector
             pwd0 = pushd(pth);
             this = HypoglycemiaDirector( ...
                 'sessionData', ...
-                HypoglycemiaSession('studyData', HypoglycemiaStudy, 'sessionPath', pth, 'vnumber', v));
+                HypoglycemiaSession('studyData', HypoglycemiaStudy, 'sessionPath', pth));
             switch (lower(ip.Results.kind))
                 case 'freesurfer'
                     this = this.instanceSortDownloadFreesurfer(downloadPath);
@@ -54,7 +52,7 @@ classdef HypoglycemiaDirector < mlarbelaez.StudyDirector
             try
                 DicomSorter.CreateSorted( ...
                     'srcPath', downloadPath, ...
-                    'destPath', this.sessionData_.vLocation, ...
+                    'destPath', this.sessionData_.sessionPath, ...
                     'sessionData', this.sessionData);
             catch ME
                 handexcept(ME, 'mlarbelaez:filesystemError', ...

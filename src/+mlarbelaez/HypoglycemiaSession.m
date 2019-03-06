@@ -7,18 +7,8 @@ classdef HypoglycemiaSession < mlpipeline.Session
  	%  last modified $LastChangedDate$
  	%  and checked into repository /Users/jjlee/Local/src/mlcvl/mlarbelaez/src/+mlarbelaez.
  	%% It was developed on Matlab 9.0.0.307022 (R2016a) Prerelease for MACI64.
- 	
-    properties (Dependent)
-        vfolder
-    end
-    
+ 	    
 	methods
-        
-        %% GET
-        
-        function g = get.vfolder(this)
-            g = sprintf('V%i', this.vnumber);
-        end
         
         %%
         
@@ -28,14 +18,6 @@ classdef HypoglycemiaSession < mlpipeline.Session
             parse(ip, varargin{:});
             
             loc = locationType(ip.Results.typ, this.sessionPath);
-        end
-        function loc  = vLocation(this, varargin)            
-            ip = inputParser;
-            addParameter(ip, 'typ', 'path', @ischar);
-            parse(ip, varargin{:});
-            
-            loc = locationType(ip.Results.typ, ...
-                fullfile(this.sessionPath, this.vfolder, ''));
         end
         
  		function this = HypoglycemiaSession(varargin)
