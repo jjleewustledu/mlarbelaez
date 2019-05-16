@@ -1,4 +1,4 @@
-classdef HypoglycemiaStudy < handle & mlpipeline.IStudyHandle
+classdef HypoglycemiaStudy < handle & mlpipeline.IStudyData
 	%% HYPOGLYCEMIASTUDY  
 
 	%  $Revision$
@@ -11,7 +11,7 @@ classdef HypoglycemiaStudy < handle & mlpipeline.IStudyHandle
     properties (Dependent)
         dicomExtension
         freesurfersDir
-        ppgRawdataDir
+        rawdataDir
         subjectsDir
     end
 
@@ -38,7 +38,7 @@ classdef HypoglycemiaStudy < handle & mlpipeline.IStudyHandle
         function d = get.freesurfersDir(~)
             d = fullfile(getenv('ARBELAEZ'), 'BOLDHypo', 'freesurfer');
         end
-        function d = get.ppgRawdataDir(~)
+        function d = get.rawdataDir(~)
             d = fullfile(getenv('ARBELAEZ'), 'BOLDHypo', 'rawdata', '');
         end
         function d = get.subjectsDir(~)
