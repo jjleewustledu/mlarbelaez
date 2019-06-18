@@ -237,7 +237,7 @@ classdef GluTAlignmentBuilder
             this.ensureSaved(ic);
             this.ensureSaved(icRef);
             ndec = DynamicNIfTId(ic.niftid);
-            ndec = ndec.mcflirtedAfterBlur(PETRegistry.instance.petPointSpread, 'reffile', icRef.fqfilename);
+            ndec = ndec.mcflirtedAfterBlur(ECATRegistry.instance.petPointSpread, 'reffile', icRef.fqfilename);
             %ndec = ndec.withRevertedFrames(ic.niftid, 1:5);
             ic = ImagingContext(ndec.component);
         end
@@ -246,9 +246,9 @@ classdef GluTAlignmentBuilder
             this.ensureSaved(ic);
             this.ensureSaved(icRef);
             ic                  = this.squeezeTime(ic);
-            bniid               = BlurringNIfTId(ic.niftid,    'blur', PETRegistry.instance.petPointSpread);
+            bniid               = BlurringNIfTId(ic.niftid,    'blur', ECATRegistry.instance.petPointSpread);
             ic                  = ImagingContext(bniid.component);
-            bniidRef            = BlurringNIfTId(icRef.niftid, 'blur', PETRegistry.instance.petPointSpread);
+            bniidRef            = BlurringNIfTId(icRef.niftid, 'blur', ECATRegistry.instance.petPointSpread);
             icRef               = ImagingContext(bniidRef.component);
             this.sourceImage    = ic;
             this.referenceImage = icRef;

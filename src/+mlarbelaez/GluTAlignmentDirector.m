@@ -90,7 +90,7 @@ classdef GluTAlignmentDirector
             parse(ip, region, petTarg, varargin{:});
             
             import mlfourd.*;            
-            ic  = this.regionImagingContext(region, mlpet.PETRegistry.instance.petPointSpread);
+            ic  = this.regionImagingContext(region, mlsiemens.ECATRegistry.instance.petPointSpread);
             xfm = this.findXfmForTarget(petTarg);
             regionOnPet = this.builder_.applyXfmNN(xfm, ic, petTarg);
             if (~isempty(ip.Results.viewer))

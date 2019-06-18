@@ -52,7 +52,7 @@ classdef DefaultModeRegions
                 this.mpfc_.img = this.mpfc_.img + double(aparcA2009s.img == this.MPFC_IDS(ididx));
             end
             this.mpfc_ = this.mpfc_.binarized;
-            this.mpfc_ = BlurringNIfTId(this.mpfc_, 'blur', mlpet.PETRegistry.instance.petPointSpread);
+            this.mpfc_ = BlurringNIfTId(this.mpfc_, 'blur', mlsiemens.ECATRegistry.instance.petPointSpread);
             this.mpfc_ = MaskingNIfTId(this.mpfc_);
             this.mpfc_ = this.mpfc_.thresh(0.05);
             this.mpfc_ = this.mpfc_.binarized;

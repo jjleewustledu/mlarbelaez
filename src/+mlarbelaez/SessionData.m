@@ -19,7 +19,7 @@ classdef SessionData < mlpipeline.SessionData
     
     methods %% GET
         function g = get.petBlur(~)
-            g = mlpet.PETRegistry.instance.petPointSpread;
+            g = mlsiemens.ECATRegistry.instance.petPointSpread;
         end
     end
 
@@ -109,7 +109,7 @@ classdef SessionData < mlpipeline.SessionData
             obj = obj.atlas;
         end      
         function p   = petPointSpread(~)
-            p = mlpet.PETRegistry.instance.petPointSpread;
+            p = mlsiemens.ECATRegistry.instance.petPointSpread;
         end
         function [dt0_,date_] = readDatetime0(~)
             dt0_ = datetime;
