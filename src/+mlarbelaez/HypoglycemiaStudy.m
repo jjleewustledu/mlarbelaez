@@ -9,7 +9,6 @@ classdef HypoglycemiaStudy < handle & mlpipeline.IStudyData
  	%% It was developed on Matlab 9.0.0.307022 (R2016a) Prerelease for MACI64.
  	
     properties (Dependent)
-        dicomExtension
         freesurfersDir
         rawdataDir
         subjectsDir
@@ -32,9 +31,6 @@ classdef HypoglycemiaStudy < handle & mlpipeline.IStudyData
         
         %% GET
         
-        function g = get.dicomExtension(~)
-            g = '.dcm';
-        end
         function d = get.freesurfersDir(~)
             d = fullfile(getenv('ARBELAEZ'), 'BOLDHypo', 'freesurfer');
         end
@@ -55,7 +51,7 @@ classdef HypoglycemiaStudy < handle & mlpipeline.IStudyData
         function a = seriesDicomAsterisk(this, fqdn)
             assert(isdir(fqdn));
             assert(isdir(fullfile(fqdn, 'DICOM')));
-            a = fullfile(fqdn, 'DICOM', ['*' this.dicomExtension]);
+            a = fullfile(fqdn, 'DICOM', ['*' mlpipeline.ResourcesRegistry.instance().dicomExtension]);
         end
     end
     
