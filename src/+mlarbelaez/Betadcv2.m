@@ -52,6 +52,13 @@ classdef Betadcv2
         response
     end
     
+    methods (Static)
+        function [bsrf,blood,dcv] = createKernel(filename)
+            this = mlarbelaez.Betadcv2(filename);
+            [bsrf,blood,dcv] = this.silentBETADCV;
+        end        
+    end
+    
     methods %% GET
         function n = get.crvName(this)
             n = [this.fileprefix_ '.crv'];

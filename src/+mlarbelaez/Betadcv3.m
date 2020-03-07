@@ -254,7 +254,7 @@ classdef Betadcv3
             
             this.fileprefix_ = p.Results.fileprefix;
             this = this.readcrv;
-            this = this.readdcv;
+%           this = this.readdcv;
             
             crvObj = mlpet.CRV.load(this.crvName);
             this.wellFactor = crvObj.wellFactor;

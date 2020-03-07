@@ -17,6 +17,14 @@ classdef BetadcvCatheterResponse < mlaif.AbstractAifProblem & mlarbelaez.Abstrac
         betadcv
     end
     
+    methods (Static)
+        function k = createKernel()
+            crv = mlpet.CRV.load('/Users/jjlee/Box/Chaojie/p7750ho1.crv');
+            this = mlarbelaez.BetadcvCatheterResponse(crv);
+            k = this.estimateKernel();
+        end
+    end
+    
 	methods 
         function this  = estimateParameters(this)
             %% ESTIMATEPARAMETERS manages Bayes PETMR processing
@@ -55,7 +63,7 @@ classdef BetadcvCatheterResponse < mlaif.AbstractAifProblem & mlarbelaez.Abstrac
             import mlarbelaez.* mlpet.*;
             this.betadcv         = Betadcv2(amatest_crv.fileprefix);
             dccrv                = DecayCorrectedCRV(amatest_crv);
-            this.dependentData   = this.smoothPeristalsis(dccrv.counts);  
+            this.dependentData   = dccrv.counts; % this.smoothPeristalsis
             this.independentData = 0:length(this.dependentData)-1;
  		end 
     end 
