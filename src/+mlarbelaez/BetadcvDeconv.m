@@ -128,7 +128,8 @@ classdef BetadcvDeconv
             %% CALCULATE F where H=F*G given H,G
             %  length N
             
-            F = ifft(fft(H, N) ./ fft(G, N));
+            F = fftshift(ifft(fft(H, N) ./ fft(G, N)));
+            F = F(2048:2048+length(H));
         end
         function x = ensureColVector(x)
             %% ENSURECOLVECTOR reshapes row vectors to col vectors, leaving matrices untouched

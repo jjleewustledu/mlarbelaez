@@ -55,7 +55,11 @@ classdef Betadcv2
     methods (Static)
         function [bsrf,blood,dcv] = createKernel(filename)
             this = mlarbelaez.Betadcv2(filename);
-            [bsrf,blood,dcv] = this.silentBETADCV;
+            bsrf = zeros(4096, 1);
+            [bsrf_,blood,dcv] = this.silentBETADCV;
+            bsrf_ = asrow(bsrf_);
+            bsrf_ = bsrf_(1:16:end);
+            bsrf(1:length(bsrf_)) = bsrf_;
         end        
     end
     
