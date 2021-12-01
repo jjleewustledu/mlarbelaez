@@ -59,6 +59,12 @@ classdef LogA < mlio.IOInterface
         end
     end
     methods
+        function c = char(this, varargin)
+            c = char(this.fqfilename, varargin{:});
+        end
+        function s = string(this, varargin)
+            s = string(this.fqfilename, varargin{:});
+        end
         function save(~)
             warning('mlio:notImplemented', 'LogA.save');
         end
