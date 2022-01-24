@@ -39,7 +39,6 @@ classdef C11GlucoseKinetics < mlkinetics.AbstractC11GlucoseKinetics
                 end
             end
             
-            studyDat.saveWorkspace;
             t2 = toc(t0);
             studyDat.diaryOff;
         end
