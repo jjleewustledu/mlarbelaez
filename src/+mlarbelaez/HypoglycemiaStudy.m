@@ -1,4 +1,4 @@
-classdef HypoglycemiaStudy < handle & mlpipeline.IStudyData
+classdef HypoglycemiaStudy < handle 
 	%% HYPOGLYCEMIASTUDY  
 
 	%  $Revision$

@@ -1,4 +1,4 @@
-classdef SessionData < mlpipeline.SessionData
+classdef SessionData < mlpipeline.SessionData2022
 	%% SESSIONDATA  
 
 	%  $Revision$
@@ -36,7 +36,7 @@ classdef SessionData < mlpipeline.SessionData
             %         'vnumber'     is numeric
             %         'tag'         is appended to the fileprefix
 
- 			this = this@mlpipeline.SessionData(varargin{:});
+ 			this = this@mlpipeline.SessionData2022(varargin{:});
             this.ac_ = true;
             assert(isnumeric(this.intervention_));
             this.vnumber_ = this.intervention_;
