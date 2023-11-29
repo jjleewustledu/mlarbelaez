@@ -276,7 +276,7 @@ classdef GluTFigures
 
             % Initialize arrays to store fits and goodness-of-fit.
             fitresult = cell( 2, 1 );
-            gof = struct( 'sse', cell( 2, 1 ), ...
+            gof = struct( 'loss', cell( 2, 1 ), ...
                 'rsquare', [], 'dfe', [], 'adjrsquare', [], 'rmse', [] );
 
             % Initialize data            

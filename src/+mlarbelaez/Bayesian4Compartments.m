@@ -83,9 +83,9 @@ classdef Bayesian4Compartments < mlbayesian.AbstractMcmcProblem
             this.mcmc          = MCMC(this, this.dependentData, this.paramsManager);
             [this.parmax,this.avpar,this.mcmc] = this.mcmc.runMcmc; 
         end
-        function sse   = sumSquaredErrors(this, p)
+        function loss   = sumSquaredErrors(this, p)
             p   = num2cell(p);
-            sse = norm(this.dependentData - this.estimateQFast(p{:}));
+            loss = norm(this.dependentData - this.estimateQFast(p{:}));
         end
         function ed    = estimateData(this)
             ed = this.estimateQ;
